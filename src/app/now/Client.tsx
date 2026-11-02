@@ -9,7 +9,7 @@ import type { Place } from "@/lib/places";
 import { describeProfile, loadProfile } from "@/lib/profile";
 import { loadTodayPlan } from "@/lib/saved-plan";
 import { describeSituation, estimateSituation, type Fix, type Situation } from "@/lib/situation";
-import { headline, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
+import { headline, isInStation, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
 import { MapView, type MapPoint } from "./MapView";
@@ -196,7 +196,7 @@ export default function NowPage() {
           </div>
           <Details item={first} compact={!!station} />
           <Badges item={first} />
-          <MapLink item={first} />
+          <MapLink item={first} inStation={isInStation(first, station)} big />
         </section>
       )}
 
@@ -280,7 +280,7 @@ export default function NowPage() {
         <>
           <h2>ほかのトイレ</h2>
           {data.toilets.slice(1).map((x) => (
-            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} />
+            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
           ))}
         </>
       )}
@@ -289,7 +289,7 @@ export default function NowPage() {
         <>
           <h2>着替えられる場所（多機能トイレ）</h2>
           {data.changeRooms.length ? (
-            data.changeRooms.map((x) => <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} />)
+            data.changeRooms.map((x) => <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />)
           ) : (
             <p className="muted">近くに多機能トイレのデータがありません。</p>
           )}
@@ -297,7 +297,7 @@ export default function NowPage() {
           <h2>替えを買える店</h2>
           <p className="muted">品ぞろえは店によって違います。「現地確認済み」の店だけ、置いてあった品目を出しています。</p>
           {data.stores.map((x) => (
-            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} />
+            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
           ))}
           <p className="muted">
             © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成

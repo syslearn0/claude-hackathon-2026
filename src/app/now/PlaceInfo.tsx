@@ -15,7 +15,17 @@ export const TIER_LABEL: Record<Tier, string> = {
 };
 
 // head：駅の中では、方角と分数の代わりに事実（改札の内外・階・実測の分数）を見出しにする
-export function Item({ item, n, head }: { item: NearbyItem; n?: number; head?: { main: string; sub?: string } }) {
+export function Item({
+  item,
+  n,
+  head,
+  inStation = false,
+}: {
+  item: NearbyItem;
+  n?: number;
+  head?: { main: string; sub?: string };
+  inStation?: boolean;
+}) {
   const p = item.place;
   return (
     <div className="card">
@@ -27,7 +37,7 @@ export function Item({ item, n, head }: { item: NearbyItem; n?: number; head?: {
       {p.kind === "store" && <div className="muted">営業時間：{p.hoursText ?? p.openingHours ?? "登録なし"}</div>}
       <Details item={item} compact={!!head} />
       <Badges item={item} />
-      <MapLink item={item} />
+      <MapLink item={item} inStation={inStation} />
     </div>
   );
 }
@@ -104,16 +114,24 @@ export function Badges({ item }: { item: NearbyItem }) {
 }
 
 // 行き先（トイレや店）の位置だけを渡す。利用者の位置は渡さない
-export function MapLink({ item }: { item: NearbyItem }) {
+// inStation：駅の中では Google マップの歩きの道順も構内（階・改札）を扱えないので、場所を見せるだけにする
+// big：一番近いトイレのカードでは、緊急時に押しやすい大きなボタンにする
+export function MapLink({ item, inStation = false, big = false }: { item: NearbyItem; inStation?: boolean; big?: boolean }) {
   const { lat, lon } = item.place;
+  const href = inStation
+    ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
+  const label = inStation ? "地図で場所を見る" : "地図で道順を見る";
+  if (big) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className="button primary big" style={{ marginTop: 10 }}>
+        {inStation ? label : `${label}（Google マップ）`}
+      </a>
+    );
+  }
   return (
-    <a
-      href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`}
-      target="_blank"
-      rel="noreferrer"
-      style={{ display: "inline-block", marginTop: 6 }}
-    >
-      地図で道順を見る
+    <a href={href} target="_blank" rel="noreferrer" style={{ display: "inline-block", marginTop: 6 }}>
+      {label}
     </a>
   );
 }

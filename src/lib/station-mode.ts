@@ -50,13 +50,17 @@ const GATE_JA = { inside: "改札内", outside: "改札外", street: "駅の外"
 
 const fmtSec = (s: number) => (s < 60 ? `約${s}秒` : `約${Math.round(s / 60)}分`);
 
+// 駅の中の場所として扱うのは、その駅のデータか、位置が駅の代表点しかないものだけ。
+// 自分の座標を持つ駅の外の場所（路上の公衆トイレなど）は、駅のそばでも方角と分数で出す
+export function isInStation(item: NearbyItem, station: string | undefined): boolean {
+  const p = item.place;
+  return station !== undefined && (p.station === station || p.approxLocation === true);
+}
+
 // 見出し。駅の中なら事実の組み合わせ、駅の外なら方角と分数
 export function headline(item: NearbyItem, station: string | undefined, ref?: StationRef): { main: string; sub?: string } {
   const p = item.place;
-  // 駅の中の場所として扱うのは、その駅のデータか、位置が駅の代表点しかないものだけ。
-  // 自分の座標を持つ駅の外の場所（路上の公衆トイレなど）は、駅のそばでも方角と分数で出す
-  const inside = station !== undefined && (p.station === station || p.approxLocation === true);
-  if (!inside) return { main: `${item.direction}へ 約${item.walkMin}分` };
+  if (!isInStation(item, station)) return { main: `${item.direction}へ 約${item.walkMin}分` };
 
   const parts: string[] = [];
   if (p.gate && p.gate !== "unknown") parts.push(GATE_JA[p.gate]);
