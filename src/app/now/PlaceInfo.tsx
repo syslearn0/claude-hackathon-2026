@@ -1,6 +1,7 @@
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName } from "@/lib/nearby";
 import type { Tier } from "@/lib/places";
+import { TIER_COLOR } from "./MapView";
 
 // 場所1件の表示（/now の一覧と、③の手順の下に並べる札で共通）
 
@@ -11,11 +12,12 @@ export const TIER_LABEL: Record<Tier, string> = {
   report: "利用者の報告",
 };
 
-export function Item({ item }: { item: NearbyItem }) {
+export function Item({ item, n }: { item: NearbyItem; n?: number }) {
   const p = item.place;
   return (
     <div className="card">
       <div>
+        <NumberBadge n={n} tier={p.tier} />
         <strong>
           {item.direction}へ 約{item.walkMin}分
         </strong>{" "}
@@ -100,5 +102,29 @@ export function MapLink({ item }: { item: NearbyItem }) {
     >
       地図で道順を見る
     </a>
+  );
+}
+
+// 地図のピンと同じ番号・同じ色
+export function NumberBadge({ n, tier }: { n?: number; tier: Tier }) {
+  if (n === undefined) return null;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 22,
+        height: 22,
+        marginRight: 6,
+        borderRadius: "50%",
+        background: TIER_COLOR[tier],
+        color: "#fff",
+        fontSize: "0.75rem",
+        fontWeight: 700,
+      }}
+    >
+      {n}
+    </span>
   );
 }

@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName, findNearby } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
 import { AfterPanel } from "./AfterPanel";
-import { Badges, Details, Item, MapLink } from "./PlaceInfo";
+import { MapView, type MapPoint } from "./MapView";
+import { Badges, Details, Item, MapLink, NumberBadge } from "./PlaceInfo";
 import { RequestCard } from "./RequestCard";
 
 type Nearby = {
@@ -76,14 +77,31 @@ export default function NowPage() {
       .catch(() => setStatus("候補を読み込めませんでした。通信を確かめてください。"));
   }, []);
 
-  const data: Nearby | null =
-    pos && all
-      ? {
-          toilets: findNearby(all.places, { from: pos.at, kind: "toilet", limit: 3 }),
-          changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1 }),
-          stores: findNearby(all.places, { from: pos.at, kind: "store", limit: 3 }),
-        }
-      : null;
+  const data: Nearby | null = useMemo(
+    () =>
+      pos && all
+        ? {
+            toilets: findNearby(all.places, { from: pos.at, kind: "toilet", limit: 3 }),
+            changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1 }),
+            stores: findNearby(all.places, { from: pos.at, kind: "store", limit: 3 }),
+          }
+        : null,
+    [pos, all],
+  );
+
+  // 地図のピンと一覧で同じ番号を使う（トイレ → 着替えられる場所 → 店の順）
+  const points: MapPoint[] = useMemo(() => {
+    if (!data) return [];
+    const seen = new Set<string>();
+    const list: MapPoint[] = [];
+    for (const x of [...data.toilets, ...data.changeRooms, ...data.stores]) {
+      if (seen.has(x.place.id)) continue;
+      seen.add(x.place.id);
+      list.push({ n: list.length + 1, place: x.place });
+    }
+    return list;
+  }, [data]);
+  const numberOf = useMemo(() => new Map(points.map((p) => [p.place.id, p.n])), [points]);
 
   const first = data?.toilets[0];
 
@@ -103,7 +121,10 @@ export default function NowPage() {
 
       {first && (
         <section className="card" style={{ borderWidth: 2, borderColor: "var(--accent)" }}>
-          <div className="muted">一番近いトイレ</div>
+          <div className="muted">
+            <NumberBadge n={numberOf.get(first.place.id)} tier={first.place.tier} />
+            一番近いトイレ
+          </div>
           <div style={{ fontSize: "2rem", fontWeight: 800, lineHeight: 1.2 }}>
             {first.direction}へ 約{first.walkMin}分
           </div>
@@ -128,6 +149,8 @@ export default function NowPage() {
         </>
       )}
 
+      {pos && points.length > 0 && <MapView center={pos.at} points={points} />}
+
       {data && data.toilets.length === 0 && (
         <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください（お願いカードを見せられます）。</p>
       )}
@@ -136,7 +159,7 @@ export default function NowPage() {
         <>
           <h2>ほかのトイレ</h2>
           {data.toilets.slice(1).map((x) => (
-            <Item key={x.place.id} item={x} />
+            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} />
           ))}
         </>
       )}
@@ -145,7 +168,7 @@ export default function NowPage() {
         <>
           <h2>着替えられる場所（多機能トイレ）</h2>
           {data.changeRooms.length ? (
-            data.changeRooms.map((x) => <Item key={x.place.id} item={x} />)
+            data.changeRooms.map((x) => <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} />)
           ) : (
             <p className="muted">近くに多機能トイレのデータがありません。</p>
           )}
@@ -153,7 +176,7 @@ export default function NowPage() {
           <h2>替えを買える店</h2>
           <p className="muted">品ぞろえは店によって違います。「現地確認済み」の店だけ、置いてあった品目を出しています。</p>
           {data.stores.map((x) => (
-            <Item key={x.place.id} item={x} />
+            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} />
           ))}
           <p className="muted">
             © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成
