@@ -89,6 +89,7 @@ export default function SurveyPage() {
       <h1>現地確認の記録</h1>
       <p className="muted">
         先に<Link href="/tools/survey/rules">調査のルール</Link>を読んでください。記録はこの端末だけに保存されます。
+        11/3 の新宿の段取りは<Link href="/tools/survey/shinjuku">チェックリスト</Link>へ。
       </p>
 
       <label className="field">

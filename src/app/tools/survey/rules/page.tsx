@@ -29,6 +29,10 @@ export default function SurveyRules() {
         <li>所要時間は、普通の速さで歩いて測る。走らない。</li>
       </ul>
 
+      <p className="card">
+        11/3 の新宿駅は、<Link href="/tools/survey/shinjuku">新宿駅のチェックリスト</Link>の順に回ってください。
+      </p>
+
       <h2>回り方の目安</h2>
       <ol>
         <li>ホームに降りる → 一番近いトイレの案内表示を探す（迷ったら、迷ったことをメモ）</li>
