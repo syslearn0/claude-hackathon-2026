@@ -1,7 +1,7 @@
 // エージェントの土台：Claude が道具を呼び、決まった形（JSON）で手順を返す。
 // 手順に書ける場所は、その回に道具が返した場所だけ（スキーマで縛る）。
 import Anthropic from "@anthropic-ai/sdk";
-import { answerSchema, citedIds, dropUnseen, parseAnswer, type Answer } from "./answer";
+import { answerSchema, citedIds, dropUnseen, parseAnswer, type Answer, type Shape } from "./answer";
 import { runTool, TOOLS, type ToolContext } from "./tools";
 
 // 開発中は .env.local の ANTHROPIC_MODEL で安いモデルに切り替えられる
@@ -31,6 +31,7 @@ export const BASE_SYSTEM = `あなたは、急なトイレの不安がある人�
 export type AgentInput = {
   userText: string;
   modeInstruction?: string;
+  shape?: Shape;
   context?: ToolContext;
   history?: Anthropic.Beta.BetaMessageParam[];
 };
@@ -92,7 +93,7 @@ export async function runAgent(input: AgentInput, client: MessagesClient = new A
       tools: TOOLS,
       messages,
       // 返答の形。place_ids に書けるのは、ここまでに道具が返した id だけ
-      output_config: { effort: "medium", format: { type: "json_schema", schema: answerSchema([...seen]) } },
+      output_config: { effort: "medium", format: { type: "json_schema", schema: answerSchema([...seen], input.shape) } },
       ...(SUPPORTS_FALLBACK.test(model) && { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),
     });
     stopReason = response.stop_reason;

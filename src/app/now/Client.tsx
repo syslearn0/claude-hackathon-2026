@@ -6,6 +6,7 @@ import type { LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName, findNearby } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
+import { loadTodayPlan } from "@/lib/saved-plan";
 import { headline, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { AfterPanel } from "./AfterPanel";
 import { MapView, type MapPoint } from "./MapView";
@@ -39,6 +40,8 @@ export default function NowPage() {
   const [after, setAfter] = useState(false);
   // 駅の中で「いまどこ？」に選んだホーム・改札（キーは label）
   const [refKey, setRefKey] = useState<string | null>(null);
+  // ①で保存した今日の計画（あれば）
+  const [plan] = useState(() => loadTodayPlan());
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
 
@@ -124,6 +127,12 @@ export default function NowPage() {
         </Link>
         <button onClick={() => setCard(true)}>お願いカード</button>
       </div>
+
+      {plan && (
+        <p className="card">
+          <strong>今日の計画</strong>：{plan.answer.summary} <Link href="/plan">計画を見る</Link>
+        </p>
+      )}
 
       {pos && <p className="muted">基準：{pos.how}</p>}
       {status && <p className="card">{status}</p>}

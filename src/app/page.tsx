@@ -13,6 +13,11 @@ export default function Home() {
       </Link>
       <p className="muted">近いトイレ・着替えられる場所・替えを買える店と、駅員や店員に見せる「お願いカード」。</p>
 
+      <Link href="/plan" className="button big" style={{ marginTop: 12 }}>
+        出かける前の計画
+      </Link>
+      <p className="muted">今日の予定と調子から、駅ごとに使えるトイレ・着替えられる場所・店をまとめます。</p>
+
       <h2>データ集めの道具</h2>
       <ul>
         <li>

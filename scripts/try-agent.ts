@@ -36,8 +36,13 @@ async function main() {
   if (!question) throw new Error('質問を渡してください：npx tsx scripts/try-agent.ts "質問" [駅名]');
   const text = station ? `${question}（いま${station}駅にいます）` : question;
   const started = Date.now();
-  const after = process.env.MODE === "after";
-  const r = await runAgent({ userText: text, modeInstruction: after ? MODE_INSTRUCTIONS.after : undefined });
+  // MODE=after（③トイレに入った後）または MODE=plan（①出かける前の計画）
+  const mode = process.env.MODE === "after" || process.env.MODE === "plan" ? process.env.MODE : undefined;
+  const r = await runAgent({
+    userText: text,
+    modeInstruction: mode ? MODE_INSTRUCTIONS[mode] : undefined,
+    shape: mode === "plan" ? "plan" : "steps",
+  });
 
   // 画面と同じように、place_ids を【名前・信頼度】にして見せる
   const byId = new Map((await loadPlaces()).map((p) => [p.id, p]));
@@ -47,8 +52,10 @@ async function main() {
       const p = byId.get(id);
       return p ? `【${displayName(p)}・${TIER[p.tier]}】` : "（不明な場所）";
     });
+    if (step.section && step.section !== r.answer.steps[i - 1]?.section) console.log(`■ ${step.section}`);
     console.log(`${i + 1}. ${step.text}${names.length ? `　${names.join(" ")}` : ""}`);
   });
+  if (r.answer.packing?.length) console.log(`持ち物：${r.answer.packing.join("、")}`);
   r.answer.notes.forEach((n) => console.log(`※ ${n}`));
 
   console.log("\n---");
