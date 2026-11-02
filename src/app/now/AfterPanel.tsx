@@ -91,7 +91,7 @@ function AnswerView({ answer, from }: { answer: Answer; from: LatLon }) {
     <div style={{ marginTop: 12 }}>
       <div className="muted">
         {answer.by === "ai"
-          ? `AI が作った手順${answer.grounded === false ? "（根拠を確かめられない場所は伏せました）" : "（出てくる場所はすべてデータで確認済み）"}`
+          ? `AI が作った手順${answer.grounded === false ? "（根拠を確かめられない場所は伏せました）" : "（出てくる場所は、すべて手元のデータにあることをプログラムで確認済み）"}`
           : `AI を使わない簡易版（${answer.reason}）`}
       </div>
       {answer.text.split("\n").map((line, i) => (

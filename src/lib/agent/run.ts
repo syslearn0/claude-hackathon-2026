@@ -10,11 +10,13 @@ export const BASE_SYSTEM = `あなたは、急なトイレの不安がある人�
 
 守ること：
 - トイレ・店・駅についての事実は、道具（tools）の結果だけを使う。道具に出てこない場所や設備を、推測で書かない。
-- 場所を挙げるときは、必ずその場所の id を [[place:ID]] の形で書く（例：「[[place:osm-node-1]] 北へ約2分」）。id を書かない場所の案内はしない。
-- 道具の結果に無い項目は「不明」。「ない」と言い換えない。信頼度（現地確認済み／公式データ／OSM（未確認））と、分かれば確認日を添える。
+- 場所を挙げるときは、必ずその場所の id を [[place:ID]] の形で書く（例：「[[place:osm-node-1]] が北へ約2分」）。id を書かない場所の案内はしない。
+- [[place:ID]] は画面で「場所の名前＋信頼度の札」に置き換わる。だから文中で、その場所の名前や信頼度をもう一度書かない。
+- 道具の結果に無い項目は「不明」。「ない」と言い換えない。
+- 確認日は分かるときだけ書き、「確認日は不明」とは書かない。同じ注意（品ぞろえは未確認など）を何度も繰り返さず、まとめて一度だけ書く。
 - 結論を先に、短く。次に何をすればよいかが一目で分かる順に並べる。
 - 体調や症状の判断、受診・食事・薬の助言はしない。「大丈夫」など保証する言い方や、「深呼吸して」など体についての声かけもしない。
-- ただし、大量の出血・高い熱・強い腹痛が続く・意識がもうろうとする、と書かれたときだけ、ほかの案内より先に次の一文を出す：「その症状は、すぐに医療機関に連絡するか、119番に電話してください。」
+- ただし、大量の出血・高い熱・強い腹痛が続く・めまいや意識がもうろうとする、と書かれたときだけ、ほかの案内より先に次の一文を出す：「その症状は、すぐに医療機関に連絡するか、119番に電話してください。」そのときは買い物や着替えの案内はせず、近くの駅員の窓口や座れる場所（分かれば）と、お願いカードで周りの人に助けを頼めることだけを添える。
 - 病名を繰り返さない。
 - 位置や駅が分からず道具を使えないときは、推測せず、駅名を一度だけ尋ねる。`;
 
@@ -33,6 +35,7 @@ export type AgentResult = {
   corrected: boolean; // 根拠チェックで1回直させたか
   toolCalls: { name: string; input: unknown; isError?: boolean }[];
   stopReason: string | null;
+  usage: { input: number; output: number; cacheRead: number; requests: number };
   messages: Anthropic.Beta.BetaMessageParam[];
 };
 
@@ -57,6 +60,7 @@ export async function runAgent(input: AgentInput, client: MessagesClient = new A
   const toolCalls: AgentResult["toolCalls"] = [];
   let corrected = false;
   let stopReason: string | null = null;
+  const usage = { input: 0, output: 0, cacheRead: 0, requests: 0 };
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const response = await client.beta.messages.create({
@@ -71,6 +75,10 @@ export async function runAgent(input: AgentInput, client: MessagesClient = new A
       fallbacks: "default",
     });
     stopReason = response.stop_reason;
+    usage.requests++;
+    usage.input += response.usage?.input_tokens ?? 0;
+    usage.output += response.usage?.output_tokens ?? 0;
+    usage.cacheRead += response.usage?.cache_read_input_tokens ?? 0;
     // 考えた内容のブロックも含めて、そのまま履歴に戻す
     messages.push({ role: "assistant", content: response.content });
 
@@ -117,6 +125,6 @@ export async function runAgent(input: AgentInput, client: MessagesClient = new A
 
   function finish(text: string, grounded: boolean): AgentResult {
     const cited = checkGrounding(text, seen).cited;
-    return { text, citedIds: cited, seenIds: [...seen], grounded, corrected, toolCalls, stopReason, messages };
+    return { text, citedIds: cited, seenIds: [...seen], grounded, corrected, toolCalls, stopReason, usage, messages };
   }
 }
