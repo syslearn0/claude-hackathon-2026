@@ -4,16 +4,17 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
-import { displayName } from "@/lib/nearby";
-import type { Tier } from "@/lib/places";
+import { displayName, findNearby } from "@/lib/nearby";
+import type { Place, Tier } from "@/lib/places";
 import { RequestCard } from "./RequestCard";
 
 type Nearby = {
   toilets: NearbyItem[];
   changeRooms: NearbyItem[];
   stores: NearbyItem[];
-  attribution: string;
 };
+
+type PlacesResponse = { places: Place[]; attribution: string };
 
 // 地下などで位置が取れないときに選ぶ場所（駅の中心のだいたいの位置）
 const PRESETS: { label: string; pos: LatLon }[] = [
@@ -36,7 +37,7 @@ export default function NowPage() {
   const [status, setStatus] = useState(() =>
     "geolocation" in navigator ? "位置を確かめています…" : "位置が使えません。下から今いる駅を選んでください。",
   );
-  const [data, setData] = useState<Nearby | null>(null);
+  const [all, setAll] = useState<PlacesResponse | null>(null);
   const [card, setCard] = useState(false);
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
@@ -71,13 +72,22 @@ export default function NowPage() {
     locate();
   }, [locate]);
 
+  // 場所データは位置と関係なく丸ごと受け取る（位置をサーバーに送らないため）
   useEffect(() => {
-    if (!pos) return;
-    fetch(`/api/nearby?lat=${pos.at.lat}&lon=${pos.at.lon}`)
+    fetch("/api/places")
       .then((r) => r.json())
-      .then(setData)
+      .then(setAll)
       .catch(() => setStatus("候補を読み込めませんでした。通信を確かめてください。"));
-  }, [pos]);
+  }, []);
+
+  const data: Nearby | null =
+    pos && all
+      ? {
+          toilets: findNearby(all.places, { from: pos.at, kind: "toilet", limit: 3 }),
+          changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1 }),
+          stores: findNearby(all.places, { from: pos.at, kind: "store", limit: 3 }),
+        }
+      : null;
 
   const first = data?.toilets[0];
 
@@ -136,7 +146,8 @@ export default function NowPage() {
           {data.stores.map((x) => (
             <Item key={x.place.id} item={x} />
           ))}
-          <p className="muted">{data.attribution}</p>
+          <p className="muted">{all?.attribution}</p>
+          <p className="muted">現在地はこの端末の中だけで使い、サーバーには送りません。</p>
         </>
       )}
 

@@ -8,7 +8,8 @@ import { exportFile, loadJson, saveJson, stamp } from "@/lib/local";
 // 本番の Web アプリが受け取るのと同じ経路で取るので、市販の記録アプリより正直な結果になる。
 
 type Fix = {
-  t: number; // 端末の時刻（ms）
+  t: number; // 位置に付いてくる時刻（ms）。端末の時計より少し先になることがある
+  rx?: number; // このページが受け取った時刻（ms）
   lat: number;
   lon: number;
   acc: number;
@@ -83,6 +84,7 @@ export default function GpsLogPage() {
             ...l.fixes,
             {
               t: p.timestamp,
+              rx: Date.now(),
               lat: p.coords.latitude,
               lon: p.coords.longitude,
               acc: p.coords.accuracy,
@@ -128,7 +130,7 @@ export default function GpsLogPage() {
   };
 
   const last = log.fixes[log.fixes.length - 1];
-  const lastAge = last ? Math.round((now - last.t) / 1000) : null;
+  const lastAge = last ? Math.max(0, Math.round((now - (last.rx ?? last.t)) / 1000)) : null;
   const trimmedCount = trimEnds(log.fixes, trimMeters).length;
 
   return (
