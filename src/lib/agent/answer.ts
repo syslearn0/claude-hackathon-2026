@@ -66,10 +66,28 @@ export function citedIds(a: Answer): string[] {
   return [...new Set(a.steps.flatMap((s) => s.placeIds))];
 }
 
+// 文の中に場所の印（[[place:ID]]）が書かれてしまったとき：文からは消し、
+// 道具が返した場所なら place_ids に移す（画面に印の文字がそのまま出ないように）
+const MARK = /\s*\[\[place:([^\]\s]+)\]\]\s*/g;
+
+function moveMarkers(a: Answer): Answer {
+  const clean = (t: string) => t.replace(MARK, " ").replace(/\s{2,}/g, " ").trim();
+  return {
+    ...a,
+    summary: clean(a.summary),
+    notes: a.notes.map(clean),
+    steps: a.steps.map((s) => {
+      const found = [...s.text.matchAll(MARK)].map((m) => m[1]);
+      return { ...s, text: clean(s.text), placeIds: [...new Set([...s.placeIds, ...found])] };
+    }),
+  };
+}
+
 // 念のための確認（スキーマで防いでいるので、ふだんは何も起きない）：道具が返していない id を落とす
 export function dropUnseen(a: Answer, seen: ReadonlySet<string>): { answer: Answer; dropped: string[] } {
   const dropped: string[] = [];
-  const steps = a.steps.map((s) => ({
+  const moved = moveMarkers(a);
+  const steps = moved.steps.map((s) => ({
     ...s,
     placeIds: s.placeIds.filter((id) => {
       if (seen.has(id)) return true;
@@ -77,5 +95,5 @@ export function dropUnseen(a: Answer, seen: ReadonlySet<string>): { answer: Answ
       return false;
     }),
   }));
-  return { answer: { ...a, steps }, dropped };
+  return { answer: { ...moved, steps }, dropped };
 }

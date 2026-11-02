@@ -56,7 +56,7 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: "find_station",
     description:
-      "駅名から駅の位置（緯度経度）を調べる。利用者が駅名で場所を言ったとき、find_nearby_places の前に使う。データがあるのは新宿駅周辺と京阪 丹波橋〜出町柳沿線だけ。",
+      "駅名から駅の位置（緯度経度）を調べる。利用者が駅名で場所を言ったとき、find_nearby_places の前に使う。駅の位置は東京23区と京都市の駅がある。トイレや店のデータがあるのは、新宿駅・東京駅・京都駅の周りと京阪 丹波橋〜出町柳沿線だけ。",
     input_schema: {
       type: "object",
       properties: { name: { type: "string", description: "駅名（「駅」は付けなくてよい）。例：新宿、祇園四条" } },

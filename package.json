@@ -11,7 +11,8 @@
     "fetch:osm": "tsx scripts/fetch-osm.ts",
     "import:tokyo": "tsx scripts/import-tokyo-stations.ts",
     "import:survey": "tsx scripts/import-survey.ts",
-    "try:agent": "tsx scripts/try-agent.ts"
+    "try:agent": "tsx scripts/try-agent.ts",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

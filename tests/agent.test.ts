@@ -118,3 +118,14 @@ test("断られたときは決まった文を返す", async () => {
   assert.equal(r.ok, false);
   assert.match(r.answer.steps[0].text, /駅員や店員/);
 });
+
+test("文の中に書かれた場所の印は消し、道具が返した場所なら place_ids に移す", () => {
+  const r = dropUnseen(
+    { summary: "[[place:x]] 近い", steps: [{ text: "公衆トイレへ [[place:a]] 向かう [[place:x]]", placeIds: [] }], notes: [] },
+    new Set(["a"]),
+  );
+  assert.equal(r.answer.steps[0].text, "公衆トイレへ 向かう");
+  assert.deepEqual(r.answer.steps[0].placeIds, ["a"]);
+  assert.equal(r.answer.summary, "近い");
+  assert.deepEqual(r.dropped, ["x"]);
+});
