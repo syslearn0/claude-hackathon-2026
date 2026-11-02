@@ -41,10 +41,18 @@ test("近い順に、種類と距離の上限で絞る", () => {
   assert.deepEqual(r.map((x) => x.place.id), ["near", "mid"]);
 });
 
-test("同じ歩く時間なら、確認済みを先に出す", () => {
-  const places = [at("osm", 35.001, 135), at("verified", 35.0011, 135, { tier: "verified" })];
+test("確認済みは、少し遠くても OSM より先に出す", () => {
+  // OSM：約2分、確認済み：約4分
+  const places = [at("osm", 35.001, 135), at("verified", 35.002, 135, { tier: "verified" })];
   const r = findNearby(places, { from: { lat: 35, lon: 135 }, kind: "toilet" });
-  assert.equal(r[0].place.id, "verified");
+  assert.deepEqual(r.map((x) => x.place.id), ["verified", "osm"]);
+});
+
+test("ずっと遠い確認済みより、近い OSM を先に出す", () => {
+  // OSM：約2分、確認済み：約11分
+  const places = [at("osm", 35.001, 135), at("verified", 35.005, 135, { tier: "verified" })];
+  const r = findNearby(places, { from: { lat: 35, lon: 135 }, kind: "toilet" });
+  assert.equal(r[0].place.id, "osm");
 });
 
 test("多機能だけ：分からないもの（undefined）は含めない", () => {

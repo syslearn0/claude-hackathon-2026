@@ -17,8 +17,9 @@ export type NearbyQuery = {
   accessibleOnly?: boolean;
 };
 
-// 同じ距離なら、確かな段の情報を先に出す
-const TIER_RANK: Record<Tier, number> = { verified: 0, official: 1, osm: 2, report: 3 };
+// 確かな情報ほど前に出す。改札の内外も分からない OSM のトイレが数十m近いだけで、
+// 現地確認したトイレより上に来ないよう、並べるときだけ「分」を足して比べる（表示する分数はそのまま）
+const TIER_PENALTY_MIN: Record<Tier, number> = { verified: 0, official: 1, osm: 3, report: 3 };
 
 export function findNearby(places: Place[], q: NearbyQuery): NearbyItem[] {
   const limit = q.limit ?? 3;
@@ -36,8 +37,12 @@ export function findNearby(places: Place[], q: NearbyQuery): NearbyItem[] {
       };
     })
     .filter((x) => x.meters <= maxMeters)
-    .sort((a, b) => a.walkMin - b.walkMin || TIER_RANK[a.place.tier] - TIER_RANK[b.place.tier] || a.meters - b.meters)
+    .sort((a, b) => rankMin(a) - rankMin(b) || a.meters - b.meters)
     .slice(0, limit);
+}
+
+function rankMin(x: NearbyItem): number {
+  return x.walkMin + TIER_PENALTY_MIN[x.place.tier];
 }
 
 export function displayName(p: Place): string {

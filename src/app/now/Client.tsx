@@ -14,7 +14,7 @@ type Nearby = {
   stores: NearbyItem[];
 };
 
-type PlacesResponse = { places: Place[]; attribution: string };
+type PlacesResponse = { places: Place[] };
 
 // 地下などで位置が取れないときに選ぶ場所（駅の中心のだいたいの位置）
 const PRESETS: { label: string; pos: LatLon }[] = [
@@ -114,6 +114,7 @@ export default function NowPage() {
           <div>
             {displayName(first.place)}（直線 {first.meters}m）
           </div>
+          <Details item={first} />
           <Badges item={first} />
           <MapLink item={first} />
         </section>
@@ -142,11 +143,13 @@ export default function NowPage() {
           )}
 
           <h2>替えを買える店</h2>
-          <p className="muted">下着・生理用品・防臭袋などの品ぞろえは店によって違います（まだ確認していません）。</p>
+          <p className="muted">品ぞろえは店によって違います。「現地確認済み」の店だけ、置いてあった品目を出しています。</p>
           {data.stores.map((x) => (
             <Item key={x.place.id} item={x} />
           ))}
-          <p className="muted">{all?.attribution}</p>
+          <p className="muted">
+            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成
+          </p>
           <p className="muted">現在地はこの端末の中だけで使い、サーバーには送りません。</p>
         </>
       )}
@@ -182,10 +185,47 @@ function Item({ item }: { item: NearbyItem }) {
         </strong>{" "}
         {displayName(p)}
       </div>
-      {p.kind === "store" && <div className="muted">営業時間：{p.openingHours ?? "登録なし"}</div>}
+      {p.kind === "store" && <div className="muted">営業時間：{p.hoursText ?? p.openingHours ?? "登録なし"}</div>}
+      <Details item={item} />
       <Badges item={item} />
       <MapLink item={item} />
     </div>
+  );
+}
+
+const GATE_LABEL = { inside: "改札内", outside: "改札外", street: "駅の外", unknown: undefined } as const;
+
+// "202601"（公式データ）と "2026-11-03"（現地確認）の両方を読める形に
+const fmtChecked = (d: string) => (/^\d{6}$/.test(d) ? `${d.slice(0, 4)}年${Number(d.slice(4))}月` : d);
+
+const fmtSec = (s: number) => (s < 60 ? `${s}秒` : `${Math.round(s / 60)}分`);
+
+// 地図アプリにない情報（改札の内外、ホームからの道順と時間、品ぞろえ）。分かっているものだけ出す
+function Details({ item }: { item: NearbyItem }) {
+  const p = item.place;
+  const lines: string[] = [];
+  const gate = p.gate ? GATE_LABEL[p.gate] : undefined;
+  if (gate) lines.push(gate);
+  if (p.platform) lines.push(p.platform);
+  if (p.minFromPlatform !== undefined) lines.push(`ホームの階段から ${fmtSec(p.minFromPlatform)}`);
+  if (p.minFromGate !== undefined) lines.push(`改札から ${fmtSec(p.minFromGate)}`);
+  if (p.where) lines.push(p.where);
+  if (p.toilet?.level && p.tier !== "osm") lines.push(p.toilet.level);
+  const stock = Object.entries(p.store?.stock ?? {})
+    .filter(([, has]) => has)
+    .map(([name]) => name);
+  return (
+    <>
+      {lines.length > 0 && <div>{lines.join("・")}</div>}
+      {stock.length > 0 && <div>置いてあった：{stock.join("、")}</div>}
+      {p.store?.aisle && <div>売り場：{p.store.aisle}</div>}
+      {p.toilet?.sanitaryBoxMale === true && <div>男性個室にサニタリーボックスあり</div>}
+      {p.toilet?.bench && <div className="muted">座れる場所：{p.toilet.bench}</div>}
+      {p.toilet?.staffDesk && <div className="muted">駅員：{p.toilet.staffDesk}</div>}
+      {p.kind === "toilet" && p.hoursText && <div className="muted">利用時間：{p.hoursText}</div>}
+      {p.approxLocation && <div className="muted">位置は駅の中心で代用（方角・分数は目安）</div>}
+      {p.checkedAt && p.tier !== "osm" && <div className="muted">確認：{fmtChecked(p.checkedAt)}</div>}
+    </>
   );
 }
 
@@ -193,12 +233,14 @@ function Badges({ item }: { item: NearbyItem }) {
   const p = item.place;
   const tags: string[] = [TIER_LABEL[p.tier]];
   if (p.toilet?.accessible) tags.push("多機能");
+  if (p.toilet?.ostomate) tags.push("オストメイト");
   if (p.toilet?.changingTable) tags.push("おむつ台");
   if (p.toilet?.fee) tags.push("有料");
   // OSM の level は「0 = 地上階」の書き方と日本式の階数が混ざっていて、そのまま「○階」と出すと誤る。いまは出さない
   if (p.store?.customerToilet === true) tags.push("店内トイレあり");
   if (p.store?.storeType === "drugstore") tags.push("ドラッグストア");
   if (p.store?.storeType === "convenience") tags.push("コンビニ");
+  if (p.store?.storeType === "station_kiosk") tags.push("駅ナカ");
   return (
     <div className="chips" style={{ marginTop: 6 }}>
       {tags.map((t) => (

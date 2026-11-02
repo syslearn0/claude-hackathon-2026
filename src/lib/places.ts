@@ -27,8 +27,12 @@ export type ToiletAttrs = {
   changingTable?: boolean;
   fee?: boolean;
   sanitaryBoxMale?: boolean;
+  sanitaryBoxFemale?: boolean;
   soap?: boolean;
-  level?: string;
+  level?: string; // 公式データの階（例："B1F"）。OSM の level は書き方が混ざるので画面には出さない
+  queue?: string; // 見たときの行列（現地確認）
+  bench?: string; // 近くで座れる場所
+  staffDesk?: string; // 近い駅事務室・窓口
 };
 
 export type StoreAttrs = {
@@ -49,12 +53,15 @@ export type Place = {
   source: Source;
   checkedAt?: string; // ISO 日付。OSM は取り込み日ではなく不明扱い
   openingHours?: string; // OSM の opening_hours 形式のまま
+  hoursText?: string; // 公式データ・現地確認の営業時間（人が読む文）
+  approxLocation?: boolean; // 位置が取れず、駅の中心などで代用している
   station?: string;
   gate?: Gate;
   where?: string; // 場所の説明
   platform?: string; // 近いホーム・号車・階段
   minFromPlatform?: number; // 秒
   minFromGate?: number; // 秒
+  note?: string;
   toilet?: ToiletAttrs;
   store?: StoreAttrs;
 };

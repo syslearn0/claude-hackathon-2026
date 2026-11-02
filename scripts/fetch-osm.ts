@@ -40,6 +40,7 @@ function query([s, w, n, e]: Area["bbox"]): string {
   nwr["shop"="chemist"](${b});
   nwr["shop"="drugstore"](${b});
   nwr["amenity"="pharmacy"]["shop"!="chemist"](${b});
+  nwr["railway"="station"](${b});
 );
 out center tags;`;
 }
@@ -106,7 +107,18 @@ function toPlace(el: OsmElement): Place | null {
   };
 }
 
-async function fetchArea(key: string, area: Area): Promise<Place[]> {
+export type Station = { name: string; operator?: string; line?: string; lat: number; lon: number; ref: string };
+
+function toStation(el: OsmElement): Station | null {
+  const t = el.tags ?? {};
+  const lat = el.lat ?? el.center?.lat;
+  const lon = el.lon ?? el.center?.lon;
+  const name = t["name:ja"] ?? t.name;
+  if (t.railway !== "station" || !name || lat === undefined || lon === undefined) return null;
+  return { name: name.replace(/駅$/, ""), operator: t.operator, line: t.line, lat, lon, ref: `${el.type}/${el.id}` };
+}
+
+async function fetchArea(key: string, area: Area): Promise<{ places: Place[]; stations: Station[] }> {
   let wait = 5000;
   for (let attempt = 0; attempt < 6; attempt++) {
     const endpoint = ENDPOINTS[attempt % ENDPOINTS.length];
@@ -121,7 +133,10 @@ async function fetchArea(key: string, area: Area): Promise<Place[]> {
       });
       if (res.ok) {
         const json = (await res.json()) as { elements: OsmElement[] };
-        return json.elements.map(toPlace).filter((p): p is Place => p !== null);
+        return {
+          places: json.elements.map(toPlace).filter((p): p is Place => p !== null),
+          stations: json.elements.map(toStation).filter((s): s is Station => s !== null),
+        };
       }
       console.warn(`${key}: ${endpoint} → ${res.status}。${wait / 1000}秒後に再試行`);
     } catch (e) {
@@ -148,10 +163,15 @@ function summary(places: Place[]) {
 async function main() {
   const keys = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(AREAS);
   await mkdir("data/places", { recursive: true });
+  await mkdir("data/stations", { recursive: true });
   for (const key of keys) {
     const area = AREAS[key];
     if (!area) throw new Error(`知らない地域：${key}`);
-    const places = await fetchArea(key, area);
+    const { places, stations } = await fetchArea(key, area);
+    await writeFile(
+      `data/stations/osm-${key}.json`,
+      JSON.stringify({ attribution: "© OpenStreetMap contributors (ODbL 1.0)", stations }, null, 1) + "\n",
+    );
     const out = {
       area: { key, ...area },
       fetchedAt: new Date().toISOString(),
@@ -159,7 +179,7 @@ async function main() {
       places,
     };
     await writeFile(`data/places/osm-${key}.json`, JSON.stringify(out, null, 1) + "\n");
-    console.log(key, area.label, summary(places));
+    console.log(key, area.label, summary(places), `駅 ${stations.length}`);
   }
 }
 

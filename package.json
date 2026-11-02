@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test tests/*.test.ts",
-    "fetch:osm": "tsx scripts/fetch-osm.ts"
+    "fetch:osm": "tsx scripts/fetch-osm.ts",
+    "import:tokyo": "tsx scripts/import-tokyo-stations.ts",
+    "import:survey": "tsx scripts/import-survey.ts"
   },
   "dependencies": {
     "next": "^16.4.3",

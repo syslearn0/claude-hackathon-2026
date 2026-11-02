@@ -5,7 +5,7 @@ import { loadPlaces } from "@/lib/data";
 export async function GET() {
   const places = await loadPlaces();
   return NextResponse.json(
-    { places, attribution: "© OpenStreetMap contributors (ODbL 1.0)" },
-    { headers: { "Cache-Control": "public, max-age=3600" } },
+    { places },
+    { headers: { "Cache-Control": "public, max-age=300" } },
   );
 }
