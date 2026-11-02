@@ -79,6 +79,9 @@ export default function IndoorLab() {
     if (!g || !data || level === null) return;
     g.clearLayers();
     const on = data.features.filter((f) => f.levels.includes(level));
+    // その階の範囲に合わせて寄る
+    const pts = on.flatMap((f) => f.coords);
+    if (pts.length) map.current?.fitBounds(L.latLngBounds(pts), { padding: [12, 12], maxZoom: 19 });
     // 面を先に、線と点をあとに描く
     for (const f of on.filter((x) => x.closed && STYLE[x.kind])) {
       const s = STYLE[f.kind];
