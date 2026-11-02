@@ -8,7 +8,9 @@ import { displayName, findNearby } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
 import { describeProfile, loadProfile } from "@/lib/profile";
 import { loadTodayPlan } from "@/lib/saved-plan";
-import { describeSituation, estimateSituation, type Fix, type Situation } from "@/lib/situation";
+import { describeSituation, estimateSituation, type Fix, type RouteStation, type Situation } from "@/lib/situation";
+import { distanceM } from "@/lib/geo";
+import { describeTrainCars } from "@/lib/train-cars";
 import { headline, isInStation, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
@@ -49,14 +51,18 @@ export default function NowPage() {
   const [profile] = useState(() => loadProfile());
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
-  // ② 直近2分の位置（この画面を開いているあいだだけ、メモリの中だけに持つ）
+  // ② 直近4分の位置（この画面を開いているあいだだけ、メモリの中だけに持つ）
   const fixes = useRef<Fix[]>([]);
   const [situation, setSituation] = useState<Situation | null>(null);
+  const [live, setLive] = useState<LatLon | null>(null);
+  // 「電車の中なので次の駅」を利用者が「違う」と言ったら、自動の切り替えをやめる
+  const [trainOff, setTrainOff] = useState(false);
 
   const choose = (at: LatLon, how: string) => {
     chosen.current = true;
     setStatus("");
     setRefKey(null);
+    setTrainOff(true);
     setPos({ at, how });
   };
 
@@ -84,24 +90,49 @@ export default function NowPage() {
     locate();
   }, [locate]);
 
-  // 位置を追い続けて、止まっている／歩いている／乗り物の中かを推定する。
-  // 一番の候補は最初の位置のまま変えない（歩き出した人の行き先を黙って変えないため）
+  // 保存した経路の駅に位置を付ける（データのある駅だけ）
+  const route: RouteStation[] = useMemo(
+    () =>
+      (plan?.answer.route ?? [])
+        .map((r) => {
+          const s = all?.stations.find((x) => x.name === r.station);
+          return s && { name: s.name, lat: s.lat, lon: s.lon, line: r.line };
+        })
+        .filter((x): x is NonNullable<typeof x> => !!x),
+    [plan, all],
+  );
+
+  // 位置を追い続けて、止まっている／歩いている／乗り物の中かを推定する
   useEffect(() => {
     if (!("geolocation" in navigator) || !all) return;
     const id = navigator.geolocation.watchPosition(
       (p) => {
         const now = Date.now();
         fixes.current = [
-          ...fixes.current.filter((f) => now - f.t < 120_000),
+          ...fixes.current.filter((f) => now - f.t < 240_000),
           { t: now, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, speed: p.coords.speed },
         ];
-        setSituation(estimateSituation(fixes.current, all.stations ?? [], now));
+        if (p.coords.accuracy <= 200) setLive({ lat: p.coords.latitude, lon: p.coords.longitude });
+        setSituation(estimateSituation(fixes.current, all.stations ?? [], now, route));
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, [all]);
+  }, [all, route]);
+
+  // 一覧を出す基準の位置。
+  // ・電車の中と判断したら、次の駅（利用者が「違う」と言ったらやめる）
+  // ・それ以外は最初に決めた位置のまま（歩き出した人の行き先を黙って変えないため）。
+  //   ただし GPS で300m以上離れたら（電車で移動した後など）、いまの位置に合わせる
+  const train = !trainOff && situation?.state === "vehicle" && situation.nextStation ? situation : null;
+  const fromGps = pos?.how.startsWith("現在地") ?? false;
+  const trainCars = train?.segment?.line ? describeTrainCars(train.segment.line) : null;
+  const baseAt: LatLon | undefined = train
+    ? { lat: train.nextStation!.lat, lon: train.nextStation!.lon }
+    : fromGps && live && pos && distanceM(live, pos.at) > 300
+      ? live
+      : pos?.at;
 
   // 場所データは位置と関係なく丸ごと受け取る（位置をサーバーに送らないため）
   useEffect(() => {
@@ -112,21 +143,21 @@ export default function NowPage() {
   }, []);
 
   // 駅の中か、すぐそばにいるか。いるなら方角ではなく事実を見出しにする
-  const station = useMemo(() => (pos && all ? stationAt(all.stations ?? [], pos.at) : undefined), [pos, all]);
+  const station = useMemo(() => (baseAt && all ? stationAt(all.stations ?? [], baseAt) : undefined), [baseAt?.lat, baseAt?.lon, all]); // eslint-disable-line react-hooks/exhaustive-deps
   const refs = useMemo(() => (station && all ? stationRefs(all.places, station) : []), [station, all]);
   const ref: StationRef | undefined = refs.find((r) => `${r.kind}:${r.label}` === refKey);
 
   const data: Nearby | null = useMemo(() => {
-    if (!pos || !all) return null;
+    if (!baseAt || !all) return null;
     // 駅の中では直線距離の順が当てにならないので、候補を多めに取って、実測の分数で並べ替える
     const prefer = { preferAccessible: profile.needAccessible === true, preferOstomate: profile.needOstomate === true };
-    const toilets = findNearby(all.places, { from: pos.at, kind: "toilet", limit: station ? 6 : 3, ...prefer });
+    const toilets = findNearby(all.places, { from: baseAt, kind: "toilet", limit: station ? 6 : 3, ...prefer });
     return {
       toilets: (ref ? rankFromRef(toilets, ref) : toilets).slice(0, station ? 4 : 3),
-      changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1, preferOstomate: prefer.preferOstomate }),
-      stores: findNearby(all.places, { from: pos.at, kind: "store", limit: 3 }),
+      changeRooms: findNearby(all.places, { from: baseAt, kind: "toilet", accessibleOnly: true, limit: 1, preferOstomate: prefer.preferOstomate }),
+      stores: findNearby(all.places, { from: baseAt, kind: "store", limit: 3 }),
     };
-  }, [pos, all, station, ref, profile]);
+  }, [baseAt?.lat, baseAt?.lon, all, station, ref, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 駅を選ぶボタン：登録した「よく使う駅」を先に（データのある駅だけ）
   const presets = useMemo(() => {
@@ -177,7 +208,21 @@ export default function NowPage() {
         </p>
       )}
 
-      {pos && <p className="muted">基準：{pos.how}</p>}
+      {train ? (
+        <section className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
+          <strong>
+            {train.betweenStations ? "駅と駅の間で止まっているようです" : "電車で移動中と判断しました"}：次の駅（推定）
+            {train.nextStation!.name}駅のトイレを出しています
+          </strong>
+          <div className="muted">{train.reason}</div>
+          {trainCars && <div style={{ marginTop: 4 }}>{trainCars}</div>}
+          <button style={{ marginTop: 6 }} onClick={() => setTrainOff(true)}>
+            違う（いる場所の近くを出す）
+          </button>
+        </section>
+      ) : (
+        pos && <p className="muted">基準：{baseAt && pos.at !== baseAt ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how}</p>
+      )}
       {status && <p className="card">{status}</p>}
 
       {first && (
@@ -200,31 +245,13 @@ export default function NowPage() {
         </section>
       )}
 
-      {situation?.state === "vehicle" && situation.nextStation && (
-        <section className="card" style={{ borderColor: "var(--accent)" }}>
-          <strong>乗り物で移動中のようです</strong>
-          <div className="muted">{situation.reason}</div>
-          <button
-            style={{ marginTop: 6 }}
-            onClick={() =>
-              choose(
-                { lat: situation.nextStation!.lat, lon: situation.nextStation!.lon },
-                `${situation.nextStation!.name}駅（移動中の推定から）`,
-              )
-            }
-          >
-            {situation.nextStation.name}駅で降りたときのトイレを出す
-          </button>
-        </section>
-      )}
-
       {pos && data && (
         <EmergencyReview
-          pos={pos.at}
+          pos={live ?? pos.at}
           programFirstId={first?.place.id}
           situationText={describeSituation(
             situation ?? { state: "unknown", reason: pos.how.startsWith("現在地") ? "位置は1回だけ取れた" : `利用者が「${pos.how}」を選んだ` },
-            pos.at,
+            live ?? pos.at,
             first ? `${first.place.id}（${displayName(first.place)}）` : undefined,
             plan?.answer.summary,
           ) + (describeProfile(profile, "emergency") ? `\n${describeProfile(profile, "emergency")}` : "")}
@@ -265,12 +292,12 @@ export default function NowPage() {
               トイレに入った（次どうする？）
             </button>
           ) : (
-            <AfterPanel pos={pos.at} places={all.places} profile={profile} />
+            <AfterPanel pos={baseAt ?? pos.at} places={all.places} profile={profile} />
           )}
         </>
       )}
 
-      {pos && points.length > 0 && <MapView center={pos.at} points={points} />}
+      {baseAt && points.length > 0 && <MapView center={baseAt} points={points} />}
 
       {data && data.toilets.length === 0 && (
         <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください（お願いカードを見せられます）。</p>
@@ -311,6 +338,7 @@ export default function NowPage() {
         <button
           onClick={() => {
             chosen.current = false;
+            setTrainOff(false);
             setStatus("位置を確かめています…");
             locate();
           }}

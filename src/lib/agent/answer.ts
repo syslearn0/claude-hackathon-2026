@@ -3,7 +3,9 @@
 // こうすると、道具が返していない場所は、そもそも書けない。
 
 export type AnswerStep = { text: string; placeIds: string[]; section?: string };
-export type Answer = { summary: string; steps: AnswerStep[]; notes: string[]; packing?: string[] };
+// 経路の駅（利用者が書いた・貼った経路から。line はその駅から次の駅まで乗る路線）
+export type RouteStop = { station: string; line?: string };
+export type Answer = { summary: string; steps: AnswerStep[]; notes: string[]; packing?: string[]; route?: RouteStop[] };
 
 // plan：①出かける前の計画。手順を駅ごとの区切り（section）に分け、持ち物の例も付ける
 export type Shape = "steps" | "plan";
@@ -34,8 +36,20 @@ export function answerSchema(seenIds: readonly string[], shape: Shape = "steps")
       steps: { type: "array", items: step, description: "番号順の手順" },
       notes: { type: "array", items: { type: "string" }, description: "まとめて一度だけ伝える注意（品ぞろえは未確認など）。なければ空" },
       ...(plan && { packing: { type: "array", items: { type: "string" }, description: "持っていくとよいものの例（替えの下着、防臭袋など）" } }),
+      ...(plan && {
+        route: {
+          type: "array",
+          description: "書かれた・貼られた経路の駅を、出発→乗り換え→到着の順に。駅名は「駅」を付けない。line はその駅から次の駅まで乗る路線（書かれていなければ空文字）。経路が書かれていなければ空の配列",
+          items: {
+            type: "object",
+            properties: { station: { type: "string" }, line: { type: "string" } },
+            required: ["station", "line"],
+            additionalProperties: false,
+          },
+        },
+      }),
     },
-    required: ["summary", "steps", "notes", ...(plan ? ["packing"] : [])],
+    required: ["summary", "steps", "notes", ...(plan ? ["packing", "route"] : [])],
     additionalProperties: false,
   };
 }
@@ -43,7 +57,7 @@ export function answerSchema(seenIds: readonly string[], shape: Shape = "steps")
 // API の返事（JSON 文字列）を Answer にする。形が合わなければ null
 export function parseAnswer(json: string): Answer | null {
   try {
-    const v = JSON.parse(json) as { summary?: unknown; steps?: unknown; notes?: unknown; packing?: unknown };
+    const v = JSON.parse(json) as { summary?: unknown; steps?: unknown; notes?: unknown; packing?: unknown; route?: unknown };
     if (typeof v.summary !== "string" || !Array.isArray(v.steps) || !Array.isArray(v.notes)) return null;
     const strings = (x: unknown[]) => x.filter((y): y is string => typeof y === "string");
     const steps = v.steps.map((s: { text?: unknown; place_ids?: unknown; section?: unknown }) => ({
@@ -56,6 +70,14 @@ export function parseAnswer(json: string): Answer | null {
       steps,
       notes: strings(v.notes),
       ...(Array.isArray(v.packing) && { packing: strings(v.packing) }),
+      ...(Array.isArray(v.route) && {
+        route: v.route
+          .filter((r: { station?: unknown }) => typeof r?.station === "string" && r.station)
+          .map((r: { station: string; line?: unknown }) => ({
+            station: r.station.replace(/駅$/, ""),
+            ...(typeof r.line === "string" && r.line && { line: r.line }),
+          })),
+      }),
     };
   } catch {
     return null;
