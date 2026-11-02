@@ -3,10 +3,10 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main>
-      <h1>トイレ外出サポート（開発中）</h1>
+      <h1>トイレ外出サポート</h1>
       <p>
         急なトイレの不安がある人の外出を、確かめた事実の情報で支える Web アプリです。
-        いまはデータ集めの道具だけを置いています。
+        改札の内か外か、何階か、着替えられるか、替えを買える店はどこか。地図アプリにない情報を出します。
       </p>
       <Link href="/now" className="button primary big">
         今すぐトイレ
@@ -21,6 +21,10 @@ export default function Home() {
       <Link href="/me" className="button" style={{ marginTop: 12, padding: 10 }}>
         自分の情報（このスマホだけに保存）
       </Link>
+
+      <p className="muted">
+        <Link href="/about">このアプリについて（やらないこと・プライバシー・データの出典）</Link>
+      </p>
 
       <h2>データ集めの道具</h2>
       <ul>
