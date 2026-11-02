@@ -1,6 +1,7 @@
 // OpenStreetMap からトイレ・コンビニ・ドラッグストアを取り込み、Place の形で保存する。
 // 使い方：npx tsx scripts/fetch-osm.ts [地域名...]
-// 出力：data/places/osm-<地域名>.json（ODbL 1.0。表示時は「© OpenStreetMap contributors」）
+// 出力：data/places/osm-<地域名>.json と data/stations/osm-<地域名>.json（ODbL 1.0。表示時は「© OpenStreetMap contributors」）
+// STATION_AREAS は駅の位置だけを広く取る（トイレ・店のデータがない駅も「駅はある」と分かるように）
 
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Place, StoreType } from "../src/lib/places";
@@ -13,6 +14,13 @@ const AREAS: Record<string, Area> = {
     label: "京阪 丹波橋〜出町柳 沿線",
     bbox: [34.932, 135.76, 35.035, 135.785],
   },
+  "tokyo-station": { label: "東京駅周辺", bbox: [35.6735, 139.757, 35.6885, 139.7755] },
+  "kyoto-station": { label: "京都駅周辺", bbox: [34.979, 135.75, 34.992, 135.767] },
+};
+
+const STATION_AREAS: Record<string, Area> = {
+  "stations-tokyo-23ku": { label: "東京23区の駅", bbox: [35.53, 139.56, 35.82, 139.92] },
+  "stations-kyoto-city": { label: "京都市の駅", bbox: [34.88, 135.62, 35.08, 135.85] },
 };
 
 // 公開サーバーは混むことがあるので、順に試して間をあけて繰り返す
@@ -31,8 +39,9 @@ type OsmElement = {
   tags?: Record<string, string>;
 };
 
-function query([s, w, n, e]: Area["bbox"]): string {
+function query([s, w, n, e]: Area["bbox"], stationsOnly = false): string {
   const b = `${s},${w},${n},${e}`;
+  if (stationsOnly) return `[out:json][timeout:90];nwr["railway"="station"](${b});out center tags;`;
   return `[out:json][timeout:90];
 (
   nwr["amenity"="toilets"](${b});
@@ -58,6 +67,12 @@ function storeTypeOf(t: Record<string, string>): StoreType | null {
   // 調剤だけの薬局は、替えの用品が置いていないことが多いので除く
   if (t.amenity === "pharmacy" && t.dispensing !== "yes") return "drugstore";
   return null;
+}
+
+// OSM でコンビニとして登録されていても、下着などの替えを売っていない店（駅弁の店など）は外す
+const NOT_FOR_SPARES = /駅弁|弁当|ベーカリー|パン屋|キヨスク菓子/;
+export function notForSpares(t: Record<string, string>): boolean {
+  return NOT_FOR_SPARES.test(`${t.name ?? ""} ${t["name:ja"] ?? ""} ${t.brand ?? ""}`);
 }
 
 function toPlace(el: OsmElement): Place | null {
@@ -95,7 +110,7 @@ function toPlace(el: OsmElement): Place | null {
   }
 
   const storeType = storeTypeOf(t);
-  if (!storeType) return null;
+  if (!storeType || notForSpares(t)) return null;
   return {
     ...base,
     kind: "store",
@@ -118,7 +133,7 @@ function toStation(el: OsmElement): Station | null {
   return { name: name.replace(/駅$/, ""), operator: t.operator, line: t.line, lat, lon, ref: `${el.type}/${el.id}` };
 }
 
-async function fetchArea(key: string, area: Area): Promise<{ places: Place[]; stations: Station[] }> {
+async function fetchArea(key: string, area: Area, stationsOnly = false): Promise<{ places: Place[]; stations: Station[] }> {
   let wait = 5000;
   for (let attempt = 0; attempt < 6; attempt++) {
     const endpoint = ENDPOINTS[attempt % ENDPOINTS.length];
@@ -129,7 +144,9 @@ async function fetchArea(key: string, area: Area): Promise<{ places: Place[]; st
           "Content-Type": "application/x-www-form-urlencoded",
           "User-Agent": "toilet-companion-hackathon/0.1 (+https://github.com/syslearn0/claude-hackathon-2026)",
         },
-        body: new URLSearchParams({ data: query(area.bbox) }),
+        body: new URLSearchParams({ data: query(area.bbox, stationsOnly) }),
+        // 返事が来ないまま待ち続けないよう、2分で次のサーバーへ
+        signal: AbortSignal.timeout(120_000),
       });
       if (res.ok) {
         const json = (await res.json()) as { elements: OsmElement[] };
@@ -161,17 +178,22 @@ function summary(places: Place[]) {
 }
 
 async function main() {
-  const keys = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(AREAS);
+  const keys = process.argv.slice(2).length ? process.argv.slice(2) : [...Object.keys(AREAS), ...Object.keys(STATION_AREAS)];
   await mkdir("data/places", { recursive: true });
   await mkdir("data/stations", { recursive: true });
   for (const key of keys) {
-    const area = AREAS[key];
+    const stationsOnly = key in STATION_AREAS;
+    const area = AREAS[key] ?? STATION_AREAS[key];
     if (!area) throw new Error(`知らない地域：${key}`);
-    const { places, stations } = await fetchArea(key, area);
+    const { places, stations } = await fetchArea(key, area, stationsOnly);
     await writeFile(
       `data/stations/osm-${key}.json`,
       JSON.stringify({ attribution: "© OpenStreetMap contributors (ODbL 1.0)", stations }, null, 1) + "\n",
     );
+    if (stationsOnly) {
+      console.log(key, area.label, `駅 ${stations.length}`);
+      continue;
+    }
     const out = {
       area: { key, ...area },
       fetchedAt: new Date().toISOString(),

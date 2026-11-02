@@ -25,8 +25,15 @@ export async function loadStations(): Promise<Station[]> {
   if (stationCache) return stationCache;
   const dir = path.join(process.cwd(), "data", "stations");
   const all: Station[] = [];
+  const seen = new Set<string>();
   for (const f of (await readdir(dir)).filter((x) => x.endsWith(".json"))) {
-    all.push(...(JSON.parse(await readFile(path.join(dir, f), "utf8")) as { stations: Station[] }).stations);
+    for (const s of (JSON.parse(await readFile(path.join(dir, f), "utf8")) as { stations: (Station & { ref?: string })[] }).stations) {
+      // 地域の重なりで同じ駅が2回入らないように
+      const key = s.ref ?? `${s.name}|${s.lat},${s.lon}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      all.push(s);
+    }
   }
   stationCache = all;
   return all;

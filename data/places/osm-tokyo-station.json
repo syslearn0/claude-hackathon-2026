@@ -1,0 +1,2435 @@
+{
+ "area": {
+  "key": "tokyo-station",
+  "label": "東京駅周辺",
+  "bbox": [
+   35.6735,
+   139.757,
+   35.6885,
+   139.7755
+  ]
+ },
+ "fetchedAt": "2026-11-02T14:10:33.132Z",
+ "attribution": "© OpenStreetMap contributors (ODbL 1.0)",
+ "places": [
+  {
+   "id": "osm-node-1327332406",
+   "lat": 35.6750042,
+   "lon": 139.768721,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1327332406",
+    "ref": "node/1327332406"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-1327962128",
+   "name": "ファミリーマート",
+   "lat": 35.67568,
+   "lon": 139.7677653,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1327962128",
+    "ref": "node/1327962128"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-1350269220",
+   "lat": 35.6854873,
+   "lon": 139.7703224,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1350269220",
+    "ref": "node/1350269220"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-1367460900",
+   "name": "ファミリーマート",
+   "lat": 35.6850743,
+   "lon": 139.7746619,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1367460900",
+    "ref": "node/1367460900"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-1367460926",
+   "name": "スギ薬局",
+   "lat": 35.6858029,
+   "lon": 139.7743584,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1367460926",
+    "ref": "node/1367460926"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "スギ薬局"
+   }
+  },
+  {
+   "id": "osm-node-1367460929",
+   "lat": 35.6843483,
+   "lon": 139.774895,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1367460929",
+    "ref": "node/1367460929"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-1880765144",
+   "name": "トモズ",
+   "lat": 35.6823287,
+   "lon": 139.7748955,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1880765144",
+    "ref": "node/1880765144"
+   },
+   "openingHours": "Mo-Fr 08:00-21:00; Sa-Su,PH 10:00-20:00",
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "トモズ"
+   }
+  },
+  {
+   "id": "osm-node-1952141255",
+   "name": "ローソン",
+   "lat": 35.6847212,
+   "lon": 139.7674365,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1952141255",
+    "ref": "node/1952141255"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-1998344534",
+   "name": "有楽町イトシア",
+   "lat": 35.6744429,
+   "lon": 139.7638905,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/1998344534",
+    "ref": "node/1998344534"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-2059756401",
+   "name": "西河岸橋際公衆便所",
+   "lat": 35.6840389,
+   "lon": 139.7728679,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2059756401",
+    "ref": "node/2059756401"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-2059756436",
+   "name": "ローソン",
+   "lat": 35.6836993,
+   "lon": 139.7729253,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2059756436",
+    "ref": "node/2059756436"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-2065895673",
+   "name": "トモズ",
+   "lat": 35.6813069,
+   "lon": 139.7636463,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2065895673",
+    "ref": "node/2065895673"
+   },
+   "openingHours": "Mo-Sa 10:30-21:00; Su,PH 10:00-20:00",
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "トモズ"
+   }
+  },
+  {
+   "id": "osm-node-2065895720",
+   "name": "セブン-イレブン",
+   "lat": 35.682386,
+   "lon": 139.7639798,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2065895720",
+    "ref": "node/2065895720"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-2065895733",
+   "name": "セブン-イレブン",
+   "lat": 35.6839402,
+   "lon": 139.7658222,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2065895733",
+    "ref": "node/2065895733"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-2130336973",
+   "lat": 35.688005,
+   "lon": 139.7699,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2130336973",
+    "ref": "node/2130336973"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-2130337791",
+   "name": "ミニストップ",
+   "lat": 35.6876279,
+   "lon": 139.7704148,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2130337791",
+    "ref": "node/2130337791"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ミニストップ"
+   }
+  },
+  {
+   "id": "osm-node-2130340739",
+   "name": "セブン-イレブン",
+   "lat": 35.6850221,
+   "lon": 139.7716413,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2130340739",
+    "ref": "node/2130340739"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-2324062252",
+   "name": "セブン-イレブン",
+   "lat": 35.6738843,
+   "lon": 139.7607052,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2324062252",
+    "ref": "node/2324062252"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-2324072211",
+   "name": "ファミリーマート",
+   "lat": 35.674387,
+   "lon": 139.762886,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2324072211",
+    "ref": "node/2324072211"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-2365110377",
+   "name": "セブン-イレブン",
+   "lat": 35.681804,
+   "lon": 139.7717759,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2365110377",
+    "ref": "node/2365110377"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-2365111053",
+   "name": "ファミリーマート",
+   "lat": 35.681717,
+   "lon": 139.771455,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2365111053",
+    "ref": "node/2365111053"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-2365555224",
+   "name": "ファミリーマート",
+   "lat": 35.6812828,
+   "lon": 139.7716731,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2365555224",
+    "ref": "node/2365555224"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-2384156251",
+   "lat": 35.674306,
+   "lon": 139.7698707,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/2384156251",
+    "ref": "node/2384156251"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-3474654893",
+   "name": "ファミリーマート",
+   "lat": 35.674144,
+   "lon": 139.77031,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3474654893",
+    "ref": "node/3474654893"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-3753761925",
+   "name": "セブン-イレブン",
+   "lat": 35.6848714,
+   "lon": 139.7616362,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3753761925",
+    "ref": "node/3753761925"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3753777122",
+   "name": "セブン-イレブン",
+   "lat": 35.6842055,
+   "lon": 139.7645755,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3753777122",
+    "ref": "node/3753777122"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3756803582",
+   "name": "セブン-イレブン",
+   "lat": 35.6788149,
+   "lon": 139.767655,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3756803582",
+    "ref": "node/3756803582"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3756836705",
+   "name": "セブン-イレブン",
+   "lat": 35.6738113,
+   "lon": 139.7715161,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3756836705",
+    "ref": "node/3756836705"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3756878760",
+   "name": "セブン-イレブン",
+   "lat": 35.6743776,
+   "lon": 139.7639396,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3756878760",
+    "ref": "node/3756878760"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3758585269",
+   "name": "セブン-イレブン",
+   "lat": 35.6745264,
+   "lon": 139.7740362,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3758585269",
+    "ref": "node/3758585269"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-3790001976",
+   "name": "ファミリーマート",
+   "lat": 35.6763172,
+   "lon": 139.7720997,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3790001976",
+    "ref": "node/3790001976"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-3790001978",
+   "name": "ローソン",
+   "lat": 35.6789703,
+   "lon": 139.7730506,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3790001978",
+    "ref": "node/3790001978"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-3790001979",
+   "name": "ミニストップ",
+   "lat": 35.6754117,
+   "lon": 139.772206,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/3790001979",
+    "ref": "node/3790001979"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ミニストップ"
+   }
+  },
+  {
+   "id": "osm-node-4115827368",
+   "name": "ファミリーマート",
+   "lat": 35.6757325,
+   "lon": 139.7748767,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4115827368",
+    "ref": "node/4115827368"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-4376209013",
+   "name": "ファミリーマート",
+   "lat": 35.6747663,
+   "lon": 139.7717855,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4376209013",
+    "ref": "node/4376209013"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-4376209019",
+   "name": "セブン-イレブン",
+   "lat": 35.673732,
+   "lon": 139.7718403,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4376209019",
+    "ref": "node/4376209019"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-4449910791",
+   "name": "ナチュラルローソン",
+   "lat": 35.6828533,
+   "lon": 139.772431,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4449910791",
+    "ref": "node/4449910791"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ナチュラルローソン"
+   }
+  },
+  {
+   "id": "osm-node-4567032591",
+   "name": "ローソン",
+   "lat": 35.6878347,
+   "lon": 139.7666355,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4567032591",
+    "ref": "node/4567032591"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-4736332670",
+   "lat": 35.678077,
+   "lon": 139.7595972,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4736332670",
+    "ref": "node/4736332670"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-4844752024",
+   "name": "スター薬局",
+   "lat": 35.6873351,
+   "lon": 139.7707176,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4844752024",
+    "ref": "node/4844752024"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore"
+   }
+  },
+  {
+   "id": "osm-node-4961787967",
+   "lat": 35.6832972,
+   "lon": 139.7613617,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/4961787967",
+    "ref": "node/4961787967"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-5065132723",
+   "name": "マツモトキヨシ",
+   "lat": 35.6743082,
+   "lon": 139.7628099,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5065132723",
+    "ref": "node/5065132723"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "マツモトキヨシ"
+   }
+  },
+  {
+   "id": "osm-node-5195318822",
+   "lat": 35.686651,
+   "lon": 139.7740766,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5195318822",
+    "ref": "node/5195318822"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-5237380318",
+   "name": "ローソン",
+   "lat": 35.6735427,
+   "lon": 139.7709887,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5237380318",
+    "ref": "node/5237380318"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-5237380365",
+   "name": "アイン薬局",
+   "lat": 35.6750009,
+   "lon": 139.7732551,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5237380365",
+    "ref": "node/5237380365"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "アイン薬局"
+   }
+  },
+  {
+   "id": "osm-node-5524553321",
+   "lat": 35.6791648,
+   "lon": 139.7601037,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5524553321",
+    "ref": "node/5524553321"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-5658089921",
+   "lat": 35.6822174,
+   "lon": 139.7600563,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5658089921",
+    "ref": "node/5658089921"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-5813558294",
+   "name": "ファミリーマート",
+   "lat": 35.6754915,
+   "lon": 139.7709159,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5813558294",
+    "ref": "node/5813558294"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-5836373881",
+   "name": "ドラッグイレブン",
+   "lat": 35.6763704,
+   "lon": 139.7700857,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5836373881",
+    "ref": "node/5836373881"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "ドラッグイレブン"
+   }
+  },
+  {
+   "id": "osm-node-5905114985",
+   "name": "ナチュラルローソン",
+   "lat": 35.6807561,
+   "lon": 139.7633056,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5905114985",
+    "ref": "node/5905114985"
+   },
+   "openingHours": "Mo-Su 07:00-23:00",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ナチュラルローソン"
+   }
+  },
+  {
+   "id": "osm-node-5928954085",
+   "name": "ファミリーマート",
+   "lat": 35.6878596,
+   "lon": 139.7741046,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/5928954085",
+    "ref": "node/5928954085"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-6015300386",
+   "name": "セブン-イレブン",
+   "lat": 35.67364,
+   "lon": 139.7690127,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6015300386",
+    "ref": "node/6015300386"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-6191069634",
+   "lat": 35.6836413,
+   "lon": 139.7625484,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6191069634",
+    "ref": "node/6191069634"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": true,
+    "level": "-2"
+   }
+  },
+  {
+   "id": "osm-node-6192966796",
+   "lat": 35.674702,
+   "lon": 139.7595844,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6192966796",
+    "ref": "node/6192966796"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "fee": false,
+    "level": "-2"
+   }
+  },
+  {
+   "id": "osm-node-6193137770",
+   "lat": 35.6736126,
+   "lon": 139.7581839,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6193137770",
+    "ref": "node/6193137770"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-6229209141",
+   "lat": 35.6741928,
+   "lon": 139.7600286,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6229209141",
+    "ref": "node/6229209141"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "fee": false,
+    "level": "1"
+   }
+  },
+  {
+   "id": "osm-node-6284578298",
+   "lat": 35.6759855,
+   "lon": 139.7622371,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6284578298",
+    "ref": "node/6284578298"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "osm-node-6284724118",
+   "lat": 35.6857488,
+   "lon": 139.7633789,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6284724118",
+    "ref": "node/6284724118"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "changingTable": true,
+    "fee": false,
+    "level": "-1"
+   }
+  },
+  {
+   "id": "osm-node-6333410939",
+   "lat": 35.6737532,
+   "lon": 139.7679244,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6333410939",
+    "ref": "node/6333410939"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "osm-node-6397053334",
+   "lat": 35.6778056,
+   "lon": 139.7643496,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6397053334",
+    "ref": "node/6397053334"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "fee": false,
+    "level": "-3"
+   }
+  },
+  {
+   "id": "osm-node-6397075518",
+   "lat": 35.6777091,
+   "lon": 139.7650001,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6397075518",
+    "ref": "node/6397075518"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "level": "-3"
+   }
+  },
+  {
+   "id": "osm-node-6569781685",
+   "name": "セブン-イレブン",
+   "lat": 35.6853532,
+   "lon": 139.7661812,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6569781685",
+    "ref": "node/6569781685"
+   },
+   "openingHours": "Mo-Fr 07:00-23:00",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-6591206585",
+   "name": "デイリーヤマザキ",
+   "lat": 35.6863976,
+   "lon": 139.7746797,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6591206585",
+    "ref": "node/6591206585"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "デイリーヤマザキ"
+   }
+  },
+  {
+   "id": "osm-node-6594222286",
+   "lat": 35.6837207,
+   "lon": 139.773855,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6594222286",
+    "ref": "node/6594222286"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-6631936743",
+   "name": "ファミリーマート",
+   "lat": 35.67607,
+   "lon": 139.7632692,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6631936743",
+    "ref": "node/6631936743"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-6898440929",
+   "name": "セブン-イレブン",
+   "lat": 35.6742231,
+   "lon": 139.7594699,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/6898440929",
+    "ref": "node/6898440929"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-7004247504",
+   "name": "セブン-イレブン",
+   "lat": 35.6749233,
+   "lon": 139.7685626,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/7004247504",
+    "ref": "node/7004247504"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-7073960644",
+   "name": "ファミリーマート",
+   "lat": 35.6838602,
+   "lon": 139.7684239,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/7073960644",
+    "ref": "node/7073960644"
+   },
+   "openingHours": "07:00-23:00",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-7073974674",
+   "name": "ローソン",
+   "lat": 35.6821364,
+   "lon": 139.7698457,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/7073974674",
+    "ref": "node/7073974674"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-7073974679",
+   "name": "ナチュラルローソン",
+   "lat": 35.682623,
+   "lon": 139.7699222,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/7073974679",
+    "ref": "node/7073974679"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ナチュラルローソン"
+   }
+  },
+  {
+   "id": "osm-node-7093756541",
+   "lat": 35.6823758,
+   "lon": 139.7662055,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/7093756541",
+    "ref": "node/7093756541"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false,
+    "level": "-1"
+   }
+  },
+  {
+   "id": "osm-node-8016364122",
+   "lat": 35.6771526,
+   "lon": 139.7591634,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/8016364122",
+    "ref": "node/8016364122"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-9055930064",
+   "name": "ローソン",
+   "lat": 35.6870762,
+   "lon": 139.7671782,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9055930064",
+    "ref": "node/9055930064"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-9083439431",
+   "name": "ファミリーマート",
+   "lat": 35.6836804,
+   "lon": 139.7686855,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9083439431",
+    "ref": "node/9083439431"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-9084900652",
+   "name": "ファミリーマート",
+   "lat": 35.6787538,
+   "lon": 139.7673074,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9084900652",
+    "ref": "node/9084900652"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-9633684729",
+   "name": "ベルマートキヨスク",
+   "lat": 35.6799807,
+   "lon": 139.7677956,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9633684729",
+    "ref": "node/9633684729"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-9798491320",
+   "name": "ファミリーマート",
+   "lat": 35.6831613,
+   "lon": 139.7697127,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9798491320",
+    "ref": "node/9798491320"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-9798522658",
+   "name": "セブン－イレブン 　常盤橋タワーB1F店",
+   "lat": 35.6842094,
+   "lon": 139.7705189,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9798522658",
+    "ref": "node/9798522658"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-9798533933",
+   "name": "セブン－イレブン 　常盤橋タワー3F店",
+   "lat": 35.6842903,
+   "lon": 139.7705121,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9798533933",
+    "ref": "node/9798533933"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-9990397918",
+   "name": "トモズ",
+   "lat": 35.6736229,
+   "lon": 139.7593185,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/9990397918",
+    "ref": "node/9990397918"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "トモズ"
+   }
+  },
+  {
+   "id": "osm-node-10538350880",
+   "name": "ウエルシア薬局",
+   "lat": 35.6824035,
+   "lon": 139.7732697,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/10538350880",
+    "ref": "node/10538350880"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "ウエルシア薬局"
+   }
+  },
+  {
+   "id": "osm-node-11212400268",
+   "name": "セブン-イレブン",
+   "lat": 35.6778774,
+   "lon": 139.7611525,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11212400268",
+    "ref": "node/11212400268"
+   },
+   "openingHours": "Mo-Sa 07:00-23:00",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-11513601480",
+   "lat": 35.6788694,
+   "lon": 139.7687705,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11513601480",
+    "ref": "node/11513601480"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-11513601481",
+   "lat": 35.6789364,
+   "lon": 139.7685775,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11513601481",
+    "ref": "node/11513601481"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-11513601482",
+   "lat": 35.6789827,
+   "lon": 139.7685837,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11513601482",
+    "ref": "node/11513601482"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-11524689028",
+   "name": "ファミリーマート",
+   "lat": 35.6753435,
+   "lon": 139.7665456,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11524689028",
+    "ref": "node/11524689028"
+   },
+   "openingHours": "07:00-23:00",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-11562462458",
+   "name": "B.B.O.N",
+   "lat": 35.6823332,
+   "lon": 139.773195,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11562462458",
+    "ref": "node/11562462458"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore"
+   }
+  },
+  {
+   "id": "osm-node-11562658178",
+   "name": "さくら薬局",
+   "lat": 35.6820876,
+   "lon": 139.7719374,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11562658178",
+    "ref": "node/11562658178"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "さくら薬局"
+   }
+  },
+  {
+   "id": "osm-node-11633606066",
+   "name": "Akomeya Tokyo",
+   "lat": 35.6813688,
+   "lon": 139.7736647,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11633606066",
+    "ref": "node/11633606066"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-11979259054",
+   "lat": 35.6876124,
+   "lon": 139.7723802,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11979259054",
+    "ref": "node/11979259054"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-11979259066",
+   "lat": 35.6876625,
+   "lon": 139.7723578,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/11979259066",
+    "ref": "node/11979259066"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-12042871983",
+   "name": "セブン-イレブン",
+   "lat": 35.6783109,
+   "lon": 139.7733431,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12042871983",
+    "ref": "node/12042871983"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-12066715325",
+   "name": "セブン-イレブン",
+   "lat": 35.6773567,
+   "lon": 139.7706829,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12066715325",
+    "ref": "node/12066715325"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-12179896766",
+   "name": "ファミリーマート",
+   "lat": 35.6799014,
+   "lon": 139.7742327,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12179896766",
+    "ref": "node/12179896766"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-12293389705",
+   "name": "ローソン",
+   "lat": 35.6873971,
+   "lon": 139.7752241,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12293389705",
+    "ref": "node/12293389705"
+   },
+   "openingHours": "24/7",
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-12513871378",
+   "name": "ファミリーマート",
+   "lat": 35.682895,
+   "lon": 139.7658744,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12513871378",
+    "ref": "node/12513871378"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-12544038173",
+   "lat": 35.6833361,
+   "lon": 139.7680136,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12544038173",
+    "ref": "node/12544038173"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-12583613085",
+   "lat": 35.6829637,
+   "lon": 139.7651416,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12583613085",
+    "ref": "node/12583613085"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-12598163275",
+   "lat": 35.6823068,
+   "lon": 139.7661871,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12598163275",
+    "ref": "node/12598163275"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false,
+    "level": "-1"
+   }
+  },
+  {
+   "id": "osm-node-12628406265",
+   "lat": 35.6808287,
+   "lon": 139.7667492,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12628406265",
+    "ref": "node/12628406265"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-12705200890",
+   "name": "NewDays",
+   "lat": 35.6821307,
+   "lon": 139.7668277,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12705200890",
+    "ref": "node/12705200890"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "NewDays"
+   }
+  },
+  {
+   "id": "osm-node-12725248101",
+   "name": "セブン-イレブン",
+   "lat": 35.6758707,
+   "lon": 139.769803,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12725248101",
+    "ref": "node/12725248101"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-12727032501",
+   "name": "ファミリーマート",
+   "lat": 35.6747821,
+   "lon": 139.7656527,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12727032501",
+    "ref": "node/12727032501"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ファミリーマート"
+   }
+  },
+  {
+   "id": "osm-node-12727032601",
+   "name": "スギ薬局",
+   "lat": 35.6752162,
+   "lon": 139.7660332,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12727032601",
+    "ref": "node/12727032601"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore",
+    "brand": "スギ薬局"
+   }
+  },
+  {
+   "id": "osm-node-12756729026",
+   "name": "NewDays",
+   "lat": 35.6819597,
+   "lon": 139.7657289,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12756729026",
+    "ref": "node/12756729026"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "NewDays"
+   }
+  },
+  {
+   "id": "osm-node-12839836923",
+   "name": "ローソン",
+   "lat": 35.6809643,
+   "lon": 139.7625404,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12839836923",
+    "ref": "node/12839836923"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "ローソン"
+   }
+  },
+  {
+   "id": "osm-node-12874713601",
+   "lat": 35.6843896,
+   "lon": 139.7590989,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12874713601",
+    "ref": "node/12874713601"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-12979199124",
+   "lat": 35.6816694,
+   "lon": 139.7666481,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12979199124",
+    "ref": "node/12979199124"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false
+   }
+  },
+  {
+   "id": "osm-node-12979199125",
+   "lat": 35.681672,
+   "lon": 139.7666364,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12979199125",
+    "ref": "node/12979199125"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false
+   }
+  },
+  {
+   "id": "osm-node-12979199126",
+   "lat": 35.6816754,
+   "lon": 139.7666241,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12979199126",
+    "ref": "node/12979199126"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-12979199138",
+   "name": "NewDays",
+   "lat": 35.6815586,
+   "lon": 139.7654337,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12979199138",
+    "ref": "node/12979199138"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "NewDays"
+   }
+  },
+  {
+   "id": "osm-node-12996857888",
+   "name": "KAYANOYA",
+   "lat": 35.686174,
+   "lon": 139.7742746,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12996857888",
+    "ref": "node/12996857888"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-12996857892",
+   "lat": 35.6860505,
+   "lon": 139.7744514,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12996857892",
+    "ref": "node/12996857892"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "changingTable": true,
+    "level": "1"
+   }
+  },
+  {
+   "id": "osm-node-12996857893",
+   "lat": 35.6860504,
+   "lon": 139.7744509,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12996857893",
+    "ref": "node/12996857893"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "changingTable": true,
+    "level": "0"
+   }
+  },
+  {
+   "id": "osm-node-12996946942",
+   "lat": 35.6800198,
+   "lon": 139.7701845,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12996946942",
+    "ref": "node/12996946942"
+   },
+   "openingHours": "06:00-22:00",
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-12996946943",
+   "lat": 35.6800199,
+   "lon": 139.7701851,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/12996946943",
+    "ref": "node/12996946943"
+   },
+   "openingHours": "06:00-22:45",
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-13009529879",
+   "lat": 35.679928,
+   "lon": 139.7676889,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13009529879",
+    "ref": "node/13009529879"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13196564071",
+   "lat": 35.6746414,
+   "lon": 139.7626383,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13196564071",
+    "ref": "node/13196564071"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13236032314",
+   "lat": 35.6871081,
+   "lon": 139.7589672,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13236032314",
+    "ref": "node/13236032314"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13236032511",
+   "lat": 35.6765469,
+   "lon": 139.7643554,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13236032511",
+    "ref": "node/13236032511"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13269464959",
+   "name": "クオール薬局",
+   "lat": 35.6848375,
+   "lon": 139.7672152,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13269464959",
+    "ref": "node/13269464959"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore"
+   }
+  },
+  {
+   "id": "osm-node-13282947877",
+   "name": "NewDays",
+   "lat": 35.6746126,
+   "lon": 139.7625707,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13282947877",
+    "ref": "node/13282947877"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "NewDays"
+   }
+  },
+  {
+   "id": "osm-node-13374203251",
+   "lat": 35.6807154,
+   "lon": 139.7674533,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13374203251",
+    "ref": "node/13374203251"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-13451760349",
+   "lat": 35.6813462,
+   "lon": 139.7635606,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13451760349",
+    "ref": "node/13451760349"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13527392109",
+   "lat": 35.6863058,
+   "lon": 139.7603847,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13527392109",
+    "ref": "node/13527392109"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-node-13534260223",
+   "name": "アインズ&トルペ",
+   "lat": 35.680105,
+   "lon": 139.7678981,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13534260223",
+    "ref": "node/13534260223"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "drugstore"
+   }
+  },
+  {
+   "id": "osm-node-13537232871",
+   "lat": 35.6800226,
+   "lon": 139.7675086,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13537232871",
+    "ref": "node/13537232871"
+   },
+   "kind": "toilet",
+   "toilet": {}
+  },
+  {
+   "id": "osm-node-13566164328",
+   "lat": 35.6803264,
+   "lon": 139.76584,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13566164328",
+    "ref": "node/13566164328"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false
+   }
+  },
+  {
+   "id": "osm-node-13566164329",
+   "lat": 35.6803518,
+   "lon": 139.7658968,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13566164329",
+    "ref": "node/13566164329"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false
+   }
+  },
+  {
+   "id": "osm-node-13566164330",
+   "lat": 35.6803367,
+   "lon": 139.7658694,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13566164330",
+    "ref": "node/13566164330"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "osm-node-13666265904",
+   "name": "Lawson",
+   "lat": 35.6820867,
+   "lon": 139.7731963,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13666265904",
+    "ref": "node/13666265904"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-node-13823061163",
+   "name": "セブン-イレブン",
+   "lat": 35.6795216,
+   "lon": 139.7704999,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/13823061163",
+    "ref": "node/13823061163"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-14205845041",
+   "name": "セブン-イレブン",
+   "lat": 35.6879594,
+   "lon": 139.7714307,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/14205845041",
+    "ref": "node/14205845041"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-14205845048",
+   "name": "セブン-イレブン",
+   "lat": 35.682961,
+   "lon": 139.7709283,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/14205845048",
+    "ref": "node/14205845048"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience",
+    "brand": "セブン-イレブン"
+   }
+  },
+  {
+   "id": "osm-node-14340591202",
+   "name": "Ekiben Matsuri",
+   "lat": 35.6811498,
+   "lon": 139.7667693,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/node/14340591202",
+    "ref": "node/14340591202"
+   },
+   "kind": "store",
+   "store": {
+    "storeType": "convenience"
+   }
+  },
+  {
+   "id": "osm-way-145402308",
+   "lat": 35.6831973,
+   "lon": 139.7585313,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/way/145402308",
+    "ref": "way/145402308"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-way-145409070",
+   "lat": 35.6757336,
+   "lon": 139.7571229,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/way/145409070",
+    "ref": "way/145409070"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-way-149371729",
+   "lat": 35.6765247,
+   "lon": 139.7662687,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/way/149371729",
+    "ref": "way/149371729"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": false
+   }
+  },
+  {
+   "id": "osm-way-176175391",
+   "lat": 35.6866033,
+   "lon": 139.7580433,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/way/176175391",
+    "ref": "way/176175391"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true,
+    "fee": false
+   }
+  },
+  {
+   "id": "osm-way-1178514444",
+   "lat": 35.6744012,
+   "lon": 139.771567,
+   "tier": "osm",
+   "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/way/1178514444",
+    "ref": "way/1178514444"
+   },
+   "kind": "toilet",
+   "toilet": {
+    "accessible": true
+   }
+  }
+ ]
+}
