@@ -7,8 +7,10 @@ import type { NearbyItem } from "@/lib/nearby";
 import { displayName, findNearby } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
 import { loadTodayPlan } from "@/lib/saved-plan";
+import { describeSituation, estimateSituation, type Fix, type Situation } from "@/lib/situation";
 import { headline, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { AfterPanel } from "./AfterPanel";
+import { EmergencyReview } from "./EmergencyReview";
 import { MapView, type MapPoint } from "./MapView";
 import { Badges, Details, Item, MapLink, NumberBadge } from "./PlaceInfo";
 import { RequestCard } from "./RequestCard";
@@ -44,6 +46,9 @@ export default function NowPage() {
   const [plan] = useState(() => loadTodayPlan());
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
+  // ② 直近2分の位置（この画面を開いているあいだだけ、メモリの中だけに持つ）
+  const fixes = useRef<Fix[]>([]);
+  const [situation, setSituation] = useState<Situation | null>(null);
 
   const choose = (at: LatLon, how: string) => {
     chosen.current = true;
@@ -75,6 +80,25 @@ export default function NowPage() {
   useEffect(() => {
     locate();
   }, [locate]);
+
+  // 位置を追い続けて、止まっている／歩いている／乗り物の中かを推定する。
+  // 一番の候補は最初の位置のまま変えない（歩き出した人の行き先を黙って変えないため）
+  useEffect(() => {
+    if (!("geolocation" in navigator) || !all) return;
+    const id = navigator.geolocation.watchPosition(
+      (p) => {
+        const now = Date.now();
+        fixes.current = [
+          ...fixes.current.filter((f) => now - f.t < 120_000),
+          { t: now, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, speed: p.coords.speed },
+        ];
+        setSituation(estimateSituation(fixes.current, all.stations ?? [], now));
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [all]);
 
   // 場所データは位置と関係なく丸ごと受け取る（位置をサーバーに送らないため）
   useEffect(() => {
@@ -155,6 +179,37 @@ export default function NowPage() {
           <Badges item={first} />
           <MapLink item={first} />
         </section>
+      )}
+
+      {situation?.state === "vehicle" && situation.nextStation && (
+        <section className="card" style={{ borderColor: "var(--accent)" }}>
+          <strong>乗り物で移動中のようです</strong>
+          <div className="muted">{situation.reason}</div>
+          <button
+            style={{ marginTop: 6 }}
+            onClick={() =>
+              choose(
+                { lat: situation.nextStation!.lat, lon: situation.nextStation!.lon },
+                `${situation.nextStation!.name}駅（移動中の推定から）`,
+              )
+            }
+          >
+            {situation.nextStation.name}駅で降りたときのトイレを出す
+          </button>
+        </section>
+      )}
+
+      {pos && data && (
+        <EmergencyReview
+          pos={pos.at}
+          programFirstId={first?.place.id}
+          situationText={describeSituation(
+            situation ?? { state: "unknown", reason: pos.how.startsWith("現在地") ? "位置は1回だけ取れた" : `利用者が「${pos.how}」を選んだ` },
+            pos.at,
+            first ? `${first.place.id}（${displayName(first.place)}）` : undefined,
+            plan?.answer.summary,
+          )}
+        />
       )}
 
       {station && (
