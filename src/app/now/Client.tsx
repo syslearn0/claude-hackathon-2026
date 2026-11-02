@@ -6,6 +6,7 @@ import type { LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName, findNearby } from "@/lib/nearby";
 import type { Place, Tier } from "@/lib/places";
+import { AfterPanel } from "./AfterPanel";
 import { RequestCard } from "./RequestCard";
 
 type Nearby = {
@@ -39,6 +40,7 @@ export default function NowPage() {
   );
   const [all, setAll] = useState<PlacesResponse | null>(null);
   const [card, setCard] = useState(false);
+  const [after, setAfter] = useState(false);
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
 
@@ -118,6 +120,18 @@ export default function NowPage() {
           <Badges item={first} />
           <MapLink item={first} />
         </section>
+      )}
+
+      {pos && all && (
+        <>
+          {!after ? (
+            <button className="big" onClick={() => setAfter(true)}>
+              トイレに入った（次どうする？）
+            </button>
+          ) : (
+            <AfterPanel pos={pos.at} places={all.places} />
+          )}
+        </>
       )}
 
       {data && data.toilets.length === 0 && (
