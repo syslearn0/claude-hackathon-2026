@@ -10,6 +10,7 @@ import type { Place } from "@/lib/places";
 import { describeProfile, loadProfile } from "@/lib/profile";
 import { clearPlan, loadTodayPlan, savePlan, type SavedPlan } from "@/lib/saved-plan";
 import { Badges, Details, MapLink, NumberBadge } from "../now/PlaceInfo";
+import { VoiceInput } from "./VoiceInput";
 
 // ① 出かける前の計画：今日の予定と条件を書くと、駅ごとに使える場所をまとめる。
 // 経路や乗る電車はまだ調べられないので、書かれた駅の周りの事実だけで計画を作る。
@@ -65,6 +66,8 @@ export default function PlanPage() {
         />
         <div className="muted">駅の名前を入れてください。データがあるのは、いまは新宿駅の周りと、京阪 丹波橋〜出町柳の沿線です。</div>
       </label>
+      {/* 話した言葉は、書いてある予定の後ろに足す */}
+      <VoiceInput onText={(t) => setNote((prev) => (prev ? `${prev}${/[。、\s]$/.test(prev) ? "" : "。"}${t}` : t).slice(0, 500))} />
       <div className="chips">
         {PLAN_CONDITIONS.map((c) => (
           <button key={c.id} aria-pressed={conditions.includes(c.id)} onClick={() => toggle(c.id)}>
