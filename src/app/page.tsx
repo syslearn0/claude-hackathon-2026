@@ -8,6 +8,11 @@ export default function Home() {
         急なトイレの不安がある人の外出を、確かめた事実の情報で支える Web アプリです。
         いまはデータ集めの道具だけを置いています。
       </p>
+      <Link href="/now" className="button primary big">
+        今すぐトイレ
+      </Link>
+      <p className="muted">近いトイレ・着替えられる場所・替えを買える店と、駅員や店員に見せる「お願いカード」。</p>
+
       <h2>データ集めの道具</h2>
       <ul>
         <li>

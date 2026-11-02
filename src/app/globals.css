@@ -118,13 +118,23 @@ button {
   cursor: pointer;
 }
 
-button.primary {
+a.button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+button.primary,
+a.button.primary {
   background: var(--accent);
   color: var(--accent-fg);
   border-color: var(--accent);
 }
 
-button.big {
+button.big,
+a.button.big {
   width: 100%;
   padding: 16px;
   font-size: 1.1rem;
@@ -161,4 +171,20 @@ th {
   border-bottom: 1px solid var(--line);
   padding: 4px;
   text-align: left;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+/* お願いカードは明るい背景に固定しているので、ボタンも明るい色にそろえる */
+.request-card-buttons button {
+  background: #ffffff;
+  color: #1d1d1b;
+  border-color: #b8b49a;
 }

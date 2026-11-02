@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // API ルートが実行時に読む場所データを、公開先にも含める
+  outputFileTracingIncludes: {
+    "/api/**": ["./data/places/**"],
+  },
 };
 
 export default nextConfig;

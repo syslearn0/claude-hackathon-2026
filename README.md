@@ -4,6 +4,7 @@
 
 - 計画：[docs/plan.md](docs/plan.md)
 - 今あるページ
+  - `/now`：今すぐトイレ（近いトイレ・着替えられる多機能トイレ・替えを買える店・お願いカード）
   - `/tools/survey`：現地確認の記録（駅のトイレ、コンビニ・ドラッグストアの品ぞろえ）
   - `/tools/gps-log`：電車移動中のブラウザ位置情報の記録
 
@@ -13,5 +14,8 @@
 npm install
 npm run dev
 ```
+
+場所データの取り込み：`npm run fetch:osm`（`data/places/osm-*.json`、© OpenStreetMap contributors, ODbL 1.0）
+テスト：`npm test`
 
 記録は端末の localStorage にだけ保存し、書き出しで共有する。サーバーには送らない。
