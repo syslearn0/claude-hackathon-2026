@@ -1,8 +1,6 @@
 // エージェントが使う道具。事実はすべてここから出す。
 import type Anthropic from "@anthropic-ai/sdk";
-import { readFile, readdir } from "node:fs/promises";
-import path from "node:path";
-import { loadPlaces } from "../data";
+import { loadPlaces, loadStations } from "../data";
 import type { LatLon } from "../geo";
 import { displayName, findNearby, type NearbyItem } from "../nearby";
 import type { Place } from "../places";
@@ -109,17 +107,6 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
   },
 ];
-
-type Station = { name: string; operator?: string; lat: number; lon: number };
-
-async function loadStations(): Promise<Station[]> {
-  const dir = path.join(process.cwd(), "data", "stations");
-  const all: Station[] = [];
-  for (const f of await readdir(dir)) {
-    all.push(...(JSON.parse(await readFile(path.join(dir, f), "utf8")) as { stations: Station[] }).stations);
-  }
-  return all;
-}
 
 export async function runTool(name: string, input: Record<string, unknown>, ctx: ToolContext): Promise<ToolOutput> {
   switch (name) {

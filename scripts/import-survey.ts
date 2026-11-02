@@ -72,6 +72,7 @@ export function toPlace(r: SurveyRecord, stations: Station[]): Place | { skip: s
     checkedAt: r.checkedAt.slice(0, 10),
     station: str(v.station),
     gate: GATE[str(v.gate) ?? ""] ?? ("unknown" as Gate),
+    floor: str(v.floor),
     minFromGate: num(v.minFromGate),
     note: str(v.note),
   };
@@ -82,6 +83,7 @@ export function toPlace(r: SurveyRecord, stations: Station[]): Place | { skip: s
       ...base,
       kind: "toilet",
       name: [str(v.operator), str(v.station) && `${str(v.station)}駅`, str(v.nearGate)].filter(Boolean).join(" ") || undefined,
+      nearGate: str(v.nearGate),
       where: str(v.where),
       platform: str(v.platform),
       minFromPlatform: num(v.minFromPlatform),

@@ -57,6 +57,8 @@ export type Place = {
   approxLocation?: boolean; // 位置が取れず、駅の中心などで代用している
   station?: string;
   gate?: Gate;
+  nearGate?: string; // 近い改札・出口の名前
+  floor?: string; // 階（公式データ・現地確認の書き方のまま。例："B1F"、"2F"）
   where?: string; // 場所の説明
   platform?: string; // 近いホーム・号車・階段
   minFromPlatform?: number; // 秒

@@ -17,6 +17,7 @@
    },
    "checkedAt": "202501",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -24,7 +25,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-1-2",
@@ -41,6 +43,7 @@
    },
    "checkedAt": "202501",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -48,7 +51,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-1-3",
@@ -65,6 +69,7 @@
    },
    "checkedAt": "201901",
    "station": "新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "非常用呼び出しはインターホン",
@@ -73,7 +78,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-1-4",
@@ -90,6 +96,7 @@
    },
    "checkedAt": "202601",
    "station": "新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "非常用呼び出しはインターホン",
@@ -98,7 +105,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-2-1",
@@ -115,6 +123,7 @@
    },
    "checkedAt": "201901",
    "station": "南新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "非常用呼び出しはインターホン",
@@ -140,6 +149,7 @@
    },
    "checkedAt": "202011",
    "station": "参宮橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -164,6 +174,7 @@
    },
    "checkedAt": "201911",
    "station": "代々木八幡",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロックはトイレの手前まで／大型ベッドはおむつ交換台としても使える",
@@ -188,6 +199,7 @@
    },
    "checkedAt": "201911",
    "station": "代々木八幡",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロックはトイレの手前まで／大型ベッドはおむつ交換台としても使える",
@@ -212,6 +224,7 @@
    },
    "checkedAt": "202501",
    "station": "代々木上原",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -236,6 +249,7 @@
    },
    "checkedAt": "202501",
    "station": "代々木上原",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -260,6 +274,7 @@
    },
    "checkedAt": "201901",
    "station": "東北沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -284,6 +299,7 @@
    },
    "checkedAt": "201901",
    "station": "東北沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -308,6 +324,7 @@
    },
    "checkedAt": "202211",
    "station": "下北沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -315,7 +332,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-7-2",
@@ -332,6 +350,7 @@
    },
    "checkedAt": "202211",
    "station": "下北沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -339,7 +358,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-7-3",
@@ -356,6 +376,7 @@
    },
    "checkedAt": "202211",
    "station": "下北沢",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -380,6 +401,7 @@
    },
    "checkedAt": "201901",
    "station": "世田谷代田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -404,6 +426,7 @@
    },
    "checkedAt": "202011",
    "station": "世田谷代田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -428,6 +451,7 @@
    },
    "checkedAt": "202501",
    "station": "梅ヶ丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -452,6 +476,7 @@
    },
    "checkedAt": "202501",
    "station": "豪徳寺",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -476,6 +501,7 @@
    },
    "checkedAt": "201901",
    "station": "経堂",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -500,6 +526,7 @@
    },
    "checkedAt": "201901",
    "station": "千歳船橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -524,6 +551,7 @@
    },
    "checkedAt": "201901",
    "station": "祖師ヶ谷大蔵",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -548,6 +576,7 @@
    },
    "checkedAt": "201901",
    "station": "成城学園前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -572,6 +601,7 @@
    },
    "checkedAt": "201901",
    "station": "喜多見",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -596,6 +626,7 @@
    },
    "checkedAt": "201901",
    "station": "狛江",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -620,6 +651,7 @@
    },
    "checkedAt": "202601",
    "station": "和泉多摩川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -644,6 +676,7 @@
    },
    "checkedAt": "202011",
    "station": "鶴川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -651,7 +684,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-18-2",
@@ -668,6 +702,7 @@
    },
    "checkedAt": "202011",
    "station": "鶴川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -675,7 +710,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-1-19-1",
@@ -692,6 +728,7 @@
    },
    "checkedAt": "202501",
    "station": "玉川学園前",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -716,6 +753,7 @@
    },
    "checkedAt": "202501",
    "station": "玉川学園前",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -740,6 +778,7 @@
    },
    "checkedAt": "202501",
    "station": "町田",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "東口改札外",
@@ -765,6 +804,7 @@
    },
    "checkedAt": "202501",
    "station": "町田",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "東口改札外",
@@ -790,6 +830,7 @@
    },
    "checkedAt": "202501",
    "station": "町田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -814,6 +855,7 @@
    },
    "checkedAt": "202501",
    "station": "町田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -838,6 +880,7 @@
    },
    "checkedAt": "202501",
    "station": "小田急永山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -862,6 +905,7 @@
    },
    "checkedAt": "202501",
    "station": "小田急永山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -886,6 +930,7 @@
    },
    "checkedAt": "202501",
    "station": "小田急多摩センター",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -910,6 +955,7 @@
    },
    "checkedAt": "202501",
    "station": "小田急多摩センター",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -934,6 +980,7 @@
    },
    "checkedAt": "201901",
    "station": "唐木田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -958,6 +1005,7 @@
    },
    "checkedAt": "202111",
    "station": "新宿",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -982,6 +1030,7 @@
    },
    "checkedAt": "202211",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1006,6 +1055,7 @@
    },
    "checkedAt": "201901",
    "station": "初台",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1030,6 +1080,7 @@
    },
    "checkedAt": "201901",
    "station": "初台東口",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1054,6 +1105,7 @@
    },
    "checkedAt": "201901",
    "station": "幡ヶ谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1078,6 +1130,7 @@
    },
    "checkedAt": "202011",
    "station": "笹塚",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1102,6 +1155,7 @@
    },
    "checkedAt": "201901",
    "station": "代田橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1126,6 +1180,7 @@
    },
    "checkedAt": "201901",
    "station": "下高井戸",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1150,6 +1205,7 @@
    },
    "checkedAt": "201901",
    "station": "桜上水",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1174,6 +1230,7 @@
    },
    "checkedAt": "201901",
    "station": "上北沢",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1198,6 +1255,7 @@
    },
    "checkedAt": "201901",
    "station": "八幡山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1222,6 +1280,7 @@
    },
    "checkedAt": "201901",
    "station": "芦花公園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1246,6 +1305,7 @@
    },
    "checkedAt": "202011",
    "station": "千歳烏山（上り）",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1270,6 +1330,7 @@
    },
    "checkedAt": "202011",
    "station": "千歳烏山（下り）",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1294,6 +1355,7 @@
    },
    "checkedAt": "202011",
    "station": "千歳烏山（下り）",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1318,6 +1380,7 @@
    },
    "checkedAt": "201911",
    "station": "仙川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1342,6 +1405,7 @@
    },
    "checkedAt": "201901",
    "station": "つつじヶ丘",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1366,6 +1430,7 @@
    },
    "checkedAt": "201901",
    "station": "柴崎",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1390,6 +1455,7 @@
    },
    "checkedAt": "201901",
    "station": "国領",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1414,6 +1480,7 @@
    },
    "checkedAt": "201901",
    "station": "布田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1438,6 +1505,7 @@
    },
    "checkedAt": "202011",
    "station": "調布",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1445,7 +1513,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-2-18-2",
@@ -1462,6 +1531,7 @@
    },
    "checkedAt": "202011",
    "station": "調布",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1469,7 +1539,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-2-19-1",
@@ -1486,6 +1557,7 @@
    },
    "checkedAt": "201901",
    "station": "西調布",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1510,6 +1582,7 @@
    },
    "checkedAt": "201911",
    "station": "飛田給",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1534,6 +1607,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵野台",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1558,6 +1632,7 @@
    },
    "checkedAt": "201901",
    "station": "多磨霊園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1582,6 +1657,7 @@
    },
    "checkedAt": "201901",
    "station": "東府中",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1606,6 +1682,7 @@
    },
    "checkedAt": "202501",
    "station": "府中競馬正門前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1630,6 +1707,7 @@
    },
    "checkedAt": "202011",
    "station": "府中",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1654,6 +1732,7 @@
    },
    "checkedAt": "202011",
    "station": "分倍河原",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "女性用トイレ入口の奥にあるが共用",
@@ -1679,6 +1758,7 @@
    },
    "checkedAt": "201901",
    "station": "中河原",
+   "floor": "M2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1703,6 +1783,7 @@
    },
    "checkedAt": "202601",
    "station": "聖蹟桜ヶ丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1727,6 +1808,7 @@
    },
    "checkedAt": "201901",
    "station": "百草園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1751,6 +1833,7 @@
    },
    "checkedAt": "201901",
    "station": "高幡不動",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1775,6 +1858,7 @@
    },
    "checkedAt": "202011",
    "station": "多摩動物公園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1799,6 +1883,7 @@
    },
    "checkedAt": "201901",
    "station": "南平",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1823,6 +1908,7 @@
    },
    "checkedAt": "202011",
    "station": "平山城址公園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1847,6 +1933,7 @@
    },
    "checkedAt": "201901",
    "station": "長沼",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1871,6 +1958,7 @@
    },
    "checkedAt": "201901",
    "station": "北野",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1895,6 +1983,7 @@
    },
    "checkedAt": "201901",
    "station": "京王八王子",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1919,6 +2008,7 @@
    },
    "checkedAt": "201901",
    "station": "京王八王子西口",
+   "floor": "B2F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "改札外に設置",
@@ -1927,7 +2017,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-2-37-2",
@@ -1944,6 +2035,7 @@
    },
    "checkedAt": "201901",
    "station": "京王八王子西口",
+   "floor": "B2F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "改札外に設置",
@@ -1952,7 +2044,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-2-38-1",
@@ -1969,6 +2062,7 @@
    },
    "checkedAt": "201901",
    "station": "京王片倉",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -1993,6 +2087,7 @@
    },
    "checkedAt": "201901",
    "station": "山田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2017,6 +2112,7 @@
    },
    "checkedAt": "201901",
    "station": "めじろ台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2041,6 +2137,7 @@
    },
    "checkedAt": "202601",
    "station": "狭間",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロック記載なし",
@@ -2066,6 +2163,7 @@
    },
    "checkedAt": "201911",
    "station": "高尾",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロックは音声案内板の前まで有り",
@@ -2091,6 +2189,7 @@
    },
    "checkedAt": "201901",
    "station": "高尾山口",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2115,6 +2214,7 @@
    },
    "checkedAt": "202501",
    "station": "京王多摩川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "車いす内部転回：今後改修予定",
@@ -2140,6 +2240,7 @@
    },
    "checkedAt": "202011",
    "station": "京王よみうりランド",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2164,6 +2265,7 @@
    },
    "checkedAt": "201901",
    "station": "稲城",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2188,6 +2290,7 @@
    },
    "checkedAt": "201901",
    "station": "京王永山",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2212,6 +2315,7 @@
    },
    "checkedAt": "201901",
    "station": "京王多摩センター",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2236,6 +2340,7 @@
    },
    "checkedAt": "201911",
    "station": "京王堀之内",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "※点字ブロックは音声案内板の前まで有り",
@@ -2261,6 +2366,7 @@
    },
    "checkedAt": "202601",
    "station": "南大沢",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2285,6 +2391,7 @@
    },
    "checkedAt": "202501",
    "station": "多摩境",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2309,6 +2416,7 @@
    },
    "checkedAt": "202011",
    "station": "渋谷",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2333,6 +2441,7 @@
    },
    "checkedAt": "202011",
    "station": "渋谷",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2357,6 +2466,7 @@
    },
    "checkedAt": "202601",
    "station": "神泉",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "車椅子は入れれば、内部で回転可能　出入口：今後改修予定",
@@ -2382,6 +2492,7 @@
    },
    "checkedAt": "201901",
    "station": "池ノ上",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2406,6 +2517,7 @@
    },
    "checkedAt": "201901",
    "station": "新代田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2430,6 +2542,7 @@
    },
    "checkedAt": "202601",
    "station": "東松原",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2454,6 +2567,7 @@
    },
    "checkedAt": "202011",
    "station": "明大前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2478,6 +2592,7 @@
    },
    "checkedAt": "201901",
    "station": "永福町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2502,6 +2617,7 @@
    },
    "checkedAt": "201901",
    "station": "西永福",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2526,6 +2642,7 @@
    },
    "checkedAt": "201901",
    "station": "浜田山",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2550,6 +2667,7 @@
    },
    "checkedAt": "201901",
    "station": "高井戸",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2574,6 +2692,7 @@
    },
    "checkedAt": "201901",
    "station": "富士見ヶ丘",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2598,6 +2717,7 @@
    },
    "checkedAt": "201901",
    "station": "久我山",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2622,6 +2742,7 @@
    },
    "checkedAt": "202011",
    "station": "三鷹台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2646,6 +2767,7 @@
    },
    "checkedAt": "201901",
    "station": "井の頭公園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2670,6 +2792,7 @@
    },
    "checkedAt": "201901",
    "station": "吉祥寺",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2694,6 +2817,7 @@
    },
    "checkedAt": "202211",
    "station": "下北沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2718,6 +2842,7 @@
    },
    "checkedAt": "202401",
    "station": "京成上野",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2742,6 +2867,7 @@
    },
    "checkedAt": "202401",
    "station": "京成上野",
+   "floor": "B1F",
    "gate": "outside",
    "hoursText": "始発〜23:30",
    "note": "改札外コンコース",
@@ -2767,6 +2893,7 @@
    },
    "checkedAt": "202401",
    "station": "京成上野",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜23:00",
    "note": "ホーム階",
@@ -2792,6 +2919,7 @@
    },
    "checkedAt": "202401",
    "station": "日暮里",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2816,6 +2944,7 @@
    },
    "checkedAt": "202601",
    "station": "新三河島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2840,6 +2969,7 @@
    },
    "checkedAt": "202401",
    "station": "町屋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2864,6 +2994,7 @@
    },
    "checkedAt": "202601",
    "station": "千住大橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2888,6 +3019,7 @@
    },
    "checkedAt": "202601",
    "station": "京成関屋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2912,6 +3044,7 @@
    },
    "checkedAt": "202401",
    "station": "堀切菖蒲園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2936,6 +3069,7 @@
    },
    "checkedAt": "202601",
    "station": "お花茶屋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2960,6 +3094,7 @@
    },
    "checkedAt": "202601",
    "station": "青砥",
+   "floor": "M2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -2984,6 +3119,7 @@
    },
    "checkedAt": "202401",
    "station": "京成高砂",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "トイレ前で回転可能",
@@ -3009,6 +3145,7 @@
    },
    "checkedAt": "202401",
    "station": "京成小岩",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3033,6 +3170,7 @@
    },
    "checkedAt": "202401",
    "station": "江戸川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3057,6 +3195,7 @@
    },
    "checkedAt": "202601",
    "station": "押上",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3081,6 +3220,7 @@
    },
    "checkedAt": "202601",
    "station": "京成曳舟",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3105,6 +3245,7 @@
    },
    "checkedAt": "202401",
    "station": "八広",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3129,6 +3270,7 @@
    },
    "checkedAt": "202401",
    "station": "四ツ木",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3153,6 +3295,7 @@
    },
    "checkedAt": "202401",
    "station": "柴又",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3177,6 +3320,7 @@
    },
    "checkedAt": "202401",
    "station": "京成金町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "扉の外で回転可能",
@@ -3202,6 +3346,7 @@
    },
    "checkedAt": "202211",
    "station": "京成立石",
+   "floor": "ホーム",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "連続立体交差事業に伴う仮設トイレ",
@@ -3227,6 +3372,7 @@
    },
    "checkedAt": "201901",
    "station": "品川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3251,6 +3397,7 @@
    },
    "checkedAt": "202401",
    "station": "北品川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3275,6 +3422,7 @@
    },
    "checkedAt": "201901",
    "station": "新馬場",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3299,6 +3447,7 @@
    },
    "checkedAt": "201901",
    "station": "青物横丁",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3323,6 +3472,7 @@
    },
    "checkedAt": "201901",
    "station": "鮫洲",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3347,6 +3497,7 @@
    },
    "checkedAt": "201901",
    "station": "立会川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3371,6 +3522,7 @@
    },
    "checkedAt": "201901",
    "station": "大森海岸",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3395,6 +3547,7 @@
    },
    "checkedAt": "201901",
    "station": "大森町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3419,6 +3572,7 @@
    },
    "checkedAt": "201901",
    "station": "梅屋敷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3443,6 +3597,7 @@
    },
    "checkedAt": "201901",
    "station": "京急蒲田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3467,6 +3622,7 @@
    },
    "checkedAt": "201901",
    "station": "雑色",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3491,6 +3647,7 @@
    },
    "checkedAt": "201901",
    "station": "六郷土手",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3515,6 +3672,7 @@
    },
    "checkedAt": "201901",
    "station": "糀谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3539,6 +3697,7 @@
    },
    "checkedAt": "201901",
    "station": "大鳥居",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3563,6 +3722,7 @@
    },
    "checkedAt": "201901",
    "station": "穴守稲荷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3587,6 +3747,7 @@
    },
    "checkedAt": "201901",
    "station": "天空橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3611,6 +3772,7 @@
    },
    "checkedAt": "202011",
    "station": "羽田空港第３ターミナル",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3635,6 +3797,7 @@
    },
    "checkedAt": "202011",
    "station": "羽田空港第３ターミナル",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3659,6 +3822,7 @@
    },
    "checkedAt": "202011",
    "station": "羽田空港第３ターミナル",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3683,6 +3847,7 @@
    },
    "checkedAt": "202111",
    "station": "羽田空港第１・第２ターミナル",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3690,7 +3855,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-4-19-2",
@@ -3707,6 +3873,7 @@
    },
    "checkedAt": "202111",
    "station": "羽田空港第１・第２ターミナル",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3714,7 +3881,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-5-1-1",
@@ -3731,6 +3899,7 @@
    },
    "checkedAt": "201901",
    "station": "秋葉原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "終車前に利用終了。",
@@ -3756,6 +3925,7 @@
    },
    "checkedAt": "201901",
    "station": "秋葉原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3780,6 +3950,7 @@
    },
    "checkedAt": "201901",
    "station": "新御徒町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3804,6 +3975,7 @@
    },
    "checkedAt": "201901",
    "station": "浅草",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3828,6 +4000,7 @@
    },
    "checkedAt": "201901",
    "station": "浅草",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3852,6 +4025,7 @@
    },
    "checkedAt": "201901",
    "station": "南千住",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3876,6 +4050,7 @@
    },
    "checkedAt": "201901",
    "station": "北千住",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3900,6 +4075,7 @@
    },
    "checkedAt": "201901",
    "station": "青井",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3924,6 +4100,7 @@
    },
    "checkedAt": "201901",
    "station": "六町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3948,6 +4125,7 @@
    },
    "checkedAt": "201901",
    "station": "池袋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3972,6 +4150,7 @@
    },
    "checkedAt": "201901",
    "station": "椎名町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -3996,6 +4175,7 @@
    },
    "checkedAt": "201901",
    "station": "東長崎",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4020,6 +4200,7 @@
    },
    "checkedAt": "201901",
    "station": "江古田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4044,6 +4225,7 @@
    },
    "checkedAt": "201901",
    "station": "桜台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4068,6 +4250,7 @@
    },
    "checkedAt": "202401",
    "station": "練馬駅",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4092,6 +4275,7 @@
    },
    "checkedAt": "201901",
    "station": "中村橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4116,6 +4300,7 @@
    },
    "checkedAt": "201901",
    "station": "富士見台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4140,6 +4325,7 @@
    },
    "checkedAt": "201901",
    "station": "練馬高野台",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4164,6 +4350,7 @@
    },
    "checkedAt": "201901",
    "station": "石神井公園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4188,6 +4375,7 @@
    },
    "checkedAt": "201901",
    "station": "大泉学園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4212,6 +4400,7 @@
    },
    "checkedAt": "201901",
    "station": "保谷",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4236,6 +4425,7 @@
    },
    "checkedAt": "202011",
    "station": "ひばりヶ丘",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4260,6 +4450,7 @@
    },
    "checkedAt": "201901",
    "station": "東久留米",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4284,6 +4475,7 @@
    },
    "checkedAt": "201901",
    "station": "清瀬",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4308,6 +4500,7 @@
    },
    "checkedAt": "201901",
    "station": "秋津",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4332,6 +4525,7 @@
    },
    "checkedAt": "201901",
    "station": "新桜台",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4356,6 +4550,7 @@
    },
    "checkedAt": "202501",
    "station": "豊島園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4380,6 +4575,7 @@
    },
    "checkedAt": "201901",
    "station": "西武新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4404,6 +4600,7 @@
    },
    "checkedAt": "201901",
    "station": "高田馬場",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4428,6 +4625,7 @@
    },
    "checkedAt": "201901",
    "station": "下落合",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4452,6 +4650,7 @@
    },
    "checkedAt": "201901",
    "station": "中井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4476,6 +4675,7 @@
    },
    "checkedAt": "201901",
    "station": "沼袋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4500,6 +4700,7 @@
    },
    "checkedAt": "201901",
    "station": "野方",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4524,6 +4725,7 @@
    },
    "checkedAt": "201901",
    "station": "都立家政",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4548,6 +4750,7 @@
    },
    "checkedAt": "201901",
    "station": "鷺ノ宮",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4572,6 +4775,7 @@
    },
    "checkedAt": "201901",
    "station": "下井草",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4596,6 +4800,7 @@
    },
    "checkedAt": "201901",
    "station": "井荻",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "トイレ内での車いす回転は不可能",
@@ -4621,6 +4826,7 @@
    },
    "checkedAt": "201901",
    "station": "上井草",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4645,6 +4851,7 @@
    },
    "checkedAt": "201901",
    "station": "上石神井",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4669,6 +4876,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵関",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4693,6 +4901,7 @@
    },
    "checkedAt": "201901",
    "station": "東伏見",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4717,6 +4926,7 @@
    },
    "checkedAt": "201901",
    "station": "西武柳沢",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4741,6 +4951,7 @@
    },
    "checkedAt": "201901",
    "station": "田無",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4765,6 +4976,7 @@
    },
    "checkedAt": "201901",
    "station": "花小金井",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4789,6 +5001,7 @@
    },
    "checkedAt": "201901",
    "station": "小平",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "男女共用だが、入口は男性用トイレの中にある",
@@ -4814,6 +5027,7 @@
    },
    "checkedAt": "201901",
    "station": "久米川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4838,6 +5052,7 @@
    },
    "checkedAt": "202211",
    "station": "東村山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4862,6 +5077,7 @@
    },
    "checkedAt": "201901",
    "station": "東大和市",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4886,6 +5102,7 @@
    },
    "checkedAt": "202601",
    "station": "玉川上水",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4910,6 +5127,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵砂川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4934,6 +5152,7 @@
    },
    "checkedAt": "201901",
    "station": "西武立川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4958,6 +5177,7 @@
    },
    "checkedAt": "201901",
    "station": "拝島",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -4982,6 +5202,7 @@
    },
    "checkedAt": "201901",
    "station": "西武園",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "トイレは改札外",
@@ -5007,6 +5228,7 @@
    },
    "checkedAt": "201901",
    "station": "国分寺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5031,6 +5253,7 @@
    },
    "checkedAt": "201901",
    "station": "恋ヶ窪",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5055,6 +5278,7 @@
    },
    "checkedAt": "201901",
    "station": "鷹の台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5079,6 +5303,7 @@
    },
    "checkedAt": "201901",
    "station": "小川",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "トイレは改札外",
@@ -5104,6 +5329,7 @@
    },
    "checkedAt": "201901",
    "station": "萩山",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5128,6 +5354,7 @@
    },
    "checkedAt": "201901",
    "station": "八坂",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5152,6 +5379,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵大和",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5176,6 +5404,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵境",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5200,6 +5429,7 @@
    },
    "checkedAt": "201901",
    "station": "新小金井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5224,6 +5454,7 @@
    },
    "checkedAt": "202111",
    "station": "多磨",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5248,6 +5479,7 @@
    },
    "checkedAt": "201901",
    "station": "白糸台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5272,6 +5504,7 @@
    },
    "checkedAt": "201901",
    "station": "競艇場前",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5296,6 +5529,7 @@
    },
    "checkedAt": "201901",
    "station": "是政",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "男女共用だが、入口は男性用トイレの中にある",
@@ -5321,6 +5555,7 @@
    },
    "checkedAt": "202601",
    "station": "清滝",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "改札外に設置、トイレ利用時間は季節により異なる。",
@@ -5346,6 +5581,7 @@
    },
    "checkedAt": "202601",
    "station": "高尾山",
+   "floor": "1F",
    "gate": "outside",
    "hoursText": "00:00〜24:00",
    "note": "改札外に設置、トイレ利用時間は24時間可能。",
@@ -5371,6 +5607,7 @@
    },
    "checkedAt": "202601",
    "station": "多摩センター",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5395,6 +5632,7 @@
    },
    "checkedAt": "202401",
    "station": "松が谷",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5419,6 +5657,7 @@
    },
    "checkedAt": "202401",
    "station": "大塚・帝京大学",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5443,6 +5682,7 @@
    },
    "checkedAt": "202401",
    "station": "中央大学・明星大学",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5467,6 +5707,7 @@
    },
    "checkedAt": "202401",
    "station": "多摩動物公園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5491,6 +5732,7 @@
    },
    "checkedAt": "202401",
    "station": "程久保",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5515,6 +5757,7 @@
    },
    "checkedAt": "202401",
    "station": "高幡不動",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "トイレ内での車いす回転は不可能",
@@ -5540,6 +5783,7 @@
    },
    "checkedAt": "202401",
    "station": "万願寺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5564,6 +5808,7 @@
    },
    "checkedAt": "202401",
    "station": "甲州街道",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5588,6 +5833,7 @@
    },
    "checkedAt": "202601",
    "station": "柴崎体育館",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5612,6 +5858,7 @@
    },
    "checkedAt": "202401",
    "station": "立川南",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5636,6 +5883,7 @@
    },
    "checkedAt": "202401",
    "station": "立川北",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5660,6 +5908,7 @@
    },
    "checkedAt": "202401",
    "station": "高松",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5684,6 +5933,7 @@
    },
    "checkedAt": "202401",
    "station": "立飛",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5708,6 +5958,7 @@
    },
    "checkedAt": "202401",
    "station": "泉体育館",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5732,6 +5983,7 @@
    },
    "checkedAt": "202401",
    "station": "砂川七番",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5756,6 +6008,7 @@
    },
    "checkedAt": "202401",
    "station": "玉川上水",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5780,6 +6033,7 @@
    },
    "checkedAt": "202401",
    "station": "桜街道",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5804,6 +6058,7 @@
    },
    "checkedAt": "202401",
    "station": "上北台",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5828,6 +6083,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5852,6 +6108,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5876,6 +6133,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "※別途、ひろびろブースに乳幼児用椅子有り（機能分散）",
@@ -5901,6 +6159,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "※別途、ひろびろブースに乳幼児用椅子有り（機能分散）",
@@ -5926,6 +6185,7 @@
    },
    "checkedAt": "201901",
    "station": "代官山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "入口前で車椅子回転可",
@@ -5951,6 +6211,7 @@
    },
    "checkedAt": "201901",
    "station": "中目黒",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5975,6 +6236,7 @@
    },
    "checkedAt": "201901",
    "station": "中目黒",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -5999,6 +6261,7 @@
    },
    "checkedAt": "201901",
    "station": "祐天寺",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6023,6 +6286,7 @@
    },
    "checkedAt": "202111",
    "station": "学芸大学",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6047,6 +6311,7 @@
    },
    "checkedAt": "201901",
    "station": "目黒",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6071,6 +6336,7 @@
    },
    "checkedAt": "201901",
    "station": "目黒",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6095,6 +6361,7 @@
    },
    "checkedAt": "201901",
    "station": "不動前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6119,6 +6386,7 @@
    },
    "checkedAt": "201901",
    "station": "不動前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6143,6 +6411,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵小山",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6150,7 +6419,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-9-9-2",
@@ -6167,6 +6437,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵小山",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6174,7 +6445,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-9-10-1",
@@ -6191,6 +6463,7 @@
    },
    "checkedAt": "201901",
    "station": "西小山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6215,6 +6488,7 @@
    },
    "checkedAt": "201901",
    "station": "西小山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6239,6 +6513,7 @@
    },
    "checkedAt": "201901",
    "station": "洗足",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6263,6 +6538,7 @@
    },
    "checkedAt": "202111",
    "station": "大岡山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6287,6 +6563,7 @@
    },
    "checkedAt": "202111",
    "station": "大岡山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6311,6 +6588,7 @@
    },
    "checkedAt": "202211",
    "station": "奥沢",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6335,6 +6613,7 @@
    },
    "checkedAt": "201901",
    "station": "田園調布",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6359,6 +6638,7 @@
    },
    "checkedAt": "202501",
    "station": "多摩川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6383,6 +6663,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B1F",
    "gate": "outside",
    "hoursText": "始発〜終電",
    "note": "改札外に設置、トイレ利用時は押しボタンの代わりにあるインターホンを使って解錠してもらう。",
@@ -6391,7 +6672,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-9-16-6",
@@ -6408,6 +6690,7 @@
    },
    "checkedAt": "201901",
    "station": "渋谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6415,7 +6698,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-9-17-1",
@@ -6432,6 +6716,7 @@
    },
    "checkedAt": "201901",
    "station": "池尻大橋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6456,6 +6741,7 @@
    },
    "checkedAt": "202111",
    "station": "三軒茶屋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6480,6 +6766,7 @@
    },
    "checkedAt": "202211",
    "station": "駒沢大学",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6504,6 +6791,7 @@
    },
    "checkedAt": "202011",
    "station": "桜新町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6528,6 +6816,7 @@
    },
    "checkedAt": "202011",
    "station": "桜新町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "改修工事完了（2021年2月16日供用開始済み）",
@@ -6553,6 +6842,7 @@
    },
    "checkedAt": "202011",
    "station": "用賀",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6577,6 +6867,7 @@
    },
    "checkedAt": "202011",
    "station": "用賀",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6601,6 +6892,7 @@
    },
    "checkedAt": "201901",
    "station": "二子玉川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6625,6 +6917,7 @@
    },
    "checkedAt": "201901",
    "station": "二子玉川",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6649,6 +6942,7 @@
    },
    "checkedAt": "201901",
    "station": "つくし野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6673,6 +6967,7 @@
    },
    "checkedAt": "201901",
    "station": "つくし野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6697,6 +6992,7 @@
    },
    "checkedAt": "201901",
    "station": "すずかけ台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6721,6 +7017,7 @@
    },
    "checkedAt": "202011",
    "station": "南町田グランベリーパーク",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6745,6 +7042,7 @@
    },
    "checkedAt": "202011",
    "station": "大井町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6769,6 +7067,7 @@
    },
    "checkedAt": "202011",
    "station": "大井町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6793,6 +7092,7 @@
    },
    "checkedAt": "201901",
    "station": "下神明",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6817,6 +7117,7 @@
    },
    "checkedAt": "201901",
    "station": "戸越公園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6841,6 +7142,7 @@
    },
    "checkedAt": "201901",
    "station": "中延",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6865,6 +7167,7 @@
    },
    "checkedAt": "201901",
    "station": "中延",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6889,6 +7192,7 @@
    },
    "checkedAt": "202111",
    "station": "荏原町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6913,6 +7217,7 @@
    },
    "checkedAt": "201901",
    "station": "旗の台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6937,6 +7242,7 @@
    },
    "checkedAt": "201901",
    "station": "旗の台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6961,6 +7267,7 @@
    },
    "checkedAt": "201901",
    "station": "北千束",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -6985,6 +7292,7 @@
    },
    "checkedAt": "201901",
    "station": "緑が丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7009,6 +7317,7 @@
    },
    "checkedAt": "201901",
    "station": "緑が丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7033,6 +7342,7 @@
    },
    "checkedAt": "202111",
    "station": "自由が丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7057,6 +7367,7 @@
    },
    "checkedAt": "202111",
    "station": "自由が丘",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7081,6 +7392,7 @@
    },
    "checkedAt": "202111",
    "station": "九品仏",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7105,6 +7417,7 @@
    },
    "checkedAt": "202111",
    "station": "九品仏",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7129,6 +7442,7 @@
    },
    "checkedAt": "202501",
    "station": "尾山台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7153,6 +7467,7 @@
    },
    "checkedAt": "201901",
    "station": "等々力",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7177,6 +7492,7 @@
    },
    "checkedAt": "201901",
    "station": "上野毛",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7201,6 +7517,7 @@
    },
    "checkedAt": "201901",
    "station": "上野毛",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7225,6 +7542,7 @@
    },
    "checkedAt": "201901",
    "station": "五反田",
+   "floor": "4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7249,6 +7567,7 @@
    },
    "checkedAt": "201901",
    "station": "大崎広小路",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7273,6 +7592,7 @@
    },
    "checkedAt": "201901",
    "station": "戸越銀座",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7297,6 +7617,7 @@
    },
    "checkedAt": "201901",
    "station": "旗の台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7321,6 +7642,7 @@
    },
    "checkedAt": "202401",
    "station": "長原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7345,6 +7667,7 @@
    },
    "checkedAt": "201901",
    "station": "洗足池",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7369,6 +7692,7 @@
    },
    "checkedAt": "201901",
    "station": "石川台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7393,6 +7717,7 @@
    },
    "checkedAt": "201901",
    "station": "雪が谷大塚",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7417,6 +7742,7 @@
    },
    "checkedAt": "201901",
    "station": "御嶽山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7441,6 +7767,7 @@
    },
    "checkedAt": "201901",
    "station": "久が原",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7465,6 +7792,7 @@
    },
    "checkedAt": "201901",
    "station": "千鳥町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7489,6 +7817,7 @@
    },
    "checkedAt": "202011",
    "station": "池上",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7513,6 +7842,7 @@
    },
    "checkedAt": "201901",
    "station": "蓮沼",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7537,6 +7867,7 @@
    },
    "checkedAt": "202111",
    "station": "沼部",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7561,6 +7892,7 @@
    },
    "checkedAt": "201901",
    "station": "鵜の木",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7585,6 +7917,7 @@
    },
    "checkedAt": "201901",
    "station": "下丸子",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7609,6 +7942,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵新田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7633,6 +7967,7 @@
    },
    "checkedAt": "201901",
    "station": "矢口渡",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7657,6 +7992,7 @@
    },
    "checkedAt": "201901",
    "station": "蒲田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7681,6 +8017,7 @@
    },
    "checkedAt": "201901",
    "station": "上町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7705,6 +8042,7 @@
    },
    "checkedAt": "202401",
    "station": "池袋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7729,6 +8067,7 @@
    },
    "checkedAt": "202401",
    "station": "池袋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7753,6 +8092,7 @@
    },
    "checkedAt": "202401",
    "station": "池袋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7777,6 +8117,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7801,6 +8142,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7825,6 +8167,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7849,6 +8192,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7873,6 +8217,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7897,6 +8242,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "2024調査",
@@ -7922,6 +8268,7 @@
    },
    "checkedAt": "202401",
    "station": "大手町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7946,6 +8293,7 @@
    },
    "checkedAt": "202401",
    "station": "北千住",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7970,6 +8318,7 @@
    },
    "checkedAt": "202401",
    "station": "銀座",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -7994,6 +8343,7 @@
    },
    "checkedAt": "202401",
    "station": "銀座",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8018,6 +8368,7 @@
    },
    "checkedAt": "202401",
    "station": "銀座（地下歩道）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8042,6 +8393,7 @@
    },
    "checkedAt": "202401",
    "station": "新橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8066,6 +8418,7 @@
    },
    "checkedAt": "202401",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8090,6 +8443,7 @@
    },
    "checkedAt": "202501",
    "station": "上野",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8114,6 +8468,7 @@
    },
    "checkedAt": "202501",
    "station": "上野",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8138,6 +8493,7 @@
    },
    "checkedAt": "202401",
    "station": "豊洲",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8162,6 +8518,7 @@
    },
    "checkedAt": "202401",
    "station": "豊洲",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8186,6 +8543,7 @@
    },
    "checkedAt": "202401",
    "station": "東京",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8210,6 +8568,7 @@
    },
    "checkedAt": "202401",
    "station": "高田馬場",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8234,6 +8593,7 @@
    },
    "checkedAt": "202401",
    "station": "高田馬場",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8258,6 +8618,7 @@
    },
    "checkedAt": "202501",
    "station": "飯田橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8282,6 +8643,7 @@
    },
    "checkedAt": "202501",
    "station": "飯田橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8306,6 +8668,7 @@
    },
    "checkedAt": "202501",
    "station": "飯田橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8330,6 +8693,7 @@
    },
    "checkedAt": "202501",
    "station": "飯田橋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8354,6 +8718,7 @@
    },
    "checkedAt": "202401",
    "station": "日本橋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8378,6 +8743,7 @@
    },
    "checkedAt": "202401",
    "station": "日本橋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8402,6 +8768,7 @@
    },
    "checkedAt": "202401",
    "station": "日本橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8426,6 +8793,7 @@
    },
    "checkedAt": "202401",
    "station": "日本橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8450,6 +8818,7 @@
    },
    "checkedAt": "202501",
    "station": "表参道",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8474,6 +8843,7 @@
    },
    "checkedAt": "202501",
    "station": "表参道",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8498,6 +8868,7 @@
    },
    "checkedAt": "202401",
    "station": "有楽町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8522,6 +8893,7 @@
    },
    "checkedAt": "202401",
    "station": "九段下",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8546,6 +8918,7 @@
    },
    "checkedAt": "202401",
    "station": "西日暮里",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8570,6 +8943,7 @@
    },
    "checkedAt": "202501",
    "station": "新宿三丁目",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8594,6 +8968,7 @@
    },
    "checkedAt": "202501",
    "station": "新宿三丁目",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8618,6 +8993,7 @@
    },
    "checkedAt": "202501",
    "station": "新宿三丁目",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8642,6 +9018,7 @@
    },
    "checkedAt": "202401",
    "station": "霞ヶ関",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8666,6 +9043,7 @@
    },
    "checkedAt": "202401",
    "station": "霞ヶ関",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8690,6 +9068,7 @@
    },
    "checkedAt": "202401",
    "station": "霞ヶ関",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8714,6 +9093,7 @@
    },
    "checkedAt": "202401",
    "station": "国会議事堂前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8738,6 +9118,7 @@
    },
    "checkedAt": "202401",
    "station": "国会議事堂前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8762,6 +9143,7 @@
    },
    "checkedAt": "202401",
    "station": "国会議事堂前",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8786,6 +9168,7 @@
    },
    "checkedAt": "202501",
    "station": "溜池山王",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8810,6 +9193,7 @@
    },
    "checkedAt": "202501",
    "station": "溜池山王",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8834,6 +9218,7 @@
    },
    "checkedAt": "202401",
    "station": "市ケ谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8858,6 +9243,7 @@
    },
    "checkedAt": "202401",
    "station": "市ケ谷",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8882,6 +9268,7 @@
    },
    "checkedAt": "202401",
    "station": "六本木",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8906,6 +9293,7 @@
    },
    "checkedAt": "202401",
    "station": "六本木",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8930,6 +9318,7 @@
    },
    "checkedAt": "202401",
    "station": "茅場町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8954,6 +9343,7 @@
    },
    "checkedAt": "202401",
    "station": "三越前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -8978,6 +9368,7 @@
    },
    "checkedAt": "202401",
    "station": "三越前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9002,6 +9393,7 @@
    },
    "checkedAt": "202401",
    "station": "東陽町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9026,6 +9418,7 @@
    },
    "checkedAt": "202401",
    "station": "東陽町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9050,6 +9443,7 @@
    },
    "checkedAt": "202401",
    "station": "秋葉原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9074,6 +9468,7 @@
    },
    "checkedAt": "202401",
    "station": "四ツ谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9098,6 +9493,7 @@
    },
    "checkedAt": "202401",
    "station": "四ツ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9122,6 +9518,7 @@
    },
    "checkedAt": "202401",
    "station": "赤坂見附",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9146,6 +9543,7 @@
    },
    "checkedAt": "202401",
    "station": "赤坂見附",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9170,6 +9568,7 @@
    },
    "checkedAt": "202401",
    "station": "虎ノ門",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9194,6 +9593,7 @@
    },
    "checkedAt": "202401",
    "station": "虎ノ門",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9218,6 +9618,7 @@
    },
    "checkedAt": "202401",
    "station": "門前仲町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9242,6 +9643,7 @@
    },
    "checkedAt": "202401",
    "station": "門前仲町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9266,6 +9668,7 @@
    },
    "checkedAt": "202401",
    "station": "青山一丁目",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9290,6 +9693,7 @@
    },
    "checkedAt": "202401",
    "station": "恵比寿",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9314,6 +9718,7 @@
    },
    "checkedAt": "202401",
    "station": "八丁堀",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9338,6 +9743,7 @@
    },
    "checkedAt": "202401",
    "station": "新木場",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9362,6 +9768,7 @@
    },
    "checkedAt": "202501",
    "station": "浅草",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9386,6 +9793,7 @@
    },
    "checkedAt": "202501",
    "station": "浅草",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9410,6 +9818,7 @@
    },
    "checkedAt": "202401",
    "station": "葛西",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9434,6 +9843,7 @@
    },
    "checkedAt": "202401",
    "station": "日比谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9458,6 +9868,7 @@
    },
    "checkedAt": "202401",
    "station": "日比谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9482,6 +9893,7 @@
    },
    "checkedAt": "202401",
    "station": "日比谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9506,6 +9918,7 @@
    },
    "checkedAt": "202401",
    "station": "西葛西",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9530,6 +9943,7 @@
    },
    "checkedAt": "202401",
    "station": "錦糸町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9554,6 +9968,7 @@
    },
    "checkedAt": "202401",
    "station": "明治神宮前＜原宿＞",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9578,6 +9993,7 @@
    },
    "checkedAt": "202401",
    "station": "明治神宮前＜原宿＞",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9602,6 +10018,7 @@
    },
    "checkedAt": "202401",
    "station": "明治神宮前＜原宿＞",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9626,6 +10043,7 @@
    },
    "checkedAt": "202401",
    "station": "明治神宮前＜原宿＞",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9650,6 +10068,7 @@
    },
    "checkedAt": "202401",
    "station": "後楽園",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9674,6 +10093,7 @@
    },
    "checkedAt": "202401",
    "station": "後楽園",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9698,6 +10118,7 @@
    },
    "checkedAt": "202401",
    "station": "後楽園",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9722,6 +10143,7 @@
    },
    "checkedAt": "202401",
    "station": "神谷町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9746,6 +10168,7 @@
    },
    "checkedAt": "202401",
    "station": "神谷町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9770,6 +10193,7 @@
    },
    "checkedAt": "202401",
    "station": "新御茶ノ水",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9794,6 +10218,7 @@
    },
    "checkedAt": "202401",
    "station": "新御茶ノ水",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9818,6 +10243,7 @@
    },
    "checkedAt": "202401",
    "station": "神保町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9842,6 +10268,7 @@
    },
    "checkedAt": "202401",
    "station": "神保町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9866,6 +10293,7 @@
    },
    "checkedAt": "202401",
    "station": "赤坂",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9890,6 +10318,7 @@
    },
    "checkedAt": "202401",
    "station": "東銀座",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9914,6 +10343,7 @@
    },
    "checkedAt": "202401",
    "station": "半蔵門",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9938,6 +10368,7 @@
    },
    "checkedAt": "202401",
    "station": "半蔵門",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9962,6 +10393,7 @@
    },
    "checkedAt": "202401",
    "station": "荻窪",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -9986,6 +10418,7 @@
    },
    "checkedAt": "202401",
    "station": "西新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10010,6 +10443,7 @@
    },
    "checkedAt": "202401",
    "station": "人形町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10034,6 +10468,7 @@
    },
    "checkedAt": "202401",
    "station": "早稲田",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10058,6 +10493,7 @@
    },
    "checkedAt": "202401",
    "station": "早稲田",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10082,6 +10518,7 @@
    },
    "checkedAt": "202401",
    "station": "外苑前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10106,6 +10543,7 @@
    },
    "checkedAt": "202401",
    "station": "外苑前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10130,6 +10568,7 @@
    },
    "checkedAt": "202401",
    "station": "水天宮前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10154,6 +10593,7 @@
    },
    "checkedAt": "202401",
    "station": "茗荷谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10178,6 +10618,7 @@
    },
    "checkedAt": "202401",
    "station": "築地",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10202,6 +10643,7 @@
    },
    "checkedAt": "202401",
    "station": "永田町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10226,6 +10668,7 @@
    },
    "checkedAt": "202401",
    "station": "永田町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10250,6 +10693,7 @@
    },
    "checkedAt": "202401",
    "station": "永田町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10274,6 +10718,7 @@
    },
    "checkedAt": "202401",
    "station": "永田町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10298,6 +10743,7 @@
    },
    "checkedAt": "202401",
    "station": "永田町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10322,6 +10768,7 @@
    },
    "checkedAt": "202401",
    "station": "中野坂上",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10346,6 +10793,7 @@
    },
    "checkedAt": "202401",
    "station": "六本木一丁目",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10370,6 +10818,7 @@
    },
    "checkedAt": "202401",
    "station": "月島",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10394,6 +10843,7 @@
    },
    "checkedAt": "202401",
    "station": "麹町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10418,6 +10868,7 @@
    },
    "checkedAt": "202401",
    "station": "麹町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10442,6 +10893,7 @@
    },
    "checkedAt": "202501",
    "station": "王子",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10466,6 +10918,7 @@
    },
    "checkedAt": "202501",
    "station": "南砂町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10473,7 +10926,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-10-62-2",
@@ -10490,6 +10944,7 @@
    },
    "checkedAt": "202501",
    "station": "南砂町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10497,7 +10952,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-10-63-1",
@@ -10514,6 +10970,7 @@
    },
    "checkedAt": "202401",
    "station": "町屋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10538,6 +10995,7 @@
    },
    "checkedAt": "202401",
    "station": "神田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10562,6 +11020,7 @@
    },
    "checkedAt": "202401",
    "station": "神田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10586,6 +11045,7 @@
    },
    "checkedAt": "202401",
    "station": "御茶ノ水",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10610,6 +11070,7 @@
    },
    "checkedAt": "202401",
    "station": "淡路町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10634,6 +11095,7 @@
    },
    "checkedAt": "202401",
    "station": "淡路町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10658,6 +11120,7 @@
    },
    "checkedAt": "202401",
    "station": "京橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10682,6 +11145,7 @@
    },
    "checkedAt": "202401",
    "station": "本郷三丁目",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10706,6 +11170,7 @@
    },
    "checkedAt": "202401",
    "station": "住吉",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10730,6 +11195,7 @@
    },
    "checkedAt": "202401",
    "station": "清澄白河",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10754,6 +11220,7 @@
    },
    "checkedAt": "202401",
    "station": "清澄白河",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10778,6 +11245,7 @@
    },
    "checkedAt": "202401",
    "station": "新宿御苑前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10802,6 +11270,7 @@
    },
    "checkedAt": "202401",
    "station": "新宿御苑前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10826,6 +11295,7 @@
    },
    "checkedAt": "202401",
    "station": "江戸川橋",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10850,6 +11320,7 @@
    },
    "checkedAt": "202401",
    "station": "地下鉄成増",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10874,6 +11345,7 @@
    },
    "checkedAt": "202401",
    "station": "竹橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10898,6 +11370,7 @@
    },
    "checkedAt": "202401",
    "station": "竹橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10922,6 +11395,7 @@
    },
    "checkedAt": "202401",
    "station": "麻布十番",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10946,6 +11420,7 @@
    },
    "checkedAt": "202401",
    "station": "四谷三丁目",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10970,6 +11445,7 @@
    },
    "checkedAt": "202401",
    "station": "四谷三丁目",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -10994,6 +11470,7 @@
    },
    "checkedAt": "202401",
    "station": "東池袋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11018,6 +11495,7 @@
    },
    "checkedAt": "202401",
    "station": "平和台",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11042,6 +11520,7 @@
    },
    "checkedAt": "202401",
    "station": "乃木坂",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11066,6 +11545,7 @@
    },
    "checkedAt": "202401",
    "station": "護国寺",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11090,6 +11570,7 @@
    },
    "checkedAt": "202401",
    "station": "護国寺",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11114,6 +11595,7 @@
    },
    "checkedAt": "202401",
    "station": "仲御徒町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11138,6 +11620,7 @@
    },
    "checkedAt": "202401",
    "station": "仲御徒町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11162,6 +11645,7 @@
    },
    "checkedAt": "202401",
    "station": "新富町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11186,6 +11670,7 @@
    },
    "checkedAt": "202401",
    "station": "神楽坂",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11210,6 +11695,7 @@
    },
    "checkedAt": "202401",
    "station": "神楽坂",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11234,6 +11720,7 @@
    },
    "checkedAt": "202401",
    "station": "東新宿",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11258,6 +11745,7 @@
    },
    "checkedAt": "202401",
    "station": "東新宿",
+   "floor": "B4F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11282,6 +11770,7 @@
    },
    "checkedAt": "202401",
    "station": "駒込",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11306,6 +11795,7 @@
    },
    "checkedAt": "202401",
    "station": "駒込",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11330,6 +11820,7 @@
    },
    "checkedAt": "202401",
    "station": "氷川台",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11354,6 +11845,7 @@
    },
    "checkedAt": "202401",
    "station": "要町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11378,6 +11870,7 @@
    },
    "checkedAt": "202401",
    "station": "要町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11402,6 +11895,7 @@
    },
    "checkedAt": "202401",
    "station": "三ノ輪",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11426,6 +11920,7 @@
    },
    "checkedAt": "202401",
    "station": "三ノ輪",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11450,6 +11945,7 @@
    },
    "checkedAt": "202401",
    "station": "小伝馬町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11474,6 +11970,7 @@
    },
    "checkedAt": "202401",
    "station": "千川",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11498,6 +11995,7 @@
    },
    "checkedAt": "202401",
    "station": "銀座一丁目",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11522,6 +12020,7 @@
    },
    "checkedAt": "202401",
    "station": "西早稲田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11546,6 +12045,7 @@
    },
    "checkedAt": "202401",
    "station": "西早稲田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11570,6 +12070,7 @@
    },
    "checkedAt": "202401",
    "station": "西早稲田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11594,6 +12095,7 @@
    },
    "checkedAt": "202401",
    "station": "西早稲田",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11618,6 +12120,7 @@
    },
    "checkedAt": "202401",
    "station": "地下鉄赤塚",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11642,6 +12145,7 @@
    },
    "checkedAt": "202401",
    "station": "新高円寺",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11666,6 +12170,7 @@
    },
    "checkedAt": "202401",
    "station": "新高円寺",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11690,6 +12195,7 @@
    },
    "checkedAt": "202401",
    "station": "方南町",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11714,6 +12220,7 @@
    },
    "checkedAt": "202401",
    "station": "東高円寺",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11738,6 +12245,7 @@
    },
    "checkedAt": "202401",
    "station": "新中野",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11762,6 +12270,7 @@
    },
    "checkedAt": "202401",
    "station": "湯島",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11786,6 +12295,7 @@
    },
    "checkedAt": "202401",
    "station": "王子神谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11810,6 +12320,7 @@
    },
    "checkedAt": "202401",
    "station": "二重橋前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11834,6 +12345,7 @@
    },
    "checkedAt": "202401",
    "station": "入谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11858,6 +12370,7 @@
    },
    "checkedAt": "202401",
    "station": "入谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11882,6 +12395,7 @@
    },
    "checkedAt": "202401",
    "station": "田原町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11906,6 +12420,7 @@
    },
    "checkedAt": "202401",
    "station": "田原町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11930,6 +12445,7 @@
    },
    "checkedAt": "202401",
    "station": "辰巳",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11954,6 +12470,7 @@
    },
    "checkedAt": "202401",
    "station": "北綾瀬",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -11978,6 +12495,7 @@
    },
    "checkedAt": "202401",
    "station": "北綾瀬",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12002,6 +12520,7 @@
    },
    "checkedAt": "202401",
    "station": "南千住",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12026,6 +12545,7 @@
    },
    "checkedAt": "202401",
    "station": "東大前",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12050,6 +12570,7 @@
    },
    "checkedAt": "202401",
    "station": "根津",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12074,6 +12595,7 @@
    },
    "checkedAt": "202401",
    "station": "根津",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12098,6 +12620,7 @@
    },
    "checkedAt": "202401",
    "station": "千駄木",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12122,6 +12645,7 @@
    },
    "checkedAt": "202401",
    "station": "千駄木",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12146,6 +12670,7 @@
    },
    "checkedAt": "202401",
    "station": "代々木公園",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12170,6 +12695,7 @@
    },
    "checkedAt": "202401",
    "station": "南阿佐ヶ谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12194,6 +12720,7 @@
    },
    "checkedAt": "202401",
    "station": "落合",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12218,6 +12745,7 @@
    },
    "checkedAt": "202401",
    "station": "落合",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12242,6 +12770,7 @@
    },
    "checkedAt": "201901",
    "station": "新大塚",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12266,6 +12795,7 @@
    },
    "checkedAt": "201901",
    "station": "末広町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12290,6 +12820,7 @@
    },
    "checkedAt": "201901",
    "station": "上野広小路",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12314,6 +12845,7 @@
    },
    "checkedAt": "201901",
    "station": "北参道",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "2つの多機能トイレが並設",
@@ -12339,6 +12871,7 @@
    },
    "checkedAt": "201901",
    "station": "北参道",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "2つの多機能トイレが並設",
@@ -12364,6 +12897,7 @@
    },
    "checkedAt": "201901",
    "station": "本駒込",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12388,6 +12922,7 @@
    },
    "checkedAt": "201901",
    "station": "中野新橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12412,6 +12947,7 @@
    },
    "checkedAt": "201901",
    "station": "中野富士見町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12436,6 +12972,7 @@
    },
    "checkedAt": "201901",
    "station": "雑司が谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12460,6 +12997,7 @@
    },
    "checkedAt": "201901",
    "station": "雑司が谷",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12484,6 +13022,7 @@
    },
    "checkedAt": "201901",
    "station": "雑司が谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12508,6 +13047,7 @@
    },
    "checkedAt": "201901",
    "station": "雑司が谷",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12532,6 +13072,7 @@
    },
    "checkedAt": "201901",
    "station": "稲荷町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12556,6 +13097,7 @@
    },
    "checkedAt": "201901",
    "station": "稲荷町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12580,6 +13122,7 @@
    },
    "checkedAt": "201901",
    "station": "桜田門",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12604,6 +13147,7 @@
    },
    "checkedAt": "201901",
    "station": "桜田門",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12628,6 +13172,7 @@
    },
    "checkedAt": "201901",
    "station": "志茂",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12652,6 +13197,7 @@
    },
    "checkedAt": "201901",
    "station": "西ヶ原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12676,6 +13222,7 @@
    },
    "checkedAt": "201901",
    "station": "綾瀬",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロックはトイレの場所の説明が文章で書かれた触知板へ誘導",
@@ -12701,6 +13248,7 @@
    },
    "checkedAt": "201901",
    "station": "綾瀬",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12725,6 +13273,7 @@
    },
    "checkedAt": "201901",
    "station": "小竹向原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12749,6 +13298,7 @@
    },
    "checkedAt": "201901",
    "station": "小竹向原",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12773,6 +13323,7 @@
    },
    "checkedAt": "201901",
    "station": "押上＜スカイツリー前＞",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12797,6 +13348,7 @@
    },
    "checkedAt": "201901",
    "station": "赤羽岩淵",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12821,6 +13373,7 @@
    },
    "checkedAt": "201901",
    "station": "白金高輪",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12845,6 +13398,7 @@
    },
    "checkedAt": "201901",
    "station": "白金台",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12869,6 +13423,7 @@
    },
    "checkedAt": "201911",
    "station": "広尾",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12893,6 +13448,7 @@
    },
    "checkedAt": "202011",
    "station": "渋谷駅",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12917,6 +13473,7 @@
    },
    "checkedAt": "202011",
    "station": "虎ノ門ヒルズ駅",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12941,6 +13498,7 @@
    },
    "checkedAt": "202211",
    "station": "木場駅",
+   "floor": "B2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12965,6 +13523,7 @@
    },
    "checkedAt": "201901",
    "station": "モノレール浜松町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -12989,6 +13548,7 @@
    },
    "checkedAt": "202401",
    "station": "天王洲アイル",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13013,6 +13573,7 @@
    },
    "checkedAt": "202011",
    "station": "大井競馬場前",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13037,6 +13598,7 @@
    },
    "checkedAt": "201901",
    "station": "流通センター",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13061,6 +13623,7 @@
    },
    "checkedAt": "202401",
    "station": "天空橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13085,6 +13648,7 @@
    },
    "checkedAt": "202501",
    "station": "羽田空港第3ターミナル",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "曲がり角手前の触知板まで点字ブロックあり",
@@ -13110,6 +13674,7 @@
    },
    "checkedAt": "202011",
    "station": "新整備場",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13134,6 +13699,7 @@
    },
    "checkedAt": "202501",
    "station": "羽田空港第1ターミナル",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13158,6 +13724,7 @@
    },
    "checkedAt": "202501",
    "station": "羽田空港第1ターミナル",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13182,6 +13749,7 @@
    },
    "checkedAt": "202011",
    "station": "羽田空港第2ターミナル",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13206,6 +13774,7 @@
    },
    "checkedAt": "202011",
    "station": "新木場",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13231,6 +13800,7 @@
    },
    "checkedAt": "202011",
    "station": "新木場",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13256,6 +13826,7 @@
    },
    "checkedAt": "202011",
    "station": "東雲",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13264,7 +13835,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-12-2-3",
@@ -13281,6 +13853,7 @@
    },
    "checkedAt": "202011",
    "station": "東雲",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13289,7 +13862,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-12-3-1",
@@ -13306,6 +13880,7 @@
    },
    "checkedAt": "202011",
    "station": "国際展示場",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13330,6 +13905,7 @@
    },
    "checkedAt": "202011",
    "station": "国際展示場",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13354,6 +13930,7 @@
    },
    "checkedAt": "202011",
    "station": "東京テレポート",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13379,6 +13956,7 @@
    },
    "checkedAt": "202011",
    "station": "東京テレポート",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "最終当駅止まりあり",
@@ -13404,6 +13982,7 @@
    },
    "checkedAt": "201901",
    "station": "天王洲アイル",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13411,7 +13990,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-12-5-2",
@@ -13428,6 +14008,7 @@
    },
    "checkedAt": "201901",
    "station": "天王洲アイル",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13435,7 +14016,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "B1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-12-6-1",
@@ -13452,6 +14034,7 @@
    },
    "checkedAt": "201911",
    "station": "品川シーサイド",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13476,6 +14059,7 @@
    },
    "checkedAt": "201911",
    "station": "品川シーサイド",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13500,6 +14084,7 @@
    },
    "checkedAt": "201911",
    "station": "品川シーサイド",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "車イス用トイレとオストメイトトイレで機能分散した",
@@ -13525,6 +14110,7 @@
    },
    "checkedAt": "201911",
    "station": "品川シーサイド",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "車イス用トイレとオストメイトトイレで機能分散した",
@@ -13550,6 +14136,7 @@
    },
    "checkedAt": "201901",
    "station": "大井町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13574,6 +14161,7 @@
    },
    "checkedAt": "201901",
    "station": "大井町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13598,6 +14186,7 @@
    },
    "checkedAt": "202501",
    "station": "浅草",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13622,6 +14211,7 @@
    },
    "checkedAt": "201901",
    "station": "とうきょうスカイツリー",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13646,6 +14236,7 @@
    },
    "checkedAt": "201901",
    "station": "曳舟",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13670,6 +14261,7 @@
    },
    "checkedAt": "201901",
    "station": "東向島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13694,6 +14286,7 @@
    },
    "checkedAt": "201901",
    "station": "鐘ヶ淵",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13718,6 +14311,7 @@
    },
    "checkedAt": "201901",
    "station": "牛田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13742,6 +14336,7 @@
    },
    "checkedAt": "201901",
    "station": "北千住",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13766,6 +14361,7 @@
    },
    "checkedAt": "201901",
    "station": "北千住",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13790,6 +14386,7 @@
    },
    "checkedAt": "201901",
    "station": "小菅",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13814,6 +14411,7 @@
    },
    "checkedAt": "201901",
    "station": "五反野",
+   "floor": "M2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13838,6 +14436,7 @@
    },
    "checkedAt": "202501",
    "station": "梅島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13845,7 +14444,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-13-10-2",
@@ -13862,6 +14462,7 @@
    },
    "checkedAt": "202501",
    "station": "梅島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13869,7 +14470,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-13-10-3",
@@ -13886,6 +14488,7 @@
    },
    "checkedAt": "202501",
    "station": "梅島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13893,7 +14496,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-13-11-1",
@@ -13910,6 +14514,7 @@
    },
    "checkedAt": "202011",
    "station": "西新井",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13934,6 +14539,7 @@
    },
    "checkedAt": "202211",
    "station": "竹ノ塚",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13958,6 +14564,7 @@
    },
    "checkedAt": "201901",
    "station": "小村井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -13982,6 +14589,7 @@
    },
    "checkedAt": "201901",
    "station": "東あずま",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14006,6 +14614,7 @@
    },
    "checkedAt": "201901",
    "station": "亀戸水神",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14030,6 +14639,7 @@
    },
    "checkedAt": "201901",
    "station": "亀戸",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14054,6 +14664,7 @@
    },
    "checkedAt": "201901",
    "station": "大師前",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14078,6 +14689,7 @@
    },
    "checkedAt": "201901",
    "station": "池袋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14102,6 +14714,7 @@
    },
    "checkedAt": "202501",
    "station": "北池袋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14126,6 +14739,7 @@
    },
    "checkedAt": "201901",
    "station": "大山",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14150,6 +14764,7 @@
    },
    "checkedAt": "201901",
    "station": "中板橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14174,6 +14789,7 @@
    },
    "checkedAt": "202011",
    "station": "ときわ台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "ホーム上",
@@ -14199,6 +14815,7 @@
    },
    "checkedAt": "202011",
    "station": "ときわ台",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "北口",
@@ -14224,6 +14841,7 @@
    },
    "checkedAt": "201901",
    "station": "上板橋",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14248,6 +14866,7 @@
    },
    "checkedAt": "201901",
    "station": "東武練馬",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14272,6 +14891,7 @@
    },
    "checkedAt": "201901",
    "station": "下赤塚",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14296,6 +14916,7 @@
    },
    "checkedAt": "201901",
    "station": "成増",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14320,6 +14941,7 @@
    },
    "checkedAt": "202111",
    "station": "下板橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14344,6 +14966,7 @@
    },
    "checkedAt": "202111",
    "station": "堀切",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14368,6 +14991,7 @@
    },
    "checkedAt": "201901",
    "station": "東京",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14392,6 +15016,7 @@
    },
    "checkedAt": "201901",
    "station": "東京",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14416,6 +15041,7 @@
    },
    "checkedAt": "201901",
    "station": "東京",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14440,6 +15066,7 @@
    },
    "checkedAt": "201901",
    "station": "東京",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14464,6 +15091,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（地下）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14488,6 +15116,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（地下）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14512,6 +15141,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（地下）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14536,6 +15166,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（地下）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14560,6 +15191,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（京葉地下）",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14584,6 +15216,7 @@
    },
    "checkedAt": "201901",
    "station": "東京（京葉地下）",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14608,6 +15241,7 @@
    },
    "checkedAt": "202011",
    "station": "有楽町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14615,7 +15249,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-2-2",
@@ -14632,6 +15267,7 @@
    },
    "checkedAt": "202011",
    "station": "有楽町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14639,7 +15275,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-3-1",
@@ -14656,6 +15293,7 @@
    },
    "checkedAt": "201901",
    "station": "新橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14680,6 +15318,7 @@
    },
    "checkedAt": "201901",
    "station": "新橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14704,6 +15343,7 @@
    },
    "checkedAt": "201901",
    "station": "浜松町",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14728,6 +15368,7 @@
    },
    "checkedAt": "201901",
    "station": "田町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14752,6 +15393,7 @@
    },
    "checkedAt": "201901",
    "station": "田町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14776,6 +15418,7 @@
    },
    "checkedAt": "201911",
    "station": "品川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14783,7 +15426,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-6-2",
@@ -14800,6 +15444,7 @@
    },
    "checkedAt": "201911",
    "station": "品川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14807,7 +15452,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-7-1",
@@ -14824,6 +15470,7 @@
    },
    "checkedAt": "201911",
    "station": "大井町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14848,6 +15495,7 @@
    },
    "checkedAt": "201911",
    "station": "大井町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14872,6 +15520,7 @@
    },
    "checkedAt": "201901",
    "station": "大森",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14896,6 +15545,7 @@
    },
    "checkedAt": "201901",
    "station": "蒲田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14920,6 +15570,7 @@
    },
    "checkedAt": "202601",
    "station": "神田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14944,6 +15595,7 @@
    },
    "checkedAt": "202601",
    "station": "神田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14968,6 +15620,7 @@
    },
    "checkedAt": "201901",
    "station": "水道橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -14992,6 +15645,7 @@
    },
    "checkedAt": "201901",
    "station": "水道橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15016,6 +15670,7 @@
    },
    "checkedAt": "201901",
    "station": "飯田橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15040,6 +15695,7 @@
    },
    "checkedAt": "202011",
    "station": "飯田橋",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15064,6 +15720,7 @@
    },
    "checkedAt": "201901",
    "station": "市ヶ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15088,6 +15745,7 @@
    },
    "checkedAt": "201901",
    "station": "四ツ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15112,6 +15770,7 @@
    },
    "checkedAt": "201901",
    "station": "信濃町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15136,6 +15795,7 @@
    },
    "checkedAt": "201901",
    "station": "信濃町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15160,6 +15820,7 @@
    },
    "checkedAt": "201911",
    "station": "千駄ヶ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15167,7 +15828,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-16-2",
@@ -15184,6 +15846,7 @@
    },
    "checkedAt": "201911",
    "station": "千駄ヶ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15191,7 +15854,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "1F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-17-1",
@@ -15208,6 +15872,7 @@
    },
    "checkedAt": "201901",
    "station": "代々木",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15232,6 +15897,7 @@
    },
    "checkedAt": "201901",
    "station": "大久保",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15256,6 +15922,7 @@
    },
    "checkedAt": "201901",
    "station": "東中野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15280,6 +15947,7 @@
    },
    "checkedAt": "201901",
    "station": "中野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15304,6 +15972,7 @@
    },
    "checkedAt": "201901",
    "station": "高円寺",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15328,6 +15997,7 @@
    },
    "checkedAt": "201901",
    "station": "阿佐ヶ谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15352,6 +16022,7 @@
    },
    "checkedAt": "201901",
    "station": "阿佐ヶ谷",
+   "floor": "M2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "男子トイレの中に男女共用の多機能トイレあり",
@@ -15377,6 +16048,7 @@
    },
    "checkedAt": "201901",
    "station": "荻窪",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15401,6 +16073,7 @@
    },
    "checkedAt": "201901",
    "station": "西荻窪",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15425,6 +16098,7 @@
    },
    "checkedAt": "201911",
    "station": "秋葉原",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15449,6 +16123,7 @@
    },
    "checkedAt": "201901",
    "station": "御徒町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15473,6 +16148,7 @@
    },
    "checkedAt": "202011",
    "station": "御徒町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15497,6 +16173,7 @@
    },
    "checkedAt": "202601",
    "station": "上野",
+   "floor": "B3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15521,6 +16198,7 @@
    },
    "checkedAt": "202601",
    "station": "上野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15545,6 +16223,7 @@
    },
    "checkedAt": "202601",
    "station": "上野",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15569,6 +16248,7 @@
    },
    "checkedAt": "202601",
    "station": "上野",
+   "floor": "3F（右）",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "右側",
@@ -15594,6 +16274,7 @@
    },
    "checkedAt": "202601",
    "station": "上野",
+   "floor": "3F（左）",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "左側(追加分)",
@@ -15619,6 +16300,7 @@
    },
    "checkedAt": "201911",
    "station": "鶯谷",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15643,6 +16325,7 @@
    },
    "checkedAt": "202011",
    "station": "日暮里",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15667,6 +16350,7 @@
    },
    "checkedAt": "201911",
    "station": "西日暮里",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15691,6 +16375,7 @@
    },
    "checkedAt": "201901",
    "station": "田端",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15715,6 +16400,7 @@
    },
    "checkedAt": "201901",
    "station": "上中里",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15739,6 +16425,7 @@
    },
    "checkedAt": "201901",
    "station": "王子",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15763,6 +16450,7 @@
    },
    "checkedAt": "201901",
    "station": "東十条",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15787,6 +16475,7 @@
    },
    "checkedAt": "201911",
    "station": "赤羽",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15811,6 +16500,7 @@
    },
    "checkedAt": "201901",
    "station": "尾久",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15835,6 +16525,7 @@
    },
    "checkedAt": "201901",
    "station": "北赤羽",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15859,6 +16550,7 @@
    },
    "checkedAt": "202011",
    "station": "北赤羽",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15883,6 +16575,7 @@
    },
    "checkedAt": "201901",
    "station": "浮間舟渡",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15907,6 +16600,7 @@
    },
    "checkedAt": "202601",
    "station": "三河島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15931,6 +16625,7 @@
    },
    "checkedAt": "201901",
    "station": "南千住",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15955,6 +16650,7 @@
    },
    "checkedAt": "201901",
    "station": "北千住",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -15979,6 +16675,7 @@
    },
    "checkedAt": "201901",
    "station": "亀有",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16003,6 +16700,7 @@
    },
    "checkedAt": "201901",
    "station": "金町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16027,6 +16725,7 @@
    },
    "checkedAt": "201901",
    "station": "新日本橋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16051,6 +16750,7 @@
    },
    "checkedAt": "201901",
    "station": "馬喰町",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16075,6 +16775,7 @@
    },
    "checkedAt": "201901",
    "station": "八丁堀",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16099,6 +16800,7 @@
    },
    "checkedAt": "201901",
    "station": "越中島",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16123,6 +16825,7 @@
    },
    "checkedAt": "202011",
    "station": "駒込",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16147,6 +16850,7 @@
    },
    "checkedAt": "202011",
    "station": "駒込",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16171,6 +16875,7 @@
    },
    "checkedAt": "201901",
    "station": "巣鴨",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16195,6 +16900,7 @@
    },
    "checkedAt": "201901",
    "station": "大塚",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16219,6 +16925,7 @@
    },
    "checkedAt": "201901",
    "station": "池袋",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16243,6 +16950,7 @@
    },
    "checkedAt": "202601",
    "station": "目白",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "戸の形式は回転ドア（押しボタン）",
@@ -16268,6 +16976,7 @@
    },
    "checkedAt": "201901",
    "station": "高田馬場",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16292,6 +17001,7 @@
    },
    "checkedAt": "201901",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16316,6 +17026,7 @@
    },
    "checkedAt": "201901",
    "station": "新宿",
+   "floor": "B1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16340,6 +17051,7 @@
    },
    "checkedAt": "201901",
    "station": "新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16364,6 +17076,7 @@
    },
    "checkedAt": "201901",
    "station": "新宿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16388,6 +17101,7 @@
    },
    "checkedAt": "202011",
    "station": "原宿",
+   "floor": "改札階",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16395,7 +17109,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "改札階"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-55-3",
@@ -16412,6 +17127,7 @@
    },
    "checkedAt": "202011",
    "station": "原宿",
+   "floor": "改札階",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16419,7 +17135,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "改札階"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-14-56-1",
@@ -16436,6 +17153,7 @@
    },
    "checkedAt": "202601",
    "station": "渋谷",
+   "floor": "1F",
    "gate": "inside",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16460,6 +17178,7 @@
    },
    "checkedAt": "202601",
    "station": "渋谷",
+   "floor": "1F",
    "gate": "inside",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16484,6 +17203,7 @@
    },
    "checkedAt": "202601",
    "station": "渋谷",
+   "floor": "3F",
    "gate": "inside",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16508,6 +17228,7 @@
    },
    "checkedAt": "201901",
    "station": "恵比寿",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16532,6 +17253,7 @@
    },
    "checkedAt": "201901",
    "station": "恵比寿",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16556,6 +17278,7 @@
    },
    "checkedAt": "201901",
    "station": "目黒",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16580,6 +17303,7 @@
    },
    "checkedAt": "202011",
    "station": "五反田",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16604,6 +17328,7 @@
    },
    "checkedAt": "201901",
    "station": "大崎",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16628,6 +17353,7 @@
    },
    "checkedAt": "201901",
    "station": "十条",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16652,6 +17378,7 @@
    },
    "checkedAt": "201901",
    "station": "矢野口",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16676,6 +17403,7 @@
    },
    "checkedAt": "201901",
    "station": "稲城長沼",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16700,6 +17428,7 @@
    },
    "checkedAt": "201901",
    "station": "南多摩",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16724,6 +17453,7 @@
    },
    "checkedAt": "201901",
    "station": "府中本町",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16748,6 +17478,7 @@
    },
    "checkedAt": "201901",
    "station": "分倍河原",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16772,6 +17503,7 @@
    },
    "checkedAt": "201901",
    "station": "西府",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16796,6 +17528,7 @@
    },
    "checkedAt": "201901",
    "station": "谷保",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16820,6 +17553,7 @@
    },
    "checkedAt": "201901",
    "station": "矢川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16844,6 +17578,7 @@
    },
    "checkedAt": "201901",
    "station": "西国立",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16868,6 +17603,7 @@
    },
    "checkedAt": "201901",
    "station": "北府中",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16892,6 +17628,7 @@
    },
    "checkedAt": "201901",
    "station": "新小平",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16916,6 +17653,7 @@
    },
    "checkedAt": "201901",
    "station": "新秋津",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16940,6 +17678,7 @@
    },
    "checkedAt": "201901",
    "station": "相原",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16964,6 +17703,7 @@
    },
    "checkedAt": "201901",
    "station": "八王子みなみ野",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -16988,6 +17728,7 @@
    },
    "checkedAt": "201901",
    "station": "片倉",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17012,6 +17753,7 @@
    },
    "checkedAt": "201901",
    "station": "成瀬",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17036,6 +17778,7 @@
    },
    "checkedAt": "201901",
    "station": "町田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17060,6 +17803,7 @@
    },
    "checkedAt": "201901",
    "station": "吉祥寺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17084,6 +17828,7 @@
    },
    "checkedAt": "201901",
    "station": "三鷹",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17108,6 +17853,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵境",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17132,6 +17878,7 @@
    },
    "checkedAt": "201901",
    "station": "東小金井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17156,6 +17903,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵小金井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17180,6 +17928,7 @@
    },
    "checkedAt": "201901",
    "station": "国分寺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17204,6 +17953,7 @@
    },
    "checkedAt": "201901",
    "station": "西国分寺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17228,6 +17978,7 @@
    },
    "checkedAt": "201901",
    "station": "国立",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17252,6 +18003,7 @@
    },
    "checkedAt": "201901",
    "station": "立川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17276,6 +18028,7 @@
    },
    "checkedAt": "202211",
    "station": "立川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17300,6 +18053,7 @@
    },
    "checkedAt": "201901",
    "station": "日野",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17324,6 +18078,7 @@
    },
    "checkedAt": "201901",
    "station": "豊田",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17348,6 +18103,7 @@
    },
    "checkedAt": "201901",
    "station": "八王子",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17372,6 +18128,7 @@
    },
    "checkedAt": "201901",
    "station": "西八王子",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17396,6 +18153,7 @@
    },
    "checkedAt": "201901",
    "station": "西立川",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17420,6 +18178,7 @@
    },
    "checkedAt": "201901",
    "station": "東中神",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17444,6 +18203,7 @@
    },
    "checkedAt": "201901",
    "station": "中神",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17468,6 +18228,7 @@
    },
    "checkedAt": "201901",
    "station": "昭島",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17492,6 +18253,7 @@
    },
    "checkedAt": "201901",
    "station": "拝島",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17516,6 +18278,7 @@
    },
    "checkedAt": "201901",
    "station": "福生",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17540,6 +18303,7 @@
    },
    "checkedAt": "201901",
    "station": "羽村",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17564,6 +18328,7 @@
    },
    "checkedAt": "201901",
    "station": "小作",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17588,6 +18353,7 @@
    },
    "checkedAt": "201901",
    "station": "河辺",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17612,6 +18378,7 @@
    },
    "checkedAt": "201901",
    "station": "青梅",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17636,6 +18403,7 @@
    },
    "checkedAt": "201901",
    "station": "武蔵五日市",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17660,6 +18428,7 @@
    },
    "checkedAt": "201901",
    "station": "北八王子",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17684,6 +18453,7 @@
    },
    "checkedAt": "201901",
    "station": "小宮",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17708,6 +18478,7 @@
    },
    "checkedAt": "201901",
    "station": "箱根ヶ崎",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17732,6 +18503,7 @@
    },
    "checkedAt": "202011",
    "station": "浅草橋",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17756,6 +18528,7 @@
    },
    "checkedAt": "202011",
    "station": "両国",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17780,6 +18553,7 @@
    },
    "checkedAt": "202011",
    "station": "錦糸町",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17804,6 +18578,7 @@
    },
    "checkedAt": "202011",
    "station": "亀戸",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17828,6 +18603,7 @@
    },
    "checkedAt": "202011",
    "station": "平井",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17852,6 +18628,7 @@
    },
    "checkedAt": "202011",
    "station": "新小岩",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17876,6 +18653,7 @@
    },
    "checkedAt": "202401",
    "station": "小岩",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17900,6 +18678,7 @@
    },
    "checkedAt": "202011",
    "station": "潮見",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17924,6 +18703,7 @@
    },
    "checkedAt": "202011",
    "station": "新木場",
+   "floor": "3F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17948,6 +18728,7 @@
    },
    "checkedAt": "202011",
    "station": "葛西臨海公園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "点字ブロックは音声案内板まで",
@@ -17973,6 +18754,7 @@
    },
    "checkedAt": "202601",
    "station": "高輪ゲートウェイ",
+   "floor": "2F(北右)",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -17997,6 +18779,7 @@
    },
    "checkedAt": "202601",
    "station": "高輪ゲートウェイ",
+   "floor": "2F(北左)",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18021,6 +18804,7 @@
    },
    "checkedAt": "202601",
    "station": "高輪ゲートウェイ",
+   "floor": "2F(南右)",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18045,6 +18829,7 @@
    },
    "checkedAt": "202601",
    "station": "高輪ゲートウェイ",
+   "floor": "2F(南左)",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18069,6 +18854,7 @@
    },
    "checkedAt": "202011",
    "station": "御茶ノ水",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18093,6 +18879,7 @@
    },
    "checkedAt": "202011",
    "station": "新大久保駅",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18117,6 +18904,7 @@
    },
    "checkedAt": "202011",
    "station": "板橋",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18141,6 +18929,7 @@
    },
    "checkedAt": "202111",
    "station": "新柴又",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18165,6 +18954,7 @@
    },
    "checkedAt": "202401",
    "station": "滝本",
+   "floor": "1F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "床面の修繕",
@@ -18190,6 +18980,7 @@
    },
    "checkedAt": "202211",
    "station": "新橋",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "ハンドドライヤー、ベビーチェア下フィッテイングボード、大型ベッド（折りたたみ式）設置",
@@ -18198,7 +18989,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-17-1-2",
@@ -18215,6 +19007,7 @@
    },
    "checkedAt": "202211",
    "station": "新橋",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "個室前の男性トイレ内では回転可・乳幼児用おむつ交換台、オストメイトは男性トイレ個室内に設置",
@@ -18223,7 +19016,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-17-1-3",
@@ -18240,6 +19034,7 @@
    },
    "checkedAt": "202211",
    "station": "新橋",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "個室前の女性トイレ内では回転可・乳幼児用おむつ交換台、オストメイトは女性トイレ個室内に設置",
@@ -18248,7 +19043,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-17-2-1",
@@ -18265,6 +19061,7 @@
    },
    "checkedAt": "202211",
    "station": "汐留",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18289,6 +19086,7 @@
    },
    "checkedAt": "202211",
    "station": "竹芝",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18313,6 +19111,7 @@
    },
    "checkedAt": "202211",
    "station": "日の出",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18337,6 +19136,7 @@
    },
    "checkedAt": "202211",
    "station": "芝浦ふ頭",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18361,6 +19161,7 @@
    },
    "checkedAt": "202211",
    "station": "お台場海浜公園",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "一般トイレにオストメイト有り",
@@ -18386,6 +19187,7 @@
    },
    "checkedAt": "202211",
    "station": "台場",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18410,6 +19212,7 @@
    },
    "checkedAt": "202501",
    "station": "東京国際クルーズターミナル",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18434,6 +19237,7 @@
    },
    "checkedAt": "202211",
    "station": "テレコムセンター",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18458,6 +19262,7 @@
    },
    "checkedAt": "202211",
    "station": "青海",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18482,6 +19287,7 @@
    },
    "checkedAt": "202401",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18489,7 +19295,8 @@
     "ostomate": true,
     "changingTable": true,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-17-11-3",
@@ -18506,6 +19313,7 @@
    },
    "checkedAt": "202601",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18513,7 +19321,8 @@
     "ostomate": true,
     "changingTable": false,
     "level": "2F"
-   }
+   },
+   "approxLocation": true
   },
   {
    "id": "tokyo-st-17-11-4",
@@ -18530,6 +19339,7 @@
    },
    "checkedAt": "202501",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18554,6 +19364,7 @@
    },
    "checkedAt": "202501",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18578,6 +19389,7 @@
    },
    "checkedAt": "202501",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18602,6 +19414,7 @@
    },
    "checkedAt": "202601",
    "station": "東京ビッグサイト",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18626,6 +19439,7 @@
    },
    "checkedAt": "202211",
    "station": "有明",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18650,6 +19464,7 @@
    },
    "checkedAt": "202211",
    "station": "有明",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "個室前の女性トイレ内では回転可・乳幼児用おむつ交換台は個室前の女性トイレ内に設置",
@@ -18674,6 +19489,7 @@
    },
    "checkedAt": "202211",
    "station": "有明",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "個室前の男性トイレ内では回転可・乳幼児用おむつ交換台は個室前の男性トイレ内に設置",
@@ -18698,6 +19514,7 @@
    },
    "checkedAt": "202211",
    "station": "有明テニスの森",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18722,6 +19539,7 @@
    },
    "checkedAt": "202211",
    "station": "市場前",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18746,6 +19564,7 @@
    },
    "checkedAt": "202211",
    "station": "新豊洲",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18770,6 +19589,7 @@
    },
    "checkedAt": "202211",
    "station": "豊洲",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "toilet": {
@@ -18794,6 +19614,7 @@
    },
    "checkedAt": "202211",
    "station": "豊洲",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "新規/個室前の女性トイレ内では回転可・乳幼児用おむつ交換台は個室前の女性トイレ内に設置",
@@ -18819,6 +19640,7 @@
    },
    "checkedAt": "202211",
    "station": "豊洲",
+   "floor": "2F",
    "gate": "unknown",
    "hoursText": "始発〜終電",
    "note": "新規/個室前の男性トイレ内では回転可・乳幼児用おむつ交換台は個室前の男性トイレ内に設置",

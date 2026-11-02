@@ -12,19 +12,18 @@ export const TIER_LABEL: Record<Tier, string> = {
   report: "利用者の報告",
 };
 
-export function Item({ item, n }: { item: NearbyItem; n?: number }) {
+// head：駅の中では、方角と分数の代わりに事実（改札の内外・階・実測の分数）を見出しにする
+export function Item({ item, n, head }: { item: NearbyItem; n?: number; head?: { main: string; sub?: string } }) {
   const p = item.place;
   return (
     <div className="card">
       <div>
         <NumberBadge n={n} tier={p.tier} />
-        <strong>
-          {item.direction}へ 約{item.walkMin}分
-        </strong>{" "}
-        {displayName(p)}
+        <strong>{head ? head.main : `${item.direction}へ 約${item.walkMin}分`}</strong> {displayName(p)}
       </div>
+      {head?.sub && <div className="muted">{head.sub}</div>}
       {p.kind === "store" && <div className="muted">営業時間：{p.hoursText ?? p.openingHours ?? "登録なし"}</div>}
-      <Details item={item} />
+      <Details item={item} compact={!!head} />
       <Badges item={item} />
       <MapLink item={item} />
     </div>
@@ -39,16 +38,20 @@ const fmtChecked = (d: string) => (/^\d{6}$/.test(d) ? `${d.slice(0, 4)}年${Num
 const fmtSec = (s: number) => (s < 60 ? `${s}秒` : `${Math.round(s / 60)}分`);
 
 // 地図アプリにない情報（改札の内外、ホームからの道順と時間、品ぞろえ）。分かっているものだけ出す
-export function Details({ item }: { item: NearbyItem }) {
+// compact：見出しに改札の内外・階・分数をもう出しているときは、ここでは繰り返さない
+export function Details({ item, compact = false }: { item: NearbyItem; compact?: boolean }) {
   const p = item.place;
   const lines: string[] = [];
   const gate = p.gate ? GATE_LABEL[p.gate] : undefined;
-  if (gate) lines.push(gate);
+  if (gate && !compact) lines.push(gate);
   if (p.platform) lines.push(p.platform);
-  if (p.minFromPlatform !== undefined) lines.push(`ホームの階段から ${fmtSec(p.minFromPlatform)}`);
-  if (p.minFromGate !== undefined) lines.push(`改札から ${fmtSec(p.minFromGate)}`);
+  if (!compact) {
+    if (p.minFromPlatform !== undefined) lines.push(`ホームの階段から ${fmtSec(p.minFromPlatform)}`);
+    if (p.minFromGate !== undefined) lines.push(`改札から ${fmtSec(p.minFromGate)}`);
+  }
   if (p.where) lines.push(p.where);
-  if (p.toilet?.level && p.tier !== "osm") lines.push(p.toilet.level);
+  const floor = p.floor ?? (p.tier !== "osm" ? p.toilet?.level : undefined);
+  if (floor && !compact) lines.push(floor);
   const stock = Object.entries(p.store?.stock ?? {})
     .filter(([, has]) => has)
     .map(([name]) => name);
@@ -61,7 +64,9 @@ export function Details({ item }: { item: NearbyItem }) {
       {p.toilet?.bench && <div className="muted">座れる場所：{p.toilet.bench}</div>}
       {p.toilet?.staffDesk && <div className="muted">駅員：{p.toilet.staffDesk}</div>}
       {p.kind === "toilet" && p.hoursText && <div className="muted">利用時間：{p.hoursText}</div>}
-      {p.approxLocation && <div className="muted">位置は駅の中心で代用（方角・分数は目安）</div>}
+      {p.approxLocation && (
+        <div className="muted">{compact ? "地図のピンは駅の代表の位置に置いています" : "位置は駅の中心で代用（方角・分数は目安）"}</div>
+      )}
       {p.checkedAt && p.tier !== "osm" && <div className="muted">確認：{fmtChecked(p.checkedAt)}</div>}
     </>
   );

@@ -57,6 +57,7 @@ async function main() {
       },
       checkedAt: r["データの変更年月"] || r["データの作成年月"] || undefined,
       station: r["鉄道駅名"],
+      floor: r["設置フロア"] || undefined,
       gate: gateOf(`${r["備考"]} ${r["トイレ名"]}`),
       hoursText: hoursOf(r),
       note: r["備考"] || undefined,
@@ -68,6 +69,14 @@ async function main() {
       },
     });
   }
+  // 同じ駅の別のトイレと座標がまったく同じなら、トイレごとの位置ではなく駅の代表点とみなす
+  const key = (p: Place) => `${p.station}|${p.lat},${p.lon}`;
+  const shared = new Map<string, number>();
+  places.forEach((p) => shared.set(key(p), (shared.get(key(p)) ?? 0) + 1));
+  places.forEach((p) => {
+    if ((shared.get(key(p)) ?? 0) > 1) p.approxLocation = true;
+  });
+
   const out = {
     fetchedFrom: URL,
     attribution: "出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成",
