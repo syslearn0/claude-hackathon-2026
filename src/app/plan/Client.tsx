@@ -7,6 +7,7 @@ import { PLAN_CONDITIONS } from "@/lib/agent/modes";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
+import { describeTrainCars } from "@/lib/train-cars";
 import { describeProfile, loadProfile } from "@/lib/profile";
 import { clearPlan, loadTodayPlan, savePlan, type SavedPlan } from "@/lib/saved-plan";
 import { Badges, Details, MapLink, NumberBadge } from "../now/PlaceInfo";
@@ -151,9 +152,28 @@ export function PlanView({ plan }: { plan: SavedPlan }) {
     else sections.push({ title, steps: [s] });
   }
   let n = 0;
+  const route = plan.answer.route ?? [];
   return (
     <section style={{ marginTop: 16 }}>
       <p style={{ fontWeight: 700 }}>{plan.answer.summary}</p>
+      {route.length >= 2 && (
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>経路と車内の設備</h2>
+          <div>{route.map((r) => r.station).join(" → ")}</div>
+          {route.slice(0, -1).map((r, i) => {
+            const cars = r.line ? describeTrainCars(r.line) : null;
+            return (
+              <div key={i} className="muted" style={{ marginTop: 4 }}>
+                {r.station} → {route[i + 1].station}：{r.line ?? "路線不明"}
+                {cars ? <div style={{ color: "var(--fg)" }}>{cars}</div> : r.line ? "（車内設備のデータなし）" : ""}
+              </div>
+            );
+          })}
+          <div className="muted" style={{ marginTop: 4, fontSize: "0.8rem" }}>
+            経路は貼った・書いたものをそのまま使っています。号車の情報は鉄道会社の案内が出典です（編成によって違うことがあります）。
+          </div>
+        </div>
+      )}
       {sections.map((sec, i) => (
         <div key={i} className="card">
           {sec.title && <h2 style={{ marginTop: 0 }}>{sec.title}</h2>}

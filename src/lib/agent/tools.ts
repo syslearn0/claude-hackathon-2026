@@ -4,6 +4,7 @@ import { loadPlaces, loadStations } from "../data";
 import type { LatLon } from "../geo";
 import { displayName, findNearby, type NearbyItem } from "../nearby";
 import type { Place } from "../places";
+import { findTrainCars } from "../train-cars";
 
 export type ToolContext = {
   // 利用者が送った現在地（あれば）。道具の入力で位置が null のときに使う
@@ -95,6 +96,18 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     strict: true,
   },
   {
+    name: "get_train_cars",
+    description:
+      "路線の車内トイレのある号車・多機能トイレの号車・弱冷房車の号車を返す（鉄道会社の案内が出典）。official=false の項目は「公式資料で未確認」と添える。データのない路線は found=false。",
+    input_schema: {
+      type: "object",
+      properties: { line: { type: "string", description: "路線名。例：JR中央線快速、東海道新幹線、京阪本線" } },
+      required: ["line"],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
     name: "get_train_status",
     description:
       "鉄道の運行情報（遅延・見合わせ）の文章を返す。いま取れるのは都営（浅草線・三田線・新宿線・大江戸線など）だけ。ほかの事業者は other を指定すると「取得できない」と返る。",
@@ -139,6 +152,22 @@ export async function runTool(name: string, input: Record<string, unknown>, ctx:
       const p = places.find((x) => x.id === input.id);
       if (!p) return { content: "その id の場所はありません。", placeIds: [], isError: true };
       return { content: JSON.stringify(summarize(p)), placeIds: [p.id] };
+    }
+    case "get_train_cars": {
+      const e = findTrainCars(String(input.line ?? ""));
+      if (!e) return { content: JSON.stringify({ found: false, note: "この路線の車内設備のデータはありません" }), placeIds: [] };
+      const facts = {
+        line: e.line,
+        service: e.service,
+        toiletCars: e.toiletCars,
+        accessibleToiletCars: e.accessibleToiletCars,
+        weakAcCars: e.weakAcCars,
+        carNumbering: e.carNumbering,
+        conditions: e.conditions,
+        official: e.official,
+        checkedAt: e.checkedAt,
+      };
+      return { content: JSON.stringify({ found: true, ...facts }), placeIds: [] };
     }
     case "get_train_status": {
       if (input.operator !== "Toei") {

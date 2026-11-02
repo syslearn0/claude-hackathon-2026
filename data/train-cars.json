@@ -1,4 +1,148 @@
 {
- "note": "車内トイレのある号車・弱冷房車。各項目は鉄道会社の公式の案内を出典にし、確認日を付ける",
- "entries": []
+ "note": "車内トイレのある号車・弱冷房車。鉄道会社の公式の案内を出典にし、確認日を付ける。official が false のものは画面で「公式資料で未確認」と出す。号車の向きから導いた値は note に書く。確認できなかった項目は null（推測で埋めない）",
+ "entries": [
+  {
+   "operator": "JR東日本",
+   "line": "中央線快速",
+   "aliases": ["JR中央線快速", "中央快速線", "中央線（快速）", "中央特快", "青梅特快"],
+   "service": "快速・中央特快など E233系 12両",
+   "cars": 12,
+   "toiletCars": [4, 6],
+   "accessibleToiletCars": null,
+   "weakAcCars": null,
+   "carNumbering": "東京寄りが1号車",
+   "conditions": "4号車はグリーン車。10両編成の列車は4号車の5号車寄りにトイレ",
+   "sources": [
+    "https://www.jreast.co.jp/press/2018/20180402.pdf",
+    "https://www.jreast.co.jp/press/2024/20240910_ho02.pdf",
+    "https://www.chuosen.jp/greencar/"
+   ],
+   "official": false,
+   "checkedAt": "2026-11-03",
+   "note": "JR東日本の公式PDFは本文を直接開けず、検索の抜粋と非公式サイトで確認。6号車のトイレは車いす対応と非公式サイトにあるが未確認のため accessibleToiletCars は null"
+  },
+  {
+   "operator": "JR東海・JR西日本",
+   "line": "東海道・山陽新幹線",
+   "aliases": ["東海道新幹線", "山陽新幹線", "のぞみ", "ひかり", "こだま"],
+   "service": "16両（N700S・N700A）",
+   "cars": 16,
+   "toiletCars": [1, 3, 5, 7, 9, 11, 13, 15],
+   "accessibleToiletCars": [11],
+   "weakAcCars": [],
+   "carNumbering": null,
+   "conditions": "奇数号車の共用トイレ2か所のうち1か所は女性専用（2025年3月から順次）。弱冷房車は夏の一部「ひかり」の3号車で試験導入のみ",
+   "sources": [
+    "https://www.westjr.co.jp/press/article/items/241213_00_press_2025harudaiyakaisei4_1.pdf",
+    "https://jr-central.co.jp/news/release/_pdf/000045595.pdf",
+    "https://railway.jr-central.co.jp/train/shinkansen/n700s/seat.html"
+   ],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "11号車に多目的トイレと多目的室"
+  },
+  {
+   "operator": "JR東日本",
+   "line": "山手線",
+   "aliases": ["JR山手線"],
+   "service": "E235系 11両",
+   "cars": 11,
+   "toiletCars": [],
+   "accessibleToiletCars": [],
+   "weakAcCars": null,
+   "carNumbering": null,
+   "conditions": null,
+   "sources": ["https://jreastfaq.jreast.co.jp/faq/show/3945?category_id=6&site_domain=default"],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "公式FAQで車内トイレのない路線に挙がっている。弱冷房車の号車は未確認"
+  },
+  {
+   "operator": "京阪電車",
+   "line": "京阪本線",
+   "aliases": ["京阪本線", "京阪電車京阪本線", "鴨東線", "京阪鴨東線"],
+   "service": "7・8両編成",
+   "cars": 8,
+   "toiletCars": null,
+   "accessibleToiletCars": null,
+   "weakAcCars": [2],
+   "carNumbering": "京都側が1号車",
+   "conditions": "弱冷房車は7・8両編成の京都側2両目。4両編成にはない。プレミアムカーに車内トイレはない",
+   "sources": [
+    "https://www.keihan.co.jp/traffic/safety/softcooling.html",
+    "https://faq.keihan.co.jp/answer/66b32ef1c6aad7002a3183b4/",
+    "https://faq.keihan.co.jp/answer/672876db4625ca40bde00990/"
+   ],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "弱冷房車の2号車は「京都側2両目」と号車の向きから導いた値。一般車のトイレについての公式の記載は未確認"
+  },
+  {
+   "operator": "小田急",
+   "line": "小田急線",
+   "aliases": ["小田急", "小田原線", "小田急小田原線"],
+   "service": "通勤車（6・8・10両）",
+   "cars": 10,
+   "toiletCars": null,
+   "accessibleToiletCars": null,
+   "weakAcCars": [2],
+   "carNumbering": "小田原方が1号車",
+   "conditions": "弱冷房車は小田原方から2両目",
+   "sources": ["https://www.odakyu.jp/sustainability/safety/service/"],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "通勤車の車内トイレについての公式の記載は未確認"
+  },
+  {
+   "operator": "小田急",
+   "line": "ロマンスカー（MSE）",
+   "aliases": ["ロマンスカー", "MSE", "メトロはこね", "メトロえのしま", "メトロモーニングウェイ", "メトロホームウェイ"],
+   "service": "60000形 6両＋4両",
+   "cars": 10,
+   "toiletCars": [2, 5, 8],
+   "accessibleToiletCars": null,
+   "weakAcCars": null,
+   "carNumbering": "箱根湯本側が1号車",
+   "conditions": "6両で走るときは2・5号車",
+   "sources": ["https://www.odakyu.jp/romancecar/features/line_up/60000/seat/"],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "MSE 以外のロマンスカー（GSE など）は号車未確認"
+  },
+  {
+   "operator": "京王電鉄",
+   "line": "京王線",
+   "aliases": ["京王", "京王電鉄"],
+   "service": "通勤車",
+   "cars": 10,
+   "toiletCars": null,
+   "accessibleToiletCars": null,
+   "weakAcCars": [3],
+   "carNumbering": "京王八王子・橋本寄りが1号車",
+   "conditions": "弱冷房車は京王八王子・橋本寄りから3両目",
+   "sources": [
+    "https://www.keio.co.jp/contact/con04.html",
+    "https://www.keio.co.jp/news/update/news_release/news_release2024/pdf/nr20240723_keioliner.pdf"
+   ],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "3号車は「八王子寄り3両目」と号車の向きから導いた値。車内トイレは未確認"
+  },
+  {
+   "operator": "東京メトロ",
+   "line": "丸ノ内線",
+   "aliases": ["東京メトロ丸ノ内線", "メトロ丸ノ内線"],
+   "service": "6両",
+   "cars": 6,
+   "toiletCars": null,
+   "accessibleToiletCars": null,
+   "weakAcCars": [],
+   "carNumbering": null,
+   "conditions": null,
+   "sources": ["https://ssl.tokyometro.jp/support/faq_answer?lang=ja&faqno=OpenFAQ-000175"],
+   "official": true,
+   "checkedAt": "2026-11-03",
+   "note": "公式FAQで銀座線と丸ノ内線には弱冷房車なし（FAQ は検索の抜粋で確認）。車内トイレについて公式の記載は見つからない"
+  }
+ ]
 }
