@@ -10,9 +10,11 @@
     "test": "tsx --test tests/*.test.ts",
     "fetch:osm": "tsx scripts/fetch-osm.ts",
     "import:tokyo": "tsx scripts/import-tokyo-stations.ts",
-    "import:survey": "tsx scripts/import-survey.ts"
+    "import:survey": "tsx scripts/import-survey.ts",
+    "try:agent": "tsx scripts/try-agent.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
     "next": "^16.4.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
