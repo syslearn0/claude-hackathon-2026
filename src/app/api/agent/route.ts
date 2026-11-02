@@ -53,10 +53,9 @@ export async function POST(req: NextRequest) {
     const byId = new Map(places.map((x) => [x.id, x]));
     return NextResponse.json(
       {
-        text: result.text,
+        answer: result.answer,
         places: result.citedIds.map((id) => byId.get(id)).filter(Boolean),
-        grounded: result.grounded,
-        corrected: result.corrected,
+        ok: result.ok,
         toolCalls: result.toolCalls.map((t) => t.name),
       },
       { headers: { "Cache-Control": "no-store" } },

@@ -1,43 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import { buildAfterFallback } from "@/lib/after-fallback";
+import type { Answer } from "@/lib/agent/answer";
 import { SITUATIONS } from "@/lib/agent/modes";
-import type { LatLon } from "@/lib/geo";
-import { bearingDeg, directionJa, distanceM, walkMinutes } from "@/lib/geo";
-import { displayName } from "@/lib/nearby";
-import type { Place, Tier } from "@/lib/places";
+import { buildAfterFallback } from "@/lib/after-fallback";
+import { bearingDeg, directionJa, distanceM, walkMinutes, type LatLon } from "@/lib/geo";
+import type { NearbyItem } from "@/lib/nearby";
+import type { Place } from "@/lib/places";
+import { Item } from "./PlaceInfo";
 
 // ③ トイレに入った後：状況を選ぶと、次の手順を出す。
 // AI（/api/agent）に聞き、使えないときは同じデータから組み立てた簡易版を出す。
+// 場所の名前・方角・分数・営業時間・品ぞろえは、AI の文ではなくデータから画面が出す。
 
-type Answer = {
-  text: string;
-  places: Place[];
+type Shown = {
+  answer: Answer;
+  byId: Map<string, Place>;
   by: "ai" | "fallback";
   reason?: string; // 簡易版になった理由
-  grounded?: boolean;
-};
-
-const TIER_LABEL: Record<Tier, string> = {
-  verified: "現地確認済み",
-  official: "公式データ",
-  osm: "OSM・未確認",
-  report: "利用者の報告",
 };
 
 export function AfterPanel({ pos, places }: { pos: LatLon; places: Place[] }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [answer, setAnswer] = useState<Answer | null>(null);
+  const [shown, setShown] = useState<Shown | null>(null);
 
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
   const ask = async () => {
     setBusy(true);
-    setAnswer(null);
-    const fallback = (reason: string): Answer => ({ ...buildAfterFallback(places, pos, picked), by: "fallback", reason });
+    setShown(null);
+    const local = new Map(places.map((p) => [p.id, p]));
+    const fallback = (reason: string): Shown => ({ answer: buildAfterFallback(places, pos, picked), byId: local, by: "fallback", reason });
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
@@ -46,13 +41,13 @@ export function AfterPanel({ pos, places }: { pos: LatLon; places: Place[] }) {
         signal: AbortSignal.timeout(45000),
       });
       const json = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setAnswer({ text: json.text, places: json.places ?? [], by: "ai", grounded: json.grounded });
+      if (res.ok && json.answer) {
+        setShown({ answer: json.answer, byId: new Map((json.places as Place[]).map((p) => [p.id, p])), by: "ai" });
       } else {
-        setAnswer(fallback(json.code === "no_key" ? "AI がまだ使えない設定です" : (json.error ?? "AI に聞けませんでした")));
+        setShown(fallback(json.code === "no_key" ? "AI がまだ使えない設定です" : (json.error ?? "AI に聞けませんでした")));
       }
     } catch {
-      setAnswer(fallback("時間内に AI の返事が来ませんでした"));
+      setShown(fallback("時間内に AI の返事が来ませんでした"));
     } finally {
       setBusy(false);
     }
@@ -80,52 +75,41 @@ export function AfterPanel({ pos, places }: { pos: LatLon; places: Place[] }) {
       </button>
       <p className="muted">選んだ内容と現在地を、AI に送って手順を作ります（保存はしません）。</p>
 
-      {answer && <AnswerView answer={answer} from={pos} />}
+      {shown && <AnswerView shown={shown} from={pos} />}
     </section>
   );
 }
 
-function AnswerView({ answer, from }: { answer: Answer; from: LatLon }) {
-  const byId = new Map(answer.places.map((p) => [p.id, p]));
+function AnswerView({ shown, from }: { shown: Shown; from: LatLon }) {
+  const { answer, byId } = shown;
+  const toItem = (p: Place): NearbyItem => {
+    const meters = distanceM(from, p);
+    return { place: p, meters: Math.round(meters), walkMin: walkMinutes(meters), direction: directionJa(bearingDeg(from, p)) };
+  };
   return (
     <div style={{ marginTop: 12 }}>
       <div className="muted">
-        {answer.by === "ai"
-          ? `AI が作った手順${answer.grounded === false ? "（根拠を確かめられない場所は伏せました）" : "（出てくる場所は、すべて手元のデータにあることをプログラムで確認済み）"}`
-          : `AI を使わない簡易版（${answer.reason}）`}
+        {shown.by === "ai" ? "AI が作った手順（出てくる場所は、手元のデータにあるものだけ）" : `AI を使わない簡易版（${shown.reason}）`}
       </div>
-      {answer.text.split("\n").map((line, i) => (
-        <p key={i} style={{ margin: "8px 0" }}>
-          {renderLine(line, byId, from)}
+      <p style={{ fontWeight: 700 }}>{answer.summary}</p>
+      <ol style={{ paddingLeft: 20 }}>
+        {answer.steps.map((step, i) => (
+          <li key={i} style={{ margin: "10px 0" }}>
+            <div>{step.text}</div>
+            {step.placeIds
+              .map((id) => byId.get(id))
+              .filter((p): p is Place => !!p)
+              .map((p) => (
+                <Item key={p.id} item={toItem(p)} />
+              ))}
+          </li>
+        ))}
+      </ol>
+      {answer.notes.map((n, i) => (
+        <p key={i} className="muted">
+          ※ {n}
         </p>
       ))}
     </div>
   );
-}
-
-// [[place:ID]] を、場所の名前と信頼度の札に置き換える
-function renderLine(line: string, byId: Map<string, Place>, from: LatLon) {
-  const parts = line.split(/(\[\[place:[^\]\s]+\]\])/g);
-  return parts.map((part, i) => {
-    const m = part.match(/^\[\[place:([^\]\s]+)\]\]$/);
-    if (!m) return <span key={i}>{part}</span>;
-    const p = byId.get(m[1]);
-    if (!p) return <span key={i}>（確認できない場所）</span>;
-    const meters = distanceM(from, p);
-    return (
-      <a
-        key={i}
-        href={`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}&travelmode=walking`}
-        target="_blank"
-        rel="noreferrer"
-        title={`${directionJa(bearingDeg(from, p))}へ約${walkMinutes(meters)}分`}
-        style={{ fontWeight: 700 }}
-      >
-        {displayName(p)}
-        <span className="tag" style={{ marginLeft: 4, fontWeight: 400 }}>
-          {TIER_LABEL[p.tier]}
-        </span>
-      </a>
-    );
-  });
 }

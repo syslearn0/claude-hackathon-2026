@@ -1,17 +1,37 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkGrounding, placeIdsIn, stripUnknown } from "../src/lib/agent/grounding";
+import { answerSchema, dropUnseen, parseAnswer } from "../src/lib/agent/answer";
 import { runAgent, type MessagesClient } from "../src/lib/agent/run";
 import type { Place } from "../src/lib/places";
 
-test("根拠チェック：引用した id を取り出し、道具の結果にないものを見つける", () => {
-  const text = "[[place:a]] 北へ2分。混んでいたら [[place:b]]。もう一度 [[place:a]]";
-  assert.deepEqual(placeIdsIn(text), ["a", "b"]);
-  const r = checkGrounding(text, new Set(["a"]));
-  assert.equal(r.ok, false);
-  assert.deepEqual(r.unknown, ["b"]);
-  assert.equal(stripUnknown(text, new Set(["a"])), "[[place:a]] 北へ2分。混んでいたら （確認できない場所）。もう一度 [[place:a]]");
+type Schema = {
+  properties: { steps: { items: { properties: { place_ids?: { items: { enum: string[] } } }; required: string[] } } };
+};
+
+test("返答の形：place_ids に書けるのは、渡した id だけ", () => {
+  const s = answerSchema(["a", "b"]) as Schema;
+  assert.deepEqual(s.properties.steps.items.properties.place_ids?.items.enum, ["a", "b"]);
+  // まだ道具が何も返していなければ、場所はそもそも書けない
+  const empty = answerSchema([]) as Schema;
+  assert.equal(empty.properties.steps.items.properties.place_ids, undefined);
+  assert.deepEqual(empty.properties.steps.items.required, ["text"]);
+});
+
+test("返答の読み取り：形が違えば null", () => {
+  assert.deepEqual(parseAnswer('{"summary":"s","steps":[{"text":"t","place_ids":["a"]}],"notes":[]}'), {
+    summary: "s",
+    steps: [{ text: "t", placeIds: ["a"] }],
+    notes: [],
+  });
+  assert.equal(parseAnswer("ふつうの文"), null);
+  assert.equal(parseAnswer('{"summary":"s"}'), null);
+});
+
+test("念のための確認：道具が返していない id は落とす", () => {
+  const r = dropUnseen({ summary: "", steps: [{ text: "t", placeIds: ["a", "x"] }], notes: [] }, new Set(["a"]));
+  assert.deepEqual(r.answer.steps[0].placeIds, ["a"]);
+  assert.deepEqual(r.dropped, ["x"]);
 });
 
 const places: Place[] = [
@@ -45,51 +65,56 @@ const say = (text: string): Partial<Anthropic.Beta.BetaMessage> => ({
   stop_reason: "end_turn",
   content: [{ type: "text", text } as Anthropic.Beta.BetaTextBlock],
 });
+const answer = (ids: string[]) => say(JSON.stringify({ summary: "近くにあります", steps: [{ text: "行く", place_ids: ids }], notes: [] }));
 const near = { lat: null, lon: null, kind: "toilet", accessible_only: false, limit: 3 };
+const enumOf = (p: Anthropic.Beta.MessageCreateParamsNonStreaming) =>
+  (p.output_config?.format?.schema as Schema).properties.steps.items.properties.place_ids?.items.enum;
 
-test("道具の結果にある場所だけを引用すれば、そのまま返る", async () => {
-  const { client, sent } = fakeClient([toolUse("find_nearby_places", near), say("[[place:t1]] 北へ約2分（改札内）")]);
+test("道具が返した場所は、次の送信から選べるようになる", async () => {
+  const { client, sent } = fakeClient([toolUse("find_nearby_places", near), answer(["t1"])]);
   const r = await runAgent({ userText: "トイレ", context: { position: { lat: 35, lon: 135 }, places } }, client);
-  assert.equal(r.grounded, true);
-  assert.equal(r.corrected, false);
+  assert.equal(r.ok, true);
   assert.deepEqual(r.citedIds, ["t1"]);
+  assert.equal(enumOf(sent[0]), undefined); // 最初はまだ何も選べない
+  assert.ok(enumOf(sent[1])?.includes("t1"));
   // 2回目の送信に、道具の結果が tool_result として入っている
   const last = sent[1].messages.at(-1)!;
-  assert.equal(last.role, "user");
-  assert.equal((last.content as Anthropic.Beta.BetaToolResultBlockParam[])[0].type, "tool_result");
-  assert.match(String((last.content as Anthropic.Beta.BetaToolResultBlockParam[])[0].content), /"id":"t1"/);
+  const block = (last.content as Anthropic.Beta.BetaToolResultBlockParam[])[0];
+  assert.equal(block.type, "tool_result");
+  assert.match(String(block.content), /"id":"t1"/);
 });
 
-test("根拠のない場所を出したら1回だけ直させる", async () => {
-  const { client, sent } = fakeClient([
-    toolUse("find_nearby_places", near),
-    say("[[place:made-up]] すぐそこ"),
-    say("[[place:t1]] 北へ約2分"),
-  ]);
+test("形が違う返事は1回だけ直させる", async () => {
+  const { client, sent } = fakeClient([toolUse("find_nearby_places", near), say("ふつうの文"), answer(["t1"])]);
   const r = await runAgent({ userText: "トイレ", context: { position: { lat: 35, lon: 135 }, places } }, client);
-  assert.equal(r.grounded, true);
-  assert.equal(r.corrected, true);
-  assert.match(String(sent[2].messages.at(-1)!.content), /made-up/);
+  assert.equal(r.ok, true);
+  assert.match(String(sent[2].messages.at(-1)!.content), /JSON/);
 });
 
-test("直しても根拠がなければ、その場所を伏せる", async () => {
-  const { client } = fakeClient([say("[[place:made-up]] すぐそこ"), say("[[place:made-up2]] こちら")]);
+test("直しても形が違えば、決まった文に差し替える", async () => {
+  const { client } = fakeClient([say("ふつうの文"), say("まだふつうの文")]);
+  const r = await runAgent({ userText: "トイレ", context: { places } }, client);
+  assert.equal(r.ok, false);
+  assert.match(r.answer.steps[0].text, /駅員や店員/);
+});
+
+test("スキーマを抜けて道具にない id が来ても、画面には出さない", async () => {
+  const { client } = fakeClient([toolUse("find_nearby_places", near), answer(["t1", "made-up"])]);
   const r = await runAgent({ userText: "トイレ", context: { position: { lat: 35, lon: 135 }, places } }, client);
-  assert.equal(r.grounded, false);
-  assert.equal(r.text, "（確認できない場所） こちら");
-  assert.deepEqual(r.citedIds, []);
+  assert.deepEqual(r.citedIds, ["t1"]);
+  assert.deepEqual(r.dropped, ["made-up"]);
 });
 
 test("位置がなく駅も分からなければ、道具はエラーを返す", async () => {
-  const { client } = fakeClient([toolUse("find_nearby_places", near), say("どの駅にいますか？")]);
+  const { client } = fakeClient([toolUse("find_nearby_places", near), say(JSON.stringify({ summary: "どの駅にいますか？", steps: [], notes: [] }))]);
   const r = await runAgent({ userText: "トイレ", context: { places } }, client);
   assert.equal(r.toolCalls[0].isError, true);
-  assert.equal(r.text, "どの駅にいますか？");
+  assert.equal(r.answer.summary, "どの駅にいますか？");
 });
 
 test("断られたときは決まった文を返す", async () => {
   const { client } = fakeClient([{ stop_reason: "refusal", content: [] }]);
   const r = await runAgent({ userText: "トイレ", context: { places } }, client);
-  assert.equal(r.grounded, false);
-  assert.match(r.text, /駅員や店員/);
+  assert.equal(r.ok, false);
+  assert.match(r.answer.steps[0].text, /駅員や店員/);
 });

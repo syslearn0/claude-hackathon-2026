@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { checkGrounding } from "../src/lib/agent/grounding";
 import { describeSituations } from "../src/lib/agent/modes";
 import { buildAfterFallback } from "../src/lib/after-fallback";
 import type { Place } from "../src/lib/places";
@@ -23,17 +22,15 @@ const from = { lat: 35, lon: 135 };
 
 test("簡易版：下着を汚した → 替えを買う店と、着替える場所", () => {
   const r = buildAfterFallback(places, from, ["soiled_underwear"]);
-  assert.match(r.text, /^1\. 替えを買う：\[\[place:shop\]\].*置いてあった：男性用下着（売り場：レジ横）/);
-  assert.match(r.text, /2\. 着替える：.*\[\[place:room\]\]/);
-  // 確認済みで「なし」だった品目は「置いてあった」に入れない
-  assert.doesNotMatch(r.text, /防臭袋/);
+  assert.equal(r.steps[0].text, "替えの下着を買う");
+  assert.deepEqual(r.steps[0].placeIds, ["shop"]);
+  assert.deepEqual(r.steps[1].placeIds, ["room"]);
 });
 
-test("簡易版の引用は、返す場所とすべて一致する（根拠チェックを通る）", () => {
+test("簡易版：帰るか続けるかは選択肢として並べるだけ", () => {
   const r = buildAfterFallback(places, from, ["soiled_clothes", "dispose", "not_yet", "go_home"]);
-  const check = checkGrounding(r.text, new Set(r.places.map((p) => p.id)));
-  assert.equal(check.ok, true);
-  assert.match(r.text, /帰り道の案内は準備中/);
+  assert.match(r.steps.at(-1)!.text, /あなたが決めて.*準備中/);
+  assert.equal(r.steps[0].text, "替えの下着や防臭袋を買う");
 });
 
 test("状況の説明：選んだものと一言をまとめる", () => {
