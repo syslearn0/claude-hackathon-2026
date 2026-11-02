@@ -4,11 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "トイレ外出サポート",
   description: "急なトイレの不安がある人の外出を、事実の情報で支える",
+  // iPhone でホーム画面に追加したときのアイコン
+  icons: { apple: "/apple-touch-icon.png" },
+  appleWebApp: { title: "トイレ外出" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#1f5fbf",
 };
 
 export default function RootLayout({
