@@ -37,20 +37,39 @@ export function VoiceInput({ onText }: { onText: (text: string) => void }) {
   const [interim, setInterim] = useState("");
   const [error, setError] = useState("");
   const rec = useRef<Recognition | null>(null);
+  // 利用者が「止める」を押すまで聞き続けたいか。
+  // Android の Chrome は continuous を無視して一区切りで終わるので、終わるたびに聞き直す
+  const want = useRef(false);
+  const lastHeard = useRef(0);
 
-  useEffect(() => () => rec.current?.stop(), []);
+  useEffect(
+    () => () => {
+      want.current = false;
+      rec.current?.stop();
+    },
+    [],
+  );
 
   if (!supported) {
     return <p className="muted">このブラウザでは声で入れられません。キーボードのマイクのボタンを使ってください。</p>;
   }
 
-  const start = () => {
+  const stop = () => {
+    want.current = false;
+    rec.current?.stop();
+    setListening(false);
+    setInterim("");
+  };
+
+  const listenOnce = () => {
     const r = createRecognition();
     if (!r) return;
     r.lang = "ja-JP";
     r.interimResults = true;
-    r.continuous = true;
+    // 一区切りずつ聞いて、終わったら聞き直す（continuous にすると Android で同じ文が重なることがある）
+    r.continuous = false;
     r.onresult = (e) => {
+      lastHeard.current = Date.now();
       let done = "";
       let partial = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -61,20 +80,37 @@ export function VoiceInput({ onText }: { onText: (text: string) => void }) {
       if (done) onText(done);
       setInterim(partial);
     };
-    r.onerror = (e) => setError(ERRORS[e.error] ?? `声を文字にできませんでした（${e.error}）`);
+    r.onerror = (e) => {
+      // 黙っていた・途中で止めた、は聞き直せばよい。それ以外は止める
+      if (e.error === "no-speech" || e.error === "aborted") return;
+      want.current = false;
+      setError(ERRORS[e.error] ?? `声を文字にできませんでした（${e.error}）`);
+    };
     r.onend = () => {
-      setListening(false);
       setInterim("");
+      // 1分なにも聞き取れなければ、聞くのをやめる（押し忘れでマイクが開いたままにならないように）
+      if (want.current && Date.now() - lastHeard.current < 60_000) {
+        listenOnce();
+      } else {
+        want.current = false;
+        setListening(false);
+      }
     };
     rec.current = r;
+    r.start();
+  };
+
+  const start = () => {
+    want.current = true;
+    lastHeard.current = Date.now();
     setError("");
     setListening(true);
-    r.start();
+    listenOnce();
   };
 
   return (
     <div style={{ margin: "8px 0" }}>
-      <button onClick={() => (listening ? rec.current?.stop() : start())} aria-pressed={listening}>
+      <button onClick={() => (listening ? stop() : start())} aria-pressed={listening}>
         {listening ? "■ 話し終わったら押す" : "🎤 声で入れる"}
       </button>
       {listening && <div className="muted">聞いています…{interim && `「${interim}」`}</div>}
