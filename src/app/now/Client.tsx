@@ -6,6 +6,7 @@ import type { LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName, findNearby } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
+import { describeProfile, loadProfile } from "@/lib/profile";
 import { loadTodayPlan } from "@/lib/saved-plan";
 import { describeSituation, estimateSituation, type Fix, type Situation } from "@/lib/situation";
 import { headline, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
@@ -44,6 +45,8 @@ export default function NowPage() {
   const [refKey, setRefKey] = useState<string | null>(null);
   // ①で保存した今日の計画（あれば）
   const [plan] = useState(() => loadTodayPlan());
+  // 自分の情報（スマホの中だけ）
+  const [profile] = useState(() => loadProfile());
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
   const chosen = useRef(false);
   // ② 直近2分の位置（この画面を開いているあいだだけ、メモリの中だけに持つ）
@@ -116,13 +119,24 @@ export default function NowPage() {
   const data: Nearby | null = useMemo(() => {
     if (!pos || !all) return null;
     // 駅の中では直線距離の順が当てにならないので、候補を多めに取って、実測の分数で並べ替える
-    const toilets = findNearby(all.places, { from: pos.at, kind: "toilet", limit: station ? 6 : 3 });
+    const prefer = { preferAccessible: profile.needAccessible === true, preferOstomate: profile.needOstomate === true };
+    const toilets = findNearby(all.places, { from: pos.at, kind: "toilet", limit: station ? 6 : 3, ...prefer });
     return {
       toilets: (ref ? rankFromRef(toilets, ref) : toilets).slice(0, station ? 4 : 3),
-      changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1 }),
+      changeRooms: findNearby(all.places, { from: pos.at, kind: "toilet", accessibleOnly: true, limit: 1, preferOstomate: prefer.preferOstomate }),
       stores: findNearby(all.places, { from: pos.at, kind: "store", limit: 3 }),
     };
-  }, [pos, all, station, ref]);
+  }, [pos, all, station, ref, profile]);
+
+  // 駅を選ぶボタン：登録した「よく使う駅」を先に（データのある駅だけ）
+  const presets = useMemo(() => {
+    const mine = (profile.homeStations ?? [])
+      .map((name) => all?.stations.find((s) => s.name === name))
+      .filter((s): s is Station => !!s)
+      .map((s) => ({ label: `${s.name}駅`, pos: { lat: s.lat, lon: s.lon }, mine: true }));
+    const rest = PRESETS.filter((p) => !mine.some((m) => m.label === p.label)).map((p) => ({ ...p, mine: false }));
+    return [...mine, ...rest];
+  }, [profile, all]);
   const headOf = (x: NearbyItem) => (station ? headline(x, station, ref) : undefined);
 
   // 地図のピンと一覧で同じ番号を使う（トイレ → 着替えられる場所 → 店の順）
@@ -149,7 +163,12 @@ export default function NowPage() {
         <Link href="/" className="muted">
           ← もどる
         </Link>
-        <button onClick={() => setCard(true)}>お願いカード</button>
+        <div className="row">
+          <Link href="/me" className="muted">
+            自分の情報
+          </Link>
+          <button onClick={() => setCard(true)}>お願いカード</button>
+        </div>
       </div>
 
       {plan && (
@@ -208,7 +227,7 @@ export default function NowPage() {
             pos.at,
             first ? `${first.place.id}（${displayName(first.place)}）` : undefined,
             plan?.answer.summary,
-          )}
+          ) + (describeProfile(profile, "emergency") ? `\n${describeProfile(profile, "emergency")}` : "")}
         />
       )}
 
@@ -246,7 +265,7 @@ export default function NowPage() {
               トイレに入った（次どうする？）
             </button>
           ) : (
-            <AfterPanel pos={pos.at} places={all.places} />
+            <AfterPanel pos={pos.at} places={all.places} profile={profile} />
           )}
         </>
       )}
@@ -298,8 +317,9 @@ export default function NowPage() {
         >
           現在地をもう一度
         </button>
-        {PRESETS.map((p) => (
+        {presets.map((p) => (
           <button key={p.label} onClick={() => choose(p.pos, `${p.label}（駅の中心のだいたいの位置）`)}>
+            {p.mine ? "★ " : ""}
             {p.label}
           </button>
         ))}

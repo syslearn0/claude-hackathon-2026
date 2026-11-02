@@ -7,6 +7,7 @@ import { PLAN_CONDITIONS } from "@/lib/agent/modes";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
+import { describeProfile, loadProfile } from "@/lib/profile";
 import { clearPlan, loadTodayPlan, savePlan, type SavedPlan } from "@/lib/saved-plan";
 import { Badges, Details, MapLink, NumberBadge } from "../now/PlaceInfo";
 
@@ -30,7 +31,7 @@ export default function PlanPage() {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "plan", message: note, conditions }),
+        body: JSON.stringify({ mode: "plan", message: note, conditions, profile: describeProfile(loadProfile(), "plan") }),
         signal: AbortSignal.timeout(90000),
       });
       const json = await res.json().catch(() => ({}));

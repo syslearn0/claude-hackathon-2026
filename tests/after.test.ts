@@ -54,3 +54,10 @@ test("回数制限：全体の上限", () => {
   assert.equal(rl.check("b"), null);
   assert.notEqual(rl.check("c"), null);
 });
+
+test("簡易版：替えを持ち歩いている人には、下着だけなら買う手順を出さない", () => {
+  const spare = { carriesSpare: true };
+  const r = buildAfterFallback(places, from, ["soiled_underwear"], spare);
+  assert.equal(r.steps[0].text, "個室で着替えられる多機能トイレで着替える");
+  assert.equal(buildAfterFallback(places, from, ["soiled_underwear", "dispose"], spare).steps[0].text, "防臭袋を買う");
+});

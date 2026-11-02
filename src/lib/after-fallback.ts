@@ -4,19 +4,25 @@ import type { Answer, AnswerStep } from "./agent/answer";
 import type { LatLon } from "./geo";
 import { findNearby } from "./nearby";
 import type { Place } from "./places";
+import type { Profile } from "./profile";
 
-export function buildAfterFallback(places: Place[], from: LatLon, situations: readonly string[]): Answer {
+export function buildAfterFallback(places: Place[], from: LatLon, situations: readonly string[], profile: Profile = {}): Answer {
   const has = (id: string) => situations.includes(id);
   const steps: AnswerStep[] = [];
   const notes: string[] = [];
 
   const needChange = has("soiled_clothes") || has("change") || has("soiled_underwear");
-  const needBuy = has("soiled_underwear") || has("soiled_clothes") || has("dispose");
+  // 替えを持ち歩いている人は、下着だけなら買わなくてよい
+  const needBuy = (has("soiled_underwear") && profile.carriesSpare !== true) || has("soiled_clothes") || has("dispose");
 
   if (needBuy) {
     const stores = findNearby(places, { from, kind: "store", limit: 2 });
     if (stores.length) {
-      steps.push({ text: `替えの下着${has("dispose") ? "や防臭袋" : ""}を買う`, placeIds: stores.map((s) => s.place.id) });
+      const what =
+        profile.carriesSpare === true
+          ? [has("soiled_clothes") && "服の替え", has("dispose") && "防臭袋"].filter(Boolean).join("や")
+          : `替えの下着${has("dispose") ? "や防臭袋" : ""}`;
+      steps.push({ text: `${what}を買う`, placeIds: stores.map((s) => s.place.id) });
       if (stores.some((s) => !Object.keys(s.place.store?.stock ?? {}).length)) notes.push("品ぞろえを確かめていない店があります。");
     } else {
       steps.push({ text: "近くに店のデータがありません。駅員や店員に聞く（お願いカードを見せられます）", placeIds: [] });
@@ -24,7 +30,7 @@ export function buildAfterFallback(places: Place[], from: LatLon, situations: re
   }
 
   if (needChange) {
-    const room = findNearby(places, { from, kind: "toilet", accessibleOnly: true, limit: 1 })[0];
+    const room = findNearby(places, { from, kind: "toilet", accessibleOnly: true, limit: 1, preferOstomate: profile.needOstomate === true })[0];
     steps.push(
       room
         ? { text: "個室で着替えられる多機能トイレで着替える", placeIds: [room.place.id] }

@@ -53,7 +53,9 @@ const fmtSec = (s: number) => (s < 60 ? `約${s}秒` : `約${Math.round(s / 60)}
 // 見出し。駅の中なら事実の組み合わせ、駅の外なら方角と分数
 export function headline(item: NearbyItem, station: string | undefined, ref?: StationRef): { main: string; sub?: string } {
   const p = item.place;
-  const inside = station !== undefined && (p.station === station || p.approxLocation === true || item.meters < STATION_RADIUS_M);
+  // 駅の中の場所として扱うのは、その駅のデータか、位置が駅の代表点しかないものだけ。
+  // 自分の座標を持つ駅の外の場所（路上の公衆トイレなど）は、駅のそばでも方角と分数で出す
+  const inside = station !== undefined && (p.station === station || p.approxLocation === true);
   if (!inside) return { main: `${item.direction}へ 約${item.walkMin}分` };
 
   const parts: string[] = [];

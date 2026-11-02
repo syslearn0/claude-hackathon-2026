@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { NearbyItem } from "@/lib/nearby";
+import { loadProfile } from "@/lib/profile";
 import { displayName } from "@/lib/nearby";
 import type { Tier } from "@/lib/places";
 import { TIER_COLOR } from "./MapView";
@@ -41,6 +43,11 @@ const fmtSec = (s: number) => (s < 60 ? `${s}秒` : `${Math.round(s / 60)}分`);
 // compact：見出しに改札の内外・階・分数をもう出しているときは、ここでは繰り返さない
 export function Details({ item, compact = false }: { item: NearbyItem; compact?: boolean }) {
   const p = item.place;
+  const [side] = useState(() => loadProfile().toiletSide);
+  const showMale = side !== "female";
+  const showFemale = side !== "male";
+  const box = (v: boolean | undefined, who: string) =>
+    v === undefined ? null : <div>{`${who}個室にサニタリーボックス${v ? "あり" : "なし"}`}</div>;
   const lines: string[] = [];
   const gate = p.gate ? GATE_LABEL[p.gate] : undefined;
   if (gate && !compact) lines.push(gate);
@@ -60,7 +67,8 @@ export function Details({ item, compact = false }: { item: NearbyItem; compact?:
       {lines.length > 0 && <div>{lines.join("・")}</div>}
       {stock.length > 0 && <div>置いてあった：{stock.join("、")}</div>}
       {p.store?.aisle && <div>売り場：{p.store.aisle}</div>}
-      {p.toilet?.sanitaryBoxMale === true && <div>男性個室にサニタリーボックスあり</div>}
+      {showMale && box(p.toilet?.sanitaryBoxMale, "男性")}
+      {showFemale && box(p.toilet?.sanitaryBoxFemale, "女性")}
       {p.toilet?.bench && <div className="muted">座れる場所：{p.toilet.bench}</div>}
       {p.toilet?.staffDesk && <div className="muted">駅員：{p.toilet.staffDesk}</div>}
       {p.kind === "toilet" && p.hoursText && <div className="muted">利用時間：{p.hoursText}</div>}

@@ -18,6 +18,10 @@ export default function Home() {
       </Link>
       <p className="muted">今日の予定と調子から、駅ごとに使えるトイレ・着替えられる場所・店をまとめます。</p>
 
+      <Link href="/me" className="button" style={{ marginTop: 12, padding: 10 }}>
+        自分の情報（このスマホだけに保存）
+      </Link>
+
       <h2>データ集めの道具</h2>
       <ul>
         <li>

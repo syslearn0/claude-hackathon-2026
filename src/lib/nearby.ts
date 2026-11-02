@@ -15,7 +15,12 @@ export type NearbyQuery = {
   maxMeters?: number;
   // 多機能トイレ（着替えられる）だけ
   accessibleOnly?: boolean;
+  // 登録した条件に合うトイレを優先する（合わないものは並べるときだけ「分」を足す。外しはしない）
+  preferAccessible?: boolean;
+  preferOstomate?: boolean;
 };
+
+const PREFER_PENALTY_MIN = 4;
 
 // 確かな情報ほど前に出す。改札の内外も分からない OSM のトイレが数十m近いだけで、
 // 現地確認したトイレより上に来ないよう、並べるときだけ「分」を足して比べる（表示する分数はそのまま）
@@ -37,12 +42,14 @@ export function findNearby(places: Place[], q: NearbyQuery): NearbyItem[] {
       };
     })
     .filter((x) => x.meters <= maxMeters)
-    .sort((a, b) => rankMin(a) - rankMin(b) || a.meters - b.meters)
+    .sort((a, b) => rankMin(a, q) - rankMin(b, q) || a.meters - b.meters)
     .slice(0, limit);
 }
 
-function rankMin(x: NearbyItem): number {
-  return x.walkMin + TIER_PENALTY_MIN[x.place.tier];
+function rankMin(x: NearbyItem, q: NearbyQuery): number {
+  const t = x.place.toilet;
+  const miss = (q.preferAccessible && t?.accessible !== true) || (q.preferOstomate && t?.ostomate !== true);
+  return x.walkMin + TIER_PENALTY_MIN[x.place.tier] + (miss ? PREFER_PENALTY_MIN : 0);
 }
 
 export function displayName(p: Place): string {

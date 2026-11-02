@@ -52,4 +52,6 @@ test("見出し：駅の中で何も分からなければ、そう言う", () =>
 test("見出し：駅の外なら方角と分数", () => {
   assert.equal(headline(item(p("a", {}), 600), undefined).main, "北へ 約1分");
   assert.equal(headline(item(p("a", { station: "渋谷" }), 600), "新宿").main, "北へ 約1分");
+  // 駅のすぐそばでも、駅のデータではない路上のトイレは方角で出す
+  assert.equal(headline(item(p("a", {}), 100), "新宿").main, "北へ 約1分");
 });

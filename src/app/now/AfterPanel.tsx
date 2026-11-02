@@ -7,6 +7,7 @@ import { buildAfterFallback } from "@/lib/after-fallback";
 import { bearingDeg, directionJa, distanceM, walkMinutes, type LatLon } from "@/lib/geo";
 import type { NearbyItem } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
+import { describeProfile, type Profile } from "@/lib/profile";
 import { Item } from "./PlaceInfo";
 
 // ③ トイレに入った後：状況を選ぶと、次の手順を出す。
@@ -20,7 +21,7 @@ type Shown = {
   reason?: string; // 簡易版になった理由
 };
 
-export function AfterPanel({ pos, places }: { pos: LatLon; places: Place[] }) {
+export function AfterPanel({ pos, places, profile }: { pos: LatLon; places: Place[]; profile: Profile }) {
   const [picked, setPicked] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -32,12 +33,12 @@ export function AfterPanel({ pos, places }: { pos: LatLon; places: Place[] }) {
     setBusy(true);
     setShown(null);
     const local = new Map(places.map((p) => [p.id, p]));
-    const fallback = (reason: string): Shown => ({ answer: buildAfterFallback(places, pos, picked), byId: local, by: "fallback", reason });
+    const fallback = (reason: string): Shown => ({ answer: buildAfterFallback(places, pos, picked, profile), byId: local, by: "fallback", reason });
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "after", situations: picked, message: note, position: pos }),
+        body: JSON.stringify({ mode: "after", situations: picked, message: note, position: pos, profile: describeProfile(profile, "after") }),
         signal: AbortSignal.timeout(45000),
       });
       const json = await res.json().catch(() => ({}));

@@ -17,6 +17,7 @@ type Body = {
   message?: string;
   situations?: string[];
   conditions?: string[];
+  profile?: string; // 自分の情報から、その場面に要る条件だけ（端末で作った文）
   position?: { lat: number; lon: number } | null;
 };
 
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
   const userText =
     mode === "after" ? describeSituations(situations, note) : mode === "plan" ? describePlan(conditions, note) : note;
   if (!userText) return NextResponse.json({ error: "質問が空です" }, { status: 400 });
+  const profile = typeof body.profile === "string" ? body.profile.slice(0, 300).trim() : "";
 
   const p = body.position;
   const position = p && Number.isFinite(p.lat) && Number.isFinite(p.lon) ? { lat: p.lat, lon: p.lon } : undefined;
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest) {
   try {
     const places = await loadPlaces();
     const result = await runAgent({
-      userText,
+      userText: profile ? `${userText}\n${profile}` : userText,
       modeInstruction: mode ? MODE_INSTRUCTIONS[mode] : undefined,
       shape: mode === "plan" ? "plan" : "steps",
       context: { position, places },
