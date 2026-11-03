@@ -11,7 +11,7 @@ export default function Home() {
       <Link href="/now" className="button primary big">
         今すぐトイレ
       </Link>
-      <p className="muted">近いトイレ・着替えられる場所・替えを買える店と、駅員や店員に見せる「お願いカード」。</p>
+      <p className="muted">近いトイレ・着替えられる場所・替えを買える店。</p>
 
       <Link href="/plan" className="button big" style={{ marginTop: 12 }}>
         出かける前の計画

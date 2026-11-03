@@ -25,7 +25,7 @@ export function buildAfterFallback(places: Place[], from: LatLon, situations: re
       steps.push({ text: `${what}を買う`, placeIds: stores.map((s) => s.place.id) });
       if (stores.some((s) => !Object.keys(s.place.store?.stock ?? {}).length)) notes.push("品ぞろえを確かめていない店があります。");
     } else {
-      steps.push({ text: "近くに店のデータがありません。駅員や店員に聞く（お願いカードを見せられます）", placeIds: [] });
+      steps.push({ text: "近くに店のデータがありません。駅員や店員に聞く", placeIds: [] });
     }
   }
 
@@ -43,7 +43,7 @@ export function buildAfterFallback(places: Place[], from: LatLon, situations: re
     const t = near?.place.toilet;
     const rest = [t?.bench && `座れる場所：${t.bench}`, t?.staffDesk && `駅員：${t.staffDesk}`].filter(Boolean).join("・");
     steps.push({
-      text: `${rest ? `${rest}。` : "近くの座れる場所や駅員の窓口は未確認です。"}お願いカードで駅員や店員に頼めます`,
+      text: `${rest ? `${rest}。` : "近くの座れる場所や駅員の窓口は未確認です。"}駅員や店員に助けを頼めます`,
       placeIds: rest && near ? [near.place.id] : [],
     });
   }

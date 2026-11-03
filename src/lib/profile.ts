@@ -10,15 +10,15 @@ export type Profile = {
   needOstomate?: boolean; // オストメイト対応が要る
   carriesSpare?: boolean; // ふだん替えを持ち歩いている
   homeStations?: string[]; // よく使う駅（駅を選ぶボタンで先に出す）
-  cardMessage?: string; // お願いカードの文面（空なら決まった文）
-  contactName?: string; // 緊急連絡先（お願いカードにだけ出す。AI には送らない）
-  contactPhone?: string;
 };
 
 const KEY = "profile.v1";
 
 export function loadProfile(): Profile {
-  return loadJson<Profile>(KEY, {});
+  // お願いカードをやめたので、前に保存した文面と連絡先は読み込まない（次の保存で消える）
+  const p = loadJson<Profile & Record<string, unknown>>(KEY, {});
+  for (const k of ["cardMessage", "contactName", "contactPhone"]) delete p[k];
+  return p;
 }
 
 export function saveProfile(p: Profile): boolean {
@@ -31,7 +31,7 @@ export function clearProfile() {
 
 export type ProfileUse = "after" | "plan" | "emergency";
 
-// AI に送る条件。場面に要るものだけ。連絡先・お願いカードの文面・よく使う駅は送らない
+// AI に送る条件。場面に要るものだけ。よく使う駅は送らない
 export function describeProfile(p: Profile, use: ProfileUse): string {
   const lines: string[] = [];
   if (p.needAccessible) lines.push("多機能トイレ（個室で着替えられる）が要る");

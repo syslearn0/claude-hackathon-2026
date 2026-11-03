@@ -181,10 +181,3 @@ th {
   border: 1px solid var(--line);
   color: var(--muted);
 }
-
-/* お願いカードは明るい背景に固定しているので、ボタンも明るい色にそろえる */
-.request-card-buttons button {
-  background: #ffffff;
-  color: #1d1d1b;
-  border-color: #b8b49a;
-}

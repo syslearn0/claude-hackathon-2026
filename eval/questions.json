@@ -20,7 +20,7 @@
       "mode": "after",
       "station": "東京",
       "situations": ["not_yet"],
-      "checks": { "mentions": "お願いカード|駅員" }
+      "checks": { "mentions": "駅員" }
     },
     {
       "id": "after-sanjo-go-home-cold",

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { clearProfile, loadProfile, saveProfile, type Profile, type ToiletSide } from "@/lib/profile";
-import { DEFAULT_CARD } from "../now/RequestCard";
 
 // 自分の情報。スマホの中だけに保存する。病名は聞かない。
 
@@ -51,7 +50,7 @@ export default function MePage() {
       <h1>自分の情報</h1>
       <p className="card" style={{ marginTop: 0 }}>
         ここで入れた情報は<strong>このスマホの中だけ</strong>に保存し、サーバーには保存しません。
-        AI に聞くときは、その場面に要る条件（多機能トイレが要る、など）だけを送ります。連絡先は AI に送りません。
+        AI に聞くときは、その場面に要る条件（多機能トイレが要る、など）だけを送ります。よく使う駅は送りません。
         病名を書く欄はありません。
       </p>
 
@@ -76,20 +75,6 @@ export default function MePage() {
         <input type="text" value={stationsText} onChange={(e) => setStationsText(e.target.value)} placeholder="例：丹波橋、出町柳" />
         <div className="muted">「今すぐトイレ」で駅を選ぶとき、先に出します（データのある駅だけ）。</div>
       </label>
-
-      <label className="field">
-        <span>お願いカードの文面（空なら決まった文）</span>
-        <textarea value={p.cardMessage ?? ""} onChange={(e) => set({ cardMessage: e.target.value || undefined })} placeholder={DEFAULT_CARD.ja.body} maxLength={200} />
-      </label>
-
-      <fieldset>
-        <legend>緊急連絡先（任意）</legend>
-        <div className="row">
-          <input type="text" value={p.contactName ?? ""} onChange={(e) => set({ contactName: e.target.value || undefined })} placeholder="呼び名（例：母）" style={{ flex: 1, minWidth: 120 }} />
-          <input type="text" inputMode="tel" value={p.contactPhone ?? ""} onChange={(e) => set({ contactPhone: e.target.value || undefined })} placeholder="電話番号" style={{ flex: 1, minWidth: 140 }} />
-        </div>
-        <div className="muted">お願いカードを開いたときだけ「この人に連絡してください」と出します。</div>
-      </fieldset>
 
       <button className="primary big" onClick={save}>
         保存

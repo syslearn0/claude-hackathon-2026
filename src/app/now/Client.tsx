@@ -16,7 +16,6 @@ import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
 import { MapView, type MapPoint } from "./MapView";
 import { Badges, Details, Item, MapLink, NumberBadge } from "./PlaceInfo";
-import { RequestCard } from "./RequestCard";
 
 type Nearby = {
   toilets: NearbyItem[];
@@ -41,7 +40,6 @@ export default function NowPage() {
     "geolocation" in navigator ? "位置を確かめています…" : "位置が使えません。下から今いる駅を選んでください。",
   );
   const [all, setAll] = useState<PlacesResponse | null>(null);
-  const [card, setCard] = useState(false);
   const [after, setAfter] = useState(false);
   // 駅の中で「いまどこ？」に選んだホーム・改札（キーは label）
   const [refKey, setRefKey] = useState<string | null>(null);
@@ -188,18 +186,13 @@ export default function NowPage() {
 
   return (
     <main>
-      {card && <RequestCard onClose={() => setCard(false)} />}
-
       <div className="row" style={{ justifyContent: "space-between" }}>
         <Link href="/" className="muted">
           ← もどる
         </Link>
-        <div className="row">
-          <Link href="/me" className="muted">
-            自分の情報
-          </Link>
-          <button onClick={() => setCard(true)}>お願いカード</button>
-        </div>
+        <Link href="/me" className="muted">
+          自分の情報
+        </Link>
       </div>
 
       {plan && (
@@ -300,7 +293,7 @@ export default function NowPage() {
       {baseAt && points.length > 0 && <MapView center={baseAt} points={points} />}
 
       {data && data.toilets.length === 0 && (
-        <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください（お願いカードを見せられます）。</p>
+        <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください。</p>
       )}
 
       {data && data.toilets.length > 1 && (

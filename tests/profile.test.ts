@@ -4,20 +4,18 @@ import { findNearby } from "../src/lib/nearby";
 import type { Place } from "../src/lib/places";
 import { describeProfile } from "../src/lib/profile";
 
-test("AI に送る条件：場面に要るものだけで、連絡先などは入れない", () => {
+test("AI に送る条件：場面に要るものだけで、よく使う駅などは入れない", () => {
   const p = {
     toiletSide: "male" as const,
     needAccessible: true,
     carriesSpare: false,
     homeStations: ["丹波橋"],
-    contactName: "母",
-    contactPhone: "090-0000-0000",
   };
   const after = describeProfile(p, "after");
   assert.match(after, /多機能トイレ/);
   assert.match(after, /替えは持ち歩いていない/);
   assert.match(after, /男性側/);
-  assert.doesNotMatch(after, /母|090|丹波橋/);
+  assert.doesNotMatch(after, /丹波橋/);
   // 計画にはトイレの側は要らない、緊急時には替えの有無は要らない
   assert.doesNotMatch(describeProfile(p, "plan"), /男性側/);
   assert.doesNotMatch(describeProfile(p, "emergency"), /持ち歩/);
