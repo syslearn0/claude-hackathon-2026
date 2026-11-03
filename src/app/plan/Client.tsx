@@ -159,7 +159,7 @@ export function PlanView({ plan }: { plan: SavedPlan }) {
       {route.length >= 2 && (
         <div className="card">
           <h2 style={{ marginTop: 0 }}>経路と車内の設備</h2>
-          <div>{route.map((r) => r.station).join(" → ")}</div>
+          <div>{route.map((r) => `${r.station}${r.arr ? ` ${r.arr}着` : ""}${r.dep ? ` ${r.dep}発` : ""}`).join(" → ")}</div>
           {route.slice(0, -1).map((r, i) => {
             const cars = r.line ? describeTrainCars(r.line) : null;
             return (

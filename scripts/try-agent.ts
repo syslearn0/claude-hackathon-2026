@@ -56,6 +56,7 @@ async function main() {
     console.log(`${i + 1}. ${step.text}${names.length ? `　${names.join(" ")}` : ""}`);
   });
   if (r.answer.packing?.length) console.log(`持ち物：${r.answer.packing.join("、")}`);
+  if (r.answer.route?.length) console.log(`経路：${r.answer.route.map((s) => `${s.station}${s.arr ? ` ${s.arr}着` : ""}${s.dep ? ` ${s.dep}発` : ""}${s.line ? `（${s.line}）` : ""}`).join(" → ")}`);
   r.answer.notes.forEach((n) => console.log(`※ ${n}`));
 
   console.log("\n---");

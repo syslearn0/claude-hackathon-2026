@@ -12,6 +12,8 @@ test("似た別の路線とは取り違えない", () => {
   assert.equal(findTrainCars("中央・総武線各駅停車"), undefined);
   assert.equal(findTrainCars("東北新幹線"), undefined);
   assert.equal(findTrainCars("京阪京津線"), undefined);
+  assert.equal(findTrainCars("東海道新幹線 のぞみ210号")?.line, "東海道・山陽新幹線");
+  assert.equal(findTrainCars("京阪本線（特急）")?.line, "京阪本線");
   assert.equal(findTrainCars(""), undefined);
 });
 

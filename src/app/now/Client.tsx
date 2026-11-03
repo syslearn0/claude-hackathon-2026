@@ -70,10 +70,6 @@ export default function NowPage() {
   // 地下などで位置が途切れたことを出すため、5秒ごとに今の時刻を持つ
   const [clock, setClock] = useState(() => Date.now());
   const [lastFixAt, setLastFixAt] = useState<number | null>(null);
-  useEffect(() => {
-    const id = setInterval(() => setClock(Date.now()), 5000);
-    return () => clearInterval(id);
-  }, []);
 
   const choose = (at: LatLon, how: string) => {
     chosen.current = true;
@@ -150,11 +146,23 @@ export default function NowPage() {
       (plan?.answer.route ?? [])
         .map((r) => {
           const s = all?.stations.find((x) => x.name === r.station);
-          return s && { name: s.name, lat: s.lat, lon: s.lon, line: r.line };
+          return s && { name: s.name, lat: s.lat, lon: s.lon, line: r.line, arr: r.arr, dep: r.dep };
         })
         .filter((x): x is NonNullable<typeof x> => !!x),
     [plan, all],
   );
+
+  // 5秒ごとにも推定し直す。地下などで位置が届かないあいだも、予定の時刻から「いまどこ」を出し続けるため
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      setClock(now);
+      if (all) setSituation(estimateSituation(fixes.current, all.stations ?? [], now, route));
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
+  }, [all, route]);
 
   // 位置を追い続けて、止まっている／歩いている／乗り物の中かを推定する
   useEffect(() => {
@@ -268,9 +276,19 @@ export default function NowPage() {
 
       {train ? (
         <section className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
+          {train.where && (
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.3 }}>
+              いま：{train.where}
+            </div>
+          )}
+          {train.plan && <div>{train.plan}</div>}
           <strong>
-            {train.betweenStations ? "駅と駅の間で止まっていると推定しました" : "電車で移動中と推定しました"}：次の駅（推定）
-            {train.nextStation!.name}駅のトイレを出しています
+            {train.basis === "schedule"
+              ? "位置が取れないので、予定の時刻から推定しました"
+              : train.betweenStations
+                ? "駅と駅の間で止まっていると推定しました"
+                : "電車で移動中と推定しました"}
+            ：次の駅（推定）{train.nextStation!.name}駅のトイレを出しています
           </strong>
           <div className="muted">{train.reason}</div>
           {lastFixAt !== null && clock - lastFixAt > 30_000 && (
@@ -286,7 +304,13 @@ export default function NowPage() {
       ) : (
         pos && <p className="muted">基準：{baseAt && pos.at !== baseAt ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how}</p>
       )}
-      {status && <p className="card">{status}</p>}
+      {/* 予定の時刻から出しているときは、上の枠で位置が取れないことを伝えているので重ねない */}
+      {status && train?.basis !== "schedule" && <p className="card">{status}</p>}
+      {!train && situation?.basis === "schedule" && situation.where && (
+        <p className="card">
+          予定では、いま<strong>{situation.where}</strong>です。{situation.plan}
+        </p>
+      )}
 
       {inside && !indoorOpen && !noticeClosed && (
         <section className="card" style={{ borderColor: "var(--accent)" }}>

@@ -4,7 +4,8 @@
 
 export type AnswerStep = { text: string; placeIds: string[]; section?: string };
 // 経路の駅（利用者が書いた・貼った経路から。line はその駅から次の駅まで乗る路線）
-export type RouteStop = { station: string; line?: string };
+// arr・dep はその駅に着く・出る時刻（"08:02" の形。書かれていなければ無い）
+export type RouteStop = { station: string; line?: string; arr?: string; dep?: string };
 export type Answer = { summary: string; steps: AnswerStep[]; notes: string[]; packing?: string[]; route?: RouteStop[] };
 
 // plan：①出かける前の計画。手順を駅ごとの区切り（section）に分け、持ち物の例も付ける
@@ -39,11 +40,12 @@ export function answerSchema(seenIds: readonly string[], shape: Shape = "steps")
       ...(plan && {
         route: {
           type: "array",
-          description: "書かれた・貼られた経路の駅を、出発→乗り換え→到着の順に。駅名は「駅」を付けない。line はその駅から次の駅まで乗る路線（書かれていなければ空文字）。経路が書かれていなければ空の配列",
+          description:
+            "書かれた・貼られた経路の駅を、出発→乗り換え→到着の順に。駅名は「駅」を付けない。line はその駅から次の駅まで乗る路線。arr はその駅に着く時刻、dep はその駅を出る時刻（どちらも \"08:02\" の形）。書かれていないものは空文字。経路が書かれていなければ空の配列",
           items: {
             type: "object",
-            properties: { station: { type: "string" }, line: { type: "string" } },
-            required: ["station", "line"],
+            properties: { station: { type: "string" }, line: { type: "string" }, arr: { type: "string" }, dep: { type: "string" } },
+            required: ["station", "line", "arr", "dep"],
             additionalProperties: false,
           },
         },
@@ -53,6 +55,12 @@ export function answerSchema(seenIds: readonly string[], shape: Shape = "steps")
     additionalProperties: false,
   };
 }
+
+// "8:02" "08:02" を "08:02" に。時刻でなければ undefined
+const hhmm = (v: unknown) => {
+  const m = typeof v === "string" ? v.trim().match(/^(\d{1,2})[:：](\d{2})$/) : null;
+  return m && Number(m[1]) < 30 && Number(m[2]) < 60 ? `${m[1].padStart(2, "0")}:${m[2]}` : undefined;
+};
 
 // API の返事（JSON 文字列）を Answer にする。形が合わなければ null
 export function parseAnswer(json: string): Answer | null {
@@ -73,9 +81,11 @@ export function parseAnswer(json: string): Answer | null {
       ...(Array.isArray(v.route) && {
         route: v.route
           .filter((r: { station?: unknown }) => typeof r?.station === "string" && r.station)
-          .map((r: { station: string; line?: unknown }) => ({
+          .map((r: { station: string; line?: unknown; arr?: unknown; dep?: unknown }) => ({
             station: r.station.replace(/駅$/, ""),
             ...(typeof r.line === "string" && r.line && { line: r.line }),
+            ...(hhmm(r.arr) && { arr: hhmm(r.arr) }),
+            ...(hhmm(r.dep) && { dep: hhmm(r.dep) }),
           })),
       }),
     };

@@ -17,12 +17,14 @@ export function savePlan(plan: SavedPlan): boolean {
   return saveJson(KEY, plan);
 }
 
-// 今日作った計画だけを返す（前の日の計画は使わない）
+// 今日か前の日に作った計画を返す（前の晩に立てた計画を、当日に使うため）。それより古いものは使わない
 export function loadTodayPlan(now = new Date()): SavedPlan | null {
   const p = loadJson<SavedPlan | null>(KEY, null);
   if (!p) return null;
   const made = new Date(p.createdAt);
-  return made.toDateString() === now.toDateString() ? p : null;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  return made.toDateString() === now.toDateString() || made.toDateString() === yesterday.toDateString() ? p : null;
 }
 
 export function clearPlan() {

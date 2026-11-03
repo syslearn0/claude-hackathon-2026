@@ -25,9 +25,10 @@ const ENTRIES = (table as { entries: TrainCars[] }).entries;
 const norm = (s: string) => s.replace(/\s|ＪＲ|JR/g, "").replace(/線$/, "");
 
 export function findTrainCars(line: string): TrainCars | undefined {
-  const key = norm(line);
-  if (!key) return undefined;
-  return ENTRIES.find((e) => [e.line, ...e.aliases].some((name) => norm(name) === key));
+  // 「東海道新幹線 のぞみ210号」「京阪本線（特急）」のように列車名が付いていれば、前の路線名でも引く
+  const keys = [norm(line), norm(line.split(/[\s　（(]/)[0])].filter(Boolean);
+  if (!keys.length) return undefined;
+  return ENTRIES.find((e) => [e.line, ...e.aliases].some((name) => keys.includes(norm(name))));
 }
 
 const list = (xs: number[]) => xs.map((x) => `${x}号車`).join("・");

@@ -91,7 +91,7 @@ export function formatTimeline(s: Summary, everyMin: number): string[] {
     const seg = sit.segment ? ` ${sit.segment.from}→${sit.segment.to}` : "";
     const mark = r.flags.length ? `  !! ${r.flags.join(" / ")}` : "";
     out.push(
-      `${hms(r.t)} +${mmss(r.elapsed)} ${r.changed ? "*" : beat ? "." : " "} ${sit.state.padEnd(7)} ${String(sit.speedKmh ?? "-").padStart(3)}km/h acc${Math.round(r.fix.acc)}m 次:${next}${sit.betweenStations ? " [駅間]" : ""}${seg} | ${sit.reason}${mark}`,
+      `${hms(r.t)} +${mmss(r.elapsed)} ${r.changed ? "*" : beat ? "." : " "} ${sit.state.padEnd(7)} ${String(sit.speedKmh ?? "-").padStart(3)}km/h acc${Math.round(r.fix.acc)}m 次:${next}${sit.where ? ` (${sit.where})` : ""}${sit.betweenStations ? " [駅間]" : ""}${seg} | ${sit.reason}${mark}`,
     );
   }
   return out;

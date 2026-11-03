@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { estimateSituation, type Fix } from "../src/lib/situation";
+import { estimateSituation, scheduleAt, type Fix } from "../src/lib/situation";
 
 // 京阪の出町柳あたりを北へ進む想定の駅（実際の位置とは関係ない、試験用の値）
 const stations = [
@@ -107,4 +107,52 @@ test("すぐ近くに並ぶ別の路線の駅より、経路の駅を次の駅�
     { name: "北の駅", lat: 35.01, lon: 135.77 },
   ];
   assert.equal(estimateSituation(trace(15), ss, now, r).nextStation?.name, "経路の駅");
+});
+
+// 予定の時刻：丹波橋 8:10 発 → 出町柳 8:30 着（途中駅は時刻なし）
+const keihan = [
+  { name: "丹波橋", lat: 34.937, lon: 135.7737, line: "京阪本線", dep: "08:10" },
+  { name: "出町柳", lat: 35.0303, lon: 135.7727, arr: "08:30" },
+];
+const keihanStations = [
+  { name: "丹波橋", lat: 34.937, lon: 135.7737 },
+  { name: "七条", lat: 34.9897, lon: 135.7727 },
+  { name: "祇園四条", lat: 35.0037, lon: 135.7722 },
+  { name: "出町柳", lat: 35.0303, lon: 135.7727 },
+];
+const at = (h: number, m: number) => new Date(2026, 10, 4, h, m).getTime();
+
+test("予定の時刻から、乗っているはずの区間を出す（時刻の外では出さない）", () => {
+  assert.equal(scheduleAt(keihan, at(8, 5)), undefined);
+  const r = scheduleAt(keihan, at(8, 20));
+  assert.equal(r?.kind, "riding");
+  assert.equal(r?.kind === "riding" && r.to.name, "出町柳");
+  assert.equal(scheduleAt(keihan, at(8, 31)), undefined);
+  const transfer = [
+    { name: "京都", lat: 0, lon: 0, dep: "08:00" },
+    { name: "東京", lat: 1, lon: 1, arr: "10:15", dep: "10:30" },
+    { name: "新宿", lat: 1.01, lon: 1, arr: "10:45" },
+  ];
+  const w = scheduleAt(transfer, at(10, 20));
+  assert.equal(w?.kind === "at" && w.station.name, "東京");
+});
+
+test("位置が取れなくても、予定の時刻から「いま何駅と何駅の間か」を出す", () => {
+  // 8:20 は 20分のうち半分：丹波橋と出町柳の真ん中は、七条の少し南
+  const s = estimateSituation([], keihanStations, at(8, 20), keihan);
+  assert.equal(s.state, "vehicle");
+  assert.equal(s.basis, "schedule");
+  assert.equal(s.where, "丹波橋〜七条の間");
+  assert.equal(s.nextStation?.name, "七条");
+  assert.match(s.plan ?? "", /出町柳着 08:30 の予定（あと約10分）/);
+});
+
+test("GPS で乗り物と分かれば、GPS の位置から前後の駅を出す（予定の着く時刻も添える）", () => {
+  const t0 = at(8, 15);
+  // 七条の少し北から北へ時速54km
+  const fixes = Array.from({ length: 31 }, (_, i) => ({ t: t0 - (30 - i) * 1000, lat: 34.992 + (15 * i) / 111_000, lon: 135.7726, acc: 15, speed: null }));
+  const s = estimateSituation(fixes, keihanStations, t0, keihan);
+  assert.equal(s.basis, "gps");
+  assert.equal(s.where, "七条〜祇園四条の間");
+  assert.match(s.plan ?? "", /出町柳着 08:30/);
 });
