@@ -113,6 +113,20 @@ export function Walk({
     };
     const floors = new Map<number, THREE.BufferGeometry[]>();
     const walls = new Map<number, THREE.BufferGeometry[]>();
+    // 道順が中を通る（またはふちから 0.6m 以内を通る）部屋・店は、箱を立てない（箱の中に目が入ると、壁しか見えずちかちかする）
+    const routeInside = (v: THREE.Vector2[], fl: number) =>
+      way.some((p) => {
+        if (Math.abs(p.y - fl * FLOOR_M) > 0.1) return false;
+        let inside = false;
+        for (let i = 0, j = v.length - 1; i < v.length; j = i++) {
+          const [a, b] = [v[i], v[j]];
+          if (a.y > -p.z !== b.y > -p.z && p.x < ((b.x - a.x) * (-p.z - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+          const l = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+          const t = l ? Math.max(0, Math.min(1, ((p.x - a.x) * (b.x - a.x) + (-p.z - a.y) * (b.y - a.y)) / l)) : 0;
+          if (Math.hypot(p.x - (a.x + t * (b.x - a.x)), -p.z - (a.y + t * (b.y - a.y))) < 0.6) return true;
+        }
+        return inside;
+      });
     for (const f of indoor.features) {
       if (!f.closed || f.coords.length < 3 || !f.floors.length) continue;
       const walk = ["corridor", "area", "platform"].includes(f.kind);
@@ -124,7 +138,7 @@ export function Walk({
           g.rotateX(-Math.PI / 2);
           g.translate(0, fl * FLOOR_M, 0);
           floors.set(fl, [...(floors.get(fl) ?? []), g]);
-        } else {
+        } else if (!routeInside(shape.getPoints(), fl)) {
           const g = new THREE.ExtrudeGeometry(shape, { depth: 2.8, bevelEnabled: false });
           g.rotateX(-Math.PI / 2);
           g.translate(0, fl * FLOOR_M, 0);
@@ -140,7 +154,17 @@ export function Walk({
       const m = mergeGeometries(gs);
       if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xd8d4c8 })));
     }
-    // 立てた面（ふちに沿った帯）。道順がまたぐところは開けておく（出入口）
+    // 立てた面（ふちに沿った帯）。道順がまたぐところ、すぐそば（0.6m 以内）、上り下りの乗り降りの所（2.5m 以内）は開けておく
+    // （目の前で壁を突き抜けると、ちかちかする）
+    const lifts0 = way.filter((p, i) => (i > 0 && Math.abs(way[i - 1].y - p.y) > 0.1) || (i + 1 < way.length && Math.abs(way[i + 1].y - p.y) > 0.1));
+    const segDist = (px: number, pz: number, ax: number, az: number, bx: number, bz: number) => {
+      const l = (bx - ax) ** 2 + (bz - az) ** 2;
+      const t = l ? Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (pz - az) * (bz - az)) / l)) : 0;
+      return Math.hypot(px - (ax + t * (bx - ax)), pz - (az + t * (bz - az)));
+    };
+    const tooClose = (fl: number, ax: number, az: number, bx: number, bz: number) =>
+      way.some((p) => Math.abs(p.y - fl * FLOOR_M) < 0.1 && segDist(p.x, p.z, ax, az, bx, bz) < 0.6) ||
+      lifts0.some((p) => Math.abs(p.y - fl * FLOOR_M) < 0.1 && segDist(p.x, p.z, ax, az, bx, bz) < 2.5);
     const ribbons = new Map<string, { fl: number; color: number; opacity: number; pos: number[] }>();
     const crossesRoute = (fl: number, ax: number, az: number, bx: number, bz: number) => {
       for (let i = 1; i < way.length; i++) {
@@ -163,13 +187,15 @@ export function Walk({
       for (let i = 1; i < v.length + (closed ? 1 : 0); i++) {
         const a = v[i - 1];
         const b = v[i % v.length];
-        if (openForRoute && crossesRoute(fl, a.x, -a.y, b.x, -b.y)) continue;
+        if (openForRoute && (crossesRoute(fl, a.x, -a.y, b.x, -b.y) || tooClose(fl, a.x, -a.y, b.x, -b.y))) continue;
         r.pos.push(a.x, y, -a.y, b.x, y, -b.y, a.x, y + h, -a.y, b.x, y, -b.y, b.x, y + h, -b.y, a.x, y + h, -a.y);
       }
     };
     // 上り下りの手段の床（エスカレーター・階段）と、エレベーターの箱
     const pads = new Map<string, { fl: number; color: number; gs: THREE.BufferGeometry[] }>();
     const PAD = { escalator: 0x8a63b8, steps: 0xa8875c, elevator: 0x1e7a3c } as Record<string, number>;
+    // エレベーターの箱は1つずつ。近づくと薄くして、入る前に消す（箱の壁をくぐると、目の前で壁が切れてちかちかする）
+    const lifts: { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial>; box: THREE.Box3 }[] = [];
     for (const f of indoor.features) {
       if (f.coords.length < 2) continue;
       for (const fl of f.floors) {
@@ -181,6 +207,12 @@ export function Walk({
           const g = f.kind === "elevator" ? new THREE.ExtrudeGeometry(shape, { depth: 2.6, bevelEnabled: false }) : new THREE.ShapeGeometry(shape);
           g.rotateX(-Math.PI / 2);
           g.translate(0, fl * FLOOR_M + 0.02, 0);
+          if (f.kind === "elevator") {
+            const mesh = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: PAD.elevator, side: THREE.DoubleSide, transparent: true, opacity: 0.55, depthWrite: false }));
+            floorGroup(fl).add(mesh);
+            lifts.push({ mesh, box: new THREE.Box3().setFromObject(mesh) });
+            continue;
+          }
           const k = `${f.kind}${fl}`;
           const pad = pads.get(k) ?? { fl, color: PAD[f.kind], gs: [] };
           pad.gs.push(g);
@@ -320,6 +352,11 @@ export function Walk({
       const soon = lst.current.find((m) => m.kind === "floor" && m.at >= shown - 0.01 && m.at - shown <= 6);
       const show = moving ? [floorAt(moving.at), floorAt(moving.end ?? moving.at)] : [floorAt(shown), ...(soon ? [floorAt(soon.end ?? soon.at)] : [])];
       for (const [f, g] of byFloor) g.visible = show.some((x) => Math.abs(f - x) < 0.01);
+      for (const { mesh, box } of lifts) {
+        const o = 0.55 * Math.max(0, Math.min(1, (box.distanceToPoint(camera.position) - 1) / 4));
+        mesh.material.opacity = o;
+        mesh.visible = o > 0.01;
+      }
       // エレベーターに乗っている間は、画面を暗くして行き先を出す（中の景色は箱の壁だけで、ちかちかするので）
       const lift = moving && moving.via === "elevator";
       if (veil.current) {
