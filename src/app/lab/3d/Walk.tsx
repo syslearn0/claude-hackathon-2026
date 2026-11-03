@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
@@ -12,6 +12,7 @@ import type { GuideStep, Network, Route } from "@/lib/route";
 // 壁は、部屋・店の形を 2.8m 立ち上げたもの。いまいる階（と上り下りの途中の階）だけを見せる。
 
 const EYE = 1.6;
+const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 }; // 押しやすい大きさ（上から見る画面と同じ）
 const SPEED = 1.3; // m/秒（少し速めに歩く）
 
 // 矢印の帯の模様（進む向きが上）
@@ -247,31 +248,33 @@ export function Walk({
         <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>いま：{floorName(Math.round(here.floor * 2) / 2)}</div>
       </div>
       {/* 下：行き先と残り */}
-      <div style={{ position: "absolute", left: 8, right: 8, bottom: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "8px 12px" }}>
-        <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{goal}</div>
-        <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-          <strong style={{ fontSize: "1.3rem" }}>{left} メートル</strong>
-          <div className="row">
-            <button
-              onClick={() => {
-                if (arrived) dist.current = 0;
-                playing.current = !playing.current;
-              }}
-            >
-              {hud.playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
-            </button>
-            <button
-              onClick={() => {
-                playing.current = false;
-                // 曲がり角の少し手前で止まる。いまの止まり位置より先の、次の止まり位置へ（最後は到着）
-                const stops = list.map((m) => (m.kind === "arrive" ? total : Math.max(0, m.at - 1.5)));
-                dist.current = stops.find((s) => s > dist.current + 0.5) ?? total;
-              }}
-              disabled={arrived}
-            >
-              次の曲がり角へ
-            </button>
-          </div>
+      <div style={{ position: "absolute", left: 8, right: 8, bottom: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "8px 10px" }}>
+        <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {goal}・のこり {left} メートル
+        </div>
+        <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
+          <button
+            style={BIG}
+            onClick={() => {
+              if (arrived) dist.current = 0;
+              playing.current = !playing.current;
+            }}
+          >
+            {hud.playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+          </button>
+          <button
+            className="primary"
+            style={{ ...BIG, flex: 2 }}
+            onClick={() => {
+              playing.current = false;
+              // 曲がり角の少し手前で止まる。いまの止まり位置より先の、次の止まり位置へ（最後は到着）
+              const stops = list.map((m) => (m.kind === "arrive" ? total : Math.max(0, m.at - 1.5)));
+              dist.current = stops.find((s) => s > dist.current + 0.5) ?? total;
+            }}
+            disabled={arrived}
+          >
+            次の曲がり角へ →
+          </button>
         </div>
       </div>
     </div>

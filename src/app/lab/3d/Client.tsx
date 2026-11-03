@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -18,6 +18,9 @@ import { Walk } from "./Walk";
 // 3D は、いまの手順の始まりを中心に半径 CROP_M だけを、出発と行き先の間の階だけ描く（駅の全体は情報が多すぎる）。
 
 const CROP_M = 70;
+// 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
+const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
+const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
 const FLOOR_H = 10; // 1階ぶんの高さ（m。見やすさのため実際の約2倍）
 const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, route: 0xd93025, now: 0xf2b705, toilet: 0x1f5fbf, you: 0xd93025 };
 
@@ -95,10 +98,7 @@ export default function Station3D() {
   const center = INDOOR_STATIONS[station].center;
   const line = carEnds(station) ? "都営大江戸線" : undefined;
   const kx = 111_320 * Math.cos((center.lat * Math.PI) / 180);
-  const toXYZ = useMemo(
-    () => (lat: number, lon: number, floor: number) => new THREE.Vector3((lon - center.lon) * kx, floor * FLOOR_H, -(lat - center.lat) * 110_540),
-    [center, kx],
-  );
+  const toXYZ = useMemo(() => (lat: number, lon: number, floor: number) => new THREE.Vector3((lon - center.lon) * kx, floor * FLOOR_H, -(lat - center.lat) * 110_540), [center, kx]);
 
   // 階の役割：いちばん下はホーム、改札のある階は「改札の階」、1F は地上
   const minFloor = net ? Math.min(...net.nodes.map((n) => n[2])) : 0;
@@ -168,7 +168,13 @@ export default function Station3D() {
       .slice(0, 15);
   }, [net, indoor, places, starts, startIdx, center, mode]);
 
-  const goalAt = goalIdx >= 0 ? goalIdx : Math.max(0, goals.findIndex((g) => g.place.id === goalFromUrl));
+  const goalAt =
+    goalIdx >= 0
+      ? goalIdx
+      : Math.max(
+          0,
+          goals.findIndex((g) => g.place.id === goalFromUrl),
+        );
   const goal = goals[goalAt];
   const route: Route | undefined = useMemo(() => {
     if (!net || !starts[startIdx] || !goal) return undefined;
@@ -245,10 +251,12 @@ export default function Station3D() {
       const walk = ["corridor", "area", "platform"].includes(f.kind);
       if (!walk && !["room", "shop"].includes(f.kind)) continue;
       if (!f.coords.some(([lat, lon]) => near(lat, lon, crop * 1.2))) continue;
-      const shape = new THREE.Shape(f.coords.map(([lat, lon]) => {
-        const v = toXYZ(lat, lon, 0);
-        return new THREE.Vector2(v.x, -v.z);
-      }));
+      const shape = new THREE.Shape(
+        f.coords.map(([lat, lon]) => {
+          const v = toXYZ(lat, lon, 0);
+          return new THREE.Vector2(v.x, -v.z);
+        }),
+      );
       for (const x of f.floors.filter(inRange)) {
         const g = new THREE.ShapeGeometry(shape);
         g.rotateX(-Math.PI / 2);
@@ -261,7 +269,10 @@ export default function Station3D() {
       const merged = mergeGeometries(gs);
       if (merged)
         s.layer.add(
-          new THREE.Mesh(merged, new THREE.MeshBasicMaterial({ color: k === "walk" ? 0xc9d8ea : 0xe4e1d6, transparent: true, opacity: k === "walk" ? 0.6 : 0.5, side: THREE.DoubleSide, depthWrite: false })),
+          new THREE.Mesh(
+            merged,
+            new THREE.MeshBasicMaterial({ color: k === "walk" ? 0xc9d8ea : 0xe4e1d6, transparent: true, opacity: k === "walk" ? 0.6 : 0.5, side: THREE.DoubleSide, depthWrite: false }),
+          ),
         );
     }
 
@@ -363,32 +374,8 @@ export default function Station3D() {
             トイレまで 約{Math.max(1, Math.round(route.seconds / 60))}分・{route.meters}m
           </div>
           <div>{goal.short}</div>
-          <div className="muted" style={{ marginTop: 4 }}>出発：{startLabel}</div>
-          {/* ② いまの一手 */}
-          {arrived ? (
-            <div style={{ marginTop: 10, padding: "8px 10px", background: "rgba(31,95,191,.15)", borderRadius: 8, fontSize: "1.3rem", fontWeight: 800 }}>
-              ◎ トイレに着きました
-            </div>
-          ) : current && (
-            <div style={{ marginTop: 10, padding: "8px 10px", background: "rgba(242,183,5,.18)", borderRadius: 8 }}>
-              <div className="muted" style={{ fontSize: "0.8rem" }}>
-                いまの手順（{stepIdx + 1} / {guide.length}）
-              </div>
-              <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepText(current, guide[stepIdx + 1])}</div>
-              {guide[stepIdx + 1] && <div className="muted">そのあと：{stepText(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
-            </div>
-          )}
-          <div className="row" style={{ marginTop: 8 }}>
-            <button onClick={() => setStep(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
-              ← 前へ
-            </button>
-            {arrived ? (
-              <button onClick={() => setStep(0)}>↺ 最初から</button>
-            ) : (
-              <button className="primary" onClick={() => setStep(stepIdx + 1)}>
-                {stepIdx >= guide.length - 1 ? "トイレに着いたら押す" : "できたら押す：次の手順へ →"}
-              </button>
-            )}
+          <div className="muted" style={{ marginTop: 4 }}>
+            出発：{startLabel}
           </div>
         </section>
       ) : (
@@ -427,13 +414,58 @@ export default function Station3D() {
       </div>
       {view === "walk" && route && net && indoor && goal && (
         <div style={{ marginTop: 8 }}>
-          <Walk key={routeKey} net={net} indoor={indoor} route={route} center={center} goal={goal.short} steps={guide.map((g, i) => ({ ...g, text: stepText(g, guide[i + 1]) }))} floorName={floorName} />
+          <Walk
+            key={routeKey}
+            net={net}
+            indoor={indoor}
+            route={route}
+            center={center}
+            goal={goal.short}
+            steps={guide.map((g, i) => ({ ...g, text: stepText(g, guide[i + 1]) }))}
+            floorName={floorName}
+          />
         </div>
       )}
-      <div
-        ref={box}
-        style={{ height: 380, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 8, touchAction: "none", display: view === "above" ? "block" : "none" }}
-      />
+      {/* 上から見る 3D。いまの手順は上に、進めるボタンは下に重ねる（歩く目線と同じ並び） */}
+      <div style={{ position: "relative", marginTop: 8, display: view === "above" ? "block" : "none" }}>
+        <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
+        {route && goal && current && (
+          <>
+            <div style={{ ...HUD, top: 8 }}>
+              {arrived ? (
+                <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
+                    いまの手順（{stepIdx + 1} / {guide.length}）
+                  </div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepText(current, guide[stepIdx + 1])}</div>
+                  {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepText(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
+                </>
+              )}
+            </div>
+            <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {goal.short}・のこり {Math.round(guide.slice(stepIdx).reduce((m, g) => m + g.meters, 0))} メートル
+              </div>
+              <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
+                <button style={BIG} onClick={() => setStep(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
+                  ← 前へ
+                </button>
+                {arrived ? (
+                  <button style={{ ...BIG, flex: 2 }} onClick={() => setStep(0)}>
+                    ↺ 最初から
+                  </button>
+                ) : (
+                  <button className="primary" style={{ ...BIG, flex: 2 }} onClick={() => setStep(stepIdx + 1)}>
+                    {stepIdx >= guide.length - 1 ? "トイレに着いたら押す" : "できたら次へ →"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
       {view === "above" && (
         <div className="chips muted" style={{ fontSize: "0.8rem", marginTop: 6 }}>
           <span style={{ color: "#f2b705" }}>━ いまの手順</span>
