@@ -224,14 +224,16 @@ export default function NowPage() {
   }, [baseAt?.lat, baseAt?.lon, all, station, ref, profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 駅を選ぶボタン：登録した「よく使う駅」を先に（データのある駅だけ）
+  // 今日の経路の駅（出発・乗り換え・到着）を一番先に。次に登録した「よく使う駅」、そのあとに決まった駅
   const presets = useMemo(() => {
+    const onRoute = route.map((s) => ({ label: `${s.name}駅`, pos: { lat: s.lat, lon: s.lon }, mark: "経路 " }));
     const mine = (profile.homeStations ?? [])
       .map((name) => all?.stations.find((s) => s.name === name))
       .filter((s): s is Station => !!s)
-      .map((s) => ({ label: `${s.name}駅`, pos: { lat: s.lat, lon: s.lon }, mine: true }));
-    const rest = PRESETS.filter((p) => !mine.some((m) => m.label === p.label)).map((p) => ({ ...p, mine: false }));
-    return [...mine, ...rest];
-  }, [profile, all]);
+      .map((s) => ({ label: `${s.name}駅`, pos: { lat: s.lat, lon: s.lon }, mark: "★ " }));
+    const list = [...onRoute, ...mine, ...PRESETS.map((p) => ({ ...p, mark: "" }))];
+    return list.filter((p, i) => list.findIndex((q) => q.label === p.label) === i);
+  }, [route, profile, all]);
   const headOf = (x: NearbyItem) => (station ? headline(x, station, ref) : undefined);
 
   // 地図のピンと一覧で同じ番号を使う（トイレ → 着替えられる場所 → 店の順）
@@ -491,7 +493,7 @@ export default function NowPage() {
         </button>
         {presets.map((p) => (
           <button key={p.label} onClick={() => choose(p.pos, `${p.label}（駅の中心のだいたいの位置）`)}>
-            {p.mine ? "★ " : ""}
+            {p.mark}
             {p.label}
           </button>
         ))}

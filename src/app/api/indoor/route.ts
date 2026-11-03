@@ -8,7 +8,10 @@ export async function GET(req: NextRequest) {
   if (!/^[a-z-]+$/.test(station)) return NextResponse.json({ error: "station が不正です" }, { status: 400 });
   try {
     const dir = path.join(process.cwd(), "data", "indoor");
-    const main = JSON.parse(await readFile(path.join(dir, `${station}.json`), "utf8"));
+    // OSM の本体（<駅>.json）がない駅もある（東京駅は国交省のデータだけ）
+    const main = await readFile(path.join(dir, `${station}.json`), "utf8")
+      .then((t) => JSON.parse(t))
+      .catch(() => ({ station, features: [], attribution: "" }));
     // ほかの出典の屋内データ（<駅>-<出典>.json。例：国交省の shinjuku-mlit.json）があれば重ねる
     const extras = [];
     for (const f of await readdir(dir)) {
@@ -17,8 +20,9 @@ export async function GET(req: NextRequest) {
     const body = {
       ...main,
       features: [...extras.flatMap((e) => e.features), ...main.features],
-      attribution: [main.attribution, ...extras.map((e) => e.attribution)].join("／"),
+      attribution: [main.attribution, ...extras.map((e) => e.attribution)].filter(Boolean).join("／"),
     };
+    if (body.features.length === 0) throw new Error("no indoor data");
     return NextResponse.json(body, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch {
     return NextResponse.json({ error: "この駅の屋内データはありません" }, { status: 404 });
