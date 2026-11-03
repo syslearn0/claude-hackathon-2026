@@ -31,8 +31,6 @@ type PlacesResponse = { places: Place[]; stations: Station[] };
 // 地下などで位置が取れないときに選ぶ場所（駅の中心のだいたいの位置）
 const PRESETS: { label: string; pos: LatLon }[] = [
   { label: "新宿駅", pos: { lat: 35.6896, lon: 139.7006 } },
-  { label: "東京駅", pos: { lat: 35.6812, lon: 139.7671 } },
-  { label: "京都駅", pos: { lat: 34.9858, lon: 135.7588 } },
   { label: "丹波橋駅", pos: { lat: 34.937, lon: 135.7737 } },
   { label: "祇園四条駅", pos: { lat: 35.0037, lon: 135.7722 } },
   { label: "三条駅", pos: { lat: 35.0089, lon: 135.7723 } },
