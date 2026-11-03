@@ -927,49 +927,53 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         {/* 下：次の確認ポイントと、着いたら押すボタン（どちらの見方でも同じ場所） */}
         {route && goal && (
           <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
-            {lift && !picking && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff4c2", color: "#3a2f00", borderRadius: 8, padding: "6px 10px", marginBottom: 6 }}>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, flex: 1 }}>
-                  {lift.kind === "board" ? "エレベーターに乗ったら" : "エレベーターの中："}
-                  <br />
-                  <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>
-                    {floorName(lift.toFloor!)}
-                    {lift.up ? "・上へ" : "・下へ"}
-                  </span>
-                </div>
-                <div style={{ fontSize: "0.8rem", fontWeight: 800, textAlign: "center" }}>
-                  <div
-                    aria-label={`押すボタン ${liftButton(lift.toFloor!)}`}
-                    style={{
-                      minWidth: 56,
-                      height: 56,
-                      borderRadius: 28,
-                      border: "3px solid #3a2f00",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1.6rem",
-                      padding: "0 8px",
-                      background: "#fff",
-                    }}
-                  >
-                    {liftButton(lift.toFloor!)}
+            {/* 案内の2行。エレベーターの手前と中では、2行目を行き先にして、右に押すボタンを出す（高さは変えない。3D を狭めない） */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {picking ? (
+                  <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
+                ) : next ? (
+                  <div style={{ fontWeight: 800 }}>
+                    次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
                   </div>
-                  を押す
+                ) : (
+                  <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
+                )}
+                <div style={{ fontSize: "0.8rem", opacity: lift && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {lift && !picking ? (
+                    <span style={{ color: "#ffe27a", fontWeight: 800 }}>
+                      {lift.kind === "board" ? "乗ったら右を押す：" : "行き先："}
+                      {floorName(lift.toFloor!)}
+                    </span>
+                  ) : (
+                    <>
+                      {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
+                    </>
+                  )}
                 </div>
               </div>
-            )}
-            {picking ? (
-              <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
-            ) : next ? (
-              <div style={{ fontWeight: 800 }}>
-                次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
-              </div>
-            ) : (
-              <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
-            )}
-            <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
+              {lift && !picking && (
+                <div
+                  aria-label={`エレベーターで押すボタン：${liftButton(lift.toFloor!)}`}
+                  style={{
+                    flexShrink: 0,
+                    minWidth: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    border: "3px solid #ffe27a",
+                    background: "#fff4c2",
+                    color: "#3a2f00",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.25rem",
+                    fontWeight: 800,
+                    padding: "0 6px",
+                  }}
+                >
+                  {liftButton(lift.toFloor!)}
+                </div>
+              )}
             </div>
             <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
               <button
