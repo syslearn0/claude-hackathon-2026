@@ -25,7 +25,8 @@
     "leaflet": "^1.9.4",
     "next": "^16.4.3",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@capacitor/android": "^8.6.0",
@@ -35,6 +36,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/shapefile": "^0.6.4",
+    "@types/three": "^0.187.0",
     "eslint": "^9",
     "eslint-config-next": "^16.4.3",
     "playwright": "^1.64.1",

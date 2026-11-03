@@ -36,6 +36,14 @@ export default function Home() {
           <Link href="/tools/gps-log">位置の記録</Link>
           <span className="muted">（電車移動中の GPS の取れ方を調べる）</span>
         </li>
+        <li>
+          <Link href="/tools/floor-log">階と気圧の記録</Link>
+          <span className="muted">（駅の中で何階にいたか。Android アプリの中で開くと気圧も一緒に記録）</span>
+        </li>
+        <li>
+          <Link href="/lab/3d">駅の中を 3D で見る（試作）</Link>
+          <span className="muted">（ホーム・改札からトイレまでの経路）</span>
+        </li>
       </ul>
       <p className="muted">記録はこの端末の中だけに保存されます。送るときは「書き出し」から。</p>
     </main>
