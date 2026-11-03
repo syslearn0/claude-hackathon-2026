@@ -141,22 +141,32 @@ export default function Station3D() {
     return list;
   }, [net, indoor, center, station, car, stations, minFloor, line]);
 
-  // 行き先：駅のまわりの、階が分かるトイレ（出発から近い順）
-  const goals: Goal[] = useMemo(() => {
+  // 行き先：駅のまわりの、階が分かるトイレを、出発から「経路でかかる時間」の短い順に。
+  // 直線の近さで選ぶと、真上の別の階のトイレ（何階も上り下りが要る）を選んでしまうため。
+  // 通路のデータから SNAP_M より離れたトイレは、そこまでの道が分からないので外す
+  const goals: (Goal & { seconds: number })[] = useMemo(() => {
     if (!net || !indoor || !starts.length) return [];
-    const s = net.nodes[starts[startIdx]?.node ?? 0];
+    const from = starts[startIdx]?.node ?? 0;
+    const SNAP_M = 25;
     return places
       .filter((p) => p.kind === "toilet" && distanceM(p, center) < 450)
       .filter((p, i, near) => near.findIndex((q) => q.id === p.id) === i)
       .map((p) => ({ p, f: placeFloor(p, indoor.features) }))
       .filter((x) => x.f !== undefined && !x.p.approxLocation)
-      .map(({ p, f }) => {
+      .flatMap(({ p, f }) => {
+        const node = nearestNode(net, p, f!.floor);
+        const n = net.nodes[node];
+        const snap = distanceM(p, { lat: n[0], lon: n[1] });
+        if (snap > SNAP_M || n[2] !== f!.floor) return [];
+        const r = findRoute(net, from, node, MODES[mode].opts);
+        if (!r) return [];
         const where = `${floorLabel(f!.floor)}${p.gate === "inside" ? "・改札内" : p.gate === "outside" ? "・改札外" : ""}${p.toilet?.accessible ? "・多機能" : ""}`;
-        return { place: p, node: nearestNode(net, p, f!.floor), label: `${p.name ?? "トイレ"}（${where}）`, short: `トイレ（${where}）` };
+        const min = Math.max(1, Math.round((r.seconds + snap) / 60));
+        return [{ place: p, node, seconds: r.seconds + snap, label: `約${min}分：${p.name ?? "トイレ"}（${where}）`, short: `トイレ（${where}）` }];
       })
-      .sort((a, b) => distanceM({ lat: s[0], lon: s[1] }, a.place) - distanceM({ lat: s[0], lon: s[1] }, b.place))
+      .sort((a, b) => a.seconds - b.seconds)
       .slice(0, 15);
-  }, [net, indoor, places, starts, startIdx, center]);
+  }, [net, indoor, places, starts, startIdx, center, mode]);
 
   const goalAt = goalIdx >= 0 ? goalIdx : Math.max(0, goals.findIndex((g) => g.place.id === goalFromUrl));
   const goal = goals[goalAt];
@@ -437,7 +447,7 @@ export default function Station3D() {
           </select>
         </label>
         <label className="field">
-          <span>どのトイレへ（近い順）</span>
+          <span>どのトイレへ（早く着く順）</span>
           <select value={goalAt} onChange={(e) => setGoalIdx(Number(e.target.value))}>
             {goals.map((g, i) => (
               <option key={`${g.place.id}-${i}`} value={i}>
