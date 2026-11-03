@@ -194,7 +194,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     list.push(...(gpsNear && byCar === undefined && !reask ? [ground, platform] : [platform, ground]));
     const seen = new Set<string>();
     // 改札の名前は日本語のものだけ（英語の重複や、壊れた文字の名前を除く）
-    const readable = (name: string) => /[぀-ヿ一-鿿]/.test(name) && !/[ -]/.test(name);
+    const readable = (name: string) => /[\u3040-\u30ff\u4e00-\u9fff]/.test(name) && !/[\u0000-\u001f]/.test(name);
     for (const g of indoor.features.filter((f) => f.kind === "gate" && f.name && readable(f.name) && f.floors.length)) {
       const name = `${g.name}（${floorLabel(g.floors[0])}）`;
       if (seen.has(name)) continue;
@@ -659,6 +659,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     try {
       setLoc({ busy: "看板を読んでいます…" });
       const image = await shrinkPhoto(file);
+      if (!navigator.onLine) throw new Error("電波がないため、看板を AI に読んでもらえません。地図でいまいる所をタップするか、「いまどこ？」の答えで選んでください。");
       const ask = async (body: object) => {
         const r = await fetch("/api/locate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image, ...body }) });
         const d = await r.json();
@@ -691,7 +692,15 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       })) as { choice: string; facing: string; confidence: string; reason: string };
       setLoc({ read: texts, cands, ...judged });
     } catch (e) {
-      setLoc({ error: e instanceof Error ? e.message : "うまくいきませんでした" });
+      // 届かなかった（地下で電波が切れたなど）ときは、fetch が TypeError を出す
+      const offline = e instanceof TypeError || !navigator.onLine;
+      setLoc({
+        error: offline
+          ? "電波が弱く、看板を AI に読んでもらえませんでした。地図でいまいる所をタップするか、「いまどこ？」の答えで選んでください。"
+          : e instanceof Error
+            ? e.message
+            : "うまくいきませんでした",
+      });
     }
   };
   const pickCandidate = (c: Candidate) => {

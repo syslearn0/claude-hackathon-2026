@@ -14,6 +14,7 @@ import { distanceM } from "@/lib/geo";
 import { describeTrainCars } from "@/lib/train-cars";
 import { headline, isInStation, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { indoorAt, INDOOR_STATIONS } from "@/lib/indoor";
+import { cacheLoadedFiles } from "../SwRegister";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
 import { IndoorMap } from "./IndoorMap";
@@ -39,7 +40,9 @@ const PRESETS: { label: string; pos: LatLon }[] = [
 ];
 
 // 駅の中の道順（3D）。重いので、開いたときだけ読み込む
-const StationRoute = dynamic(() => import("@/components/station-route/StationRoute").then((m) => m.StationRoute), {
+// （裏で前もって読み込むときも同じ読み込み方にする。別の書き方だと、地下で開いたときに足りない部品が出る）
+const loadStationRoute = () => import("@/components/station-route/StationRoute").then((m) => m.StationRoute);
+const StationRoute = dynamic(loadStationRoute, {
   ssr: false,
   loading: () => <p className="muted">道順を読み込んでいます…</p>,
 });
@@ -75,6 +78,14 @@ export default function NowPage() {
   // 一番近いトイレのカードの中で開く、駅の中の道順
   const [routeOpen, setRouteOpen] = useState(false);
   const firstBox = useRef<HTMLElement>(null);
+  // 駅の中の道順の部品（3D）は重いので開いたときに読み込むが、地下で電波がないと読めない。
+  // 電波のあるうちに裏で読み込んで、端末に持っておく（駅の地図のデータはサービスワーカーが最初から持っている）
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadStationRoute().then(cacheLoadedFiles).catch(() => {});
+    }, 3000);
+    return () => clearTimeout(t);
+  }, []);
   const [notifyState, setNotifyState] = useState(() => ("Notification" in window ? Notification.permission : "unsupported"));
   // 範囲に入ったお知らせを閉じた駅
   const [noticeClosed, setNoticeClosed] = useState(false);
