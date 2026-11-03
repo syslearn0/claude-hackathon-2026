@@ -649,7 +649,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.layer.add(l);
     }
 
-    // カメラ：あなたといまの手順が真ん中に来るように、斜め上から
+    // カメラ：いまの手順が全部入る距離で、斜め上から（回す中心は、下の効果で「あなた」に移す）
     const seg = new THREE.Box3().setFromPoints(arrived ? [youAt] : pts.slice(current.from, current.to + 1));
     const c = seg.getCenter(new THREE.Vector3());
     const size = seg.getSize(new THREE.Vector3()).length();
@@ -667,6 +667,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     m.you.position.copy(v);
     m.sign.position.copy(v).add(new THREE.Vector3(0, 6, 0));
     m.beam.position.copy(v).add(new THREE.Vector3(0, 0.3, 0));
+    // 回す・拡大の中心を「あなた」に。いまの見る角度と距離はそのままで、カメラごと平行に動かす
+    const sc = scene.current;
+    if (sc) {
+      sc.camera.position.add(v.clone().sub(sc.controls.target));
+      sc.controls.target.copy(v);
+    }
     // 次の確認ポイント（トイレは青い柱があるので出さない）
     m.cp.visible = !!next && next.kind !== "arrive";
     if (next) {
