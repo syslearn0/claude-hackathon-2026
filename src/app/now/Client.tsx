@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo";
@@ -37,6 +38,12 @@ const PRESETS: { label: string; pos: LatLon }[] = [
   { label: "出町柳駅", pos: { lat: 35.0303, lon: 135.7727 } },
 ];
 
+// 駅の中の道順（3D）。重いので、開いたときだけ読み込む
+const StationRoute = dynamic(() => import("@/components/station-route/StationRoute").then((m) => m.StationRoute), {
+  ssr: false,
+  loading: () => <p className="muted">道順を読み込んでいます…</p>,
+});
+
 export default function NowPage() {
   const [pos, setPos] = useState<{ at: LatLon; how: string } | null>(null);
   const [status, setStatus] = useState(() =>
@@ -65,6 +72,9 @@ export default function NowPage() {
   });
   const [indoorOpen, setIndoorOpen] = useState(() => !!indoorFromUrl);
   const indoorBox = useRef<HTMLElement>(null);
+  // 一番近いトイレのカードの中で開く、駅の中の道順
+  const [routeOpen, setRouteOpen] = useState(false);
+  const firstBox = useRef<HTMLElement>(null);
   const [notifyState, setNotifyState] = useState(() => ("Notification" in window ? Notification.permission : "unsupported"));
   // 範囲に入ったお知らせを閉じた駅
   const [noticeClosed, setNoticeClosed] = useState(false);
@@ -333,7 +343,7 @@ export default function NowPage() {
       )}
 
       {first && (
-        <section className="card" style={{ borderWidth: 2, borderColor: "var(--accent)" }}>
+        <section className="card" ref={firstBox} style={{ borderWidth: 2, borderColor: "var(--accent)", scrollMarginTop: 8 }}>
           <div className="muted">
             <NumberBadge n={numberOf.get(first.place.id)} tier={first.place.tier} />
             {ref ? `${ref.label}から近いトイレ` : station ? `${station}駅のトイレ` : "一番近いトイレ"}
@@ -349,6 +359,12 @@ export default function NowPage() {
           <Details item={first} compact={!!station} />
           <Badges item={first} />
           <MapLink item={first} inStation={isInStation(first, station)} big />
+          {indoorStation && (
+            <button className={routeOpen ? "" : "primary"} style={{ marginTop: 8, width: "100%" }} onClick={() => setRouteOpen(!routeOpen)}>
+              {routeOpen ? "駅の中の道順を閉じる" : `${indoorStation}駅の中の道順を出す（3D・試作）`}
+            </button>
+          )}
+          {indoorStation && routeOpen && <StationRoute key={indoorStation} station={indoorStation} goalId={first.place.id} embedded />}
         </section>
       )}
 
@@ -399,14 +415,16 @@ export default function NowPage() {
             <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
           </div>
           {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}
-          {indoorOpen && (
-            <Link
-              href={`/lab/3d?station=${encodeURIComponent(indoorStation)}${first ? `&goal=${encodeURIComponent(first.place.id)}` : ""}`}
-              className="button"
-              style={{ marginTop: 8, display: "block", textAlign: "center" }}
+          {indoorOpen && first && (
+            <button
+              style={{ marginTop: 8, width: "100%" }}
+              onClick={() => {
+                setRouteOpen(true);
+                setTimeout(() => firstBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+              }}
             >
-              ホーム・改札からトイレまでの道順を 3D で見る（試作）
-            </Link>
+              トイレまでの道順を出す（上のカードの中に出ます）
+            </button>
           )}
         </section>
       )}
