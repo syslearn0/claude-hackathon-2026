@@ -179,6 +179,7 @@ export function Walk({
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
+    let facing = Math.PI; // 水平の向き（ラジアン。+z からの角度）。最初は北
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
@@ -189,8 +190,16 @@ export function Walk({
       const p = pointAt(pts, cum, dist.current);
       const ahead = pointAt(pts, cum, Math.min(total, dist.current + 6));
       camera.position.set(p.x, p.y + EYE, p.z);
-      const look = ahead.x === p.x && ahead.z === p.z ? new THREE.Vector3(p.x, p.y + EYE, p.z - 1) : new THREE.Vector3(ahead.x, ahead.y + EYE - 0.3, ahead.z);
-      camera.lookAt(look);
+      // 向きは水平に。エレベーターの中など前が真上・真下のときは、その先の歩く向き（なければ直前の向き）を見る
+      for (let k = 6; k <= 30; k += 3) {
+        const q = pointAt(pts, cum, Math.min(total, dist.current + k));
+        if (Math.hypot(q.x - p.x, q.z - p.z) >= 1.5) {
+          facing = Math.atan2(q.x - p.x, q.z - p.z);
+          break;
+        }
+        if (dist.current + k >= total) break;
+      }
+      camera.lookAt(p.x + Math.sin(facing), p.y + EYE - 0.05, p.z + Math.cos(facing));
       // いまの階と、上り下りの途中なら行き先の階も見せる
       const fNow = p.y / FLOOR_M;
       for (const [f, g] of byFloor) g.visible = Math.abs(f - fNow) < 0.9 || Math.abs(f - ahead.y / FLOOR_M) < 0.5;
@@ -254,7 +263,9 @@ export function Walk({
             <button
               onClick={() => {
                 playing.current = false;
-                dist.current = Math.min(total, Math.max(dist.current, next.at - 1.5));
+                // 曲がり角の少し手前で止まる。いまの止まり位置より先の、次の止まり位置へ（最後は到着）
+                const stops = list.map((m) => (m.kind === "arrive" ? total : Math.max(0, m.at - 1.5)));
+                dist.current = stops.find((s) => s > dist.current + 0.5) ?? total;
               }}
               disabled={arrived}
             >
