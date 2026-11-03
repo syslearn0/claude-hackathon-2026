@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { barometerAvailable, heightDiffM, watchPressure } from "@/lib/barometer";
 import { exportFile, loadJson, saveJson, stamp } from "@/lib/local";
 
 // 気圧で階が分かるかを確かめるための記録。ブラウザは気圧計を読めないので、気圧は別のアプリ（phyphox）で取り、
 // ここでは「いつ・どこで・何階にいたか」を押して残す。あとで時刻で突き合わせる。
+// Android アプリ（Capacitor）の中で開いたときは、このページが気圧も一緒に記録する（phyphox は要らない）。
 
 type Mark = { t: number; kind: string; floor?: string; note?: string };
-type Log = { startedAt: number | null; stoppedAt: number | null; station: string; phone: string; marks: Mark[] };
+type Log = { startedAt: number | null; stoppedAt: number | null; station: string; phone: string; marks: Mark[]; pressure?: [number, number][] };
 
 const KEY = "floorlog.current.v1";
 const EMPTY: Log = { startedAt: null, stoppedAt: null, station: "新宿", phone: "", marks: [] };
@@ -38,6 +40,14 @@ export default function FloorLogPage() {
   const [note, setNote] = useState("");
   const logRef = useRef<Log>(log);
   const wakeLock = useRef<WakeLockSentinel | null>(null);
+  // アプリの中なら気圧も（[時刻ms, hPa]。1秒に1つ）
+  const [baro, setBaro] = useState<boolean | null>(null);
+  const [hPa, setHPa] = useState<number | null>(null);
+  const stopBaro = useRef<(() => void) | null>(null);
+  const lastSaved = useRef(0);
+  useEffect(() => {
+    barometerAvailable().then(setBaro);
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 250);
@@ -54,7 +64,15 @@ export default function FloorLogPage() {
 
   const start = async () => {
     if (log.marks.length > 0 && !confirm("前の記録を消して新しく始めますか？（先に書き出してください）")) return;
-    update((l) => ({ ...EMPTY, station: l.station, phone: l.phone, startedAt: Date.now() }));
+    update((l) => ({ ...EMPTY, station: l.station, phone: l.phone, startedAt: Date.now(), pressure: [] }));
+    if (baro) {
+      stopBaro.current = await watchPressure((p, t) => {
+        setHPa(p);
+        if (t - lastSaved.current < 1000) return;
+        lastSaved.current = t;
+        update((l) => ({ ...l, pressure: [...(l.pressure ?? []), [t, Math.round(p * 100) / 100]] }));
+      });
+    }
     try {
       wakeLock.current = await navigator.wakeLock?.request("screen");
     } catch {
@@ -63,6 +81,8 @@ export default function FloorLogPage() {
   };
   const stop = () => {
     update((l) => ({ ...l, stoppedAt: Date.now() }));
+    stopBaro.current?.();
+    stopBaro.current = null;
     wakeLock.current?.release().catch(() => {});
   };
   const doExport = () =>
@@ -106,6 +126,13 @@ export default function FloorLogPage() {
         <div className="muted">この端末の時刻</div>
         <div style={{ fontSize: "2.4rem", fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{hms(now)}</div>
         {log.startedAt && <div className="muted">記録の開始：{hms(log.startedAt)}</div>}
+        {baro && (
+          <div style={{ marginTop: 4 }}>
+            気圧センサー：{hPa !== null ? `${hPa.toFixed(2)} hPa` : "記録を始めると読みます"}
+            {hPa !== null && log.pressure?.length ? `（最初から ${heightDiffM(log.pressure[0][1], hPa) >= 0 ? "+" : ""}${heightDiffM(log.pressure[0][1], hPa).toFixed(1)} m）` : ""}
+          </div>
+        )}
+        {baro === false && <div className="muted">このページでは気圧を読めません（phyphox で記録してください）</div>}
       </div>
 
       <div className="row">
