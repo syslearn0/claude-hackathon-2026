@@ -177,9 +177,11 @@ export default function Station3D() {
   const guide = useMemo(() => (route ? guideSteps(route) : []), [route]);
   const routeKey = route?.nodes.join(",") ?? "";
   const [stepState, setStepState] = useState({ key: "", idx: 0 });
-  const stepIdx = stepState.key === routeKey ? Math.min(stepState.idx, Math.max(0, guide.length - 1)) : 0;
+  // stepIdx が guide.length のときは「着いた」
+  const stepIdx = stepState.key === routeKey ? Math.min(stepState.idx, guide.length) : 0;
   const setStep = (idx: number) => setStepState({ key: routeKey, idx });
-  const current = guide[stepIdx];
+  const arrived = guide.length > 0 && stepIdx >= guide.length;
+  const current = guide[Math.min(stepIdx, guide.length - 1)];
 
   // 3D の舞台
   useEffect(() => {
@@ -225,9 +227,13 @@ export default function Station3D() {
     const s = scene.current;
     if (!s || !indoor || !net || !route || !current) return;
     s.layer.clear();
-    const focusNode = net.nodes[route.nodes[current.from]];
-    const focus = { lat: focusNode[0], lon: focusNode[1] };
-    const near = (lat: number, lon: number, r = CROP_M) => distanceM(focus, { lat, lon }) <= r;
+    // 切り出す中心は、いまの手順のまんなか。長い手順（ホームを 140m 歩くなど）でも全体と「あなた」が入る大きさに
+    const segNodes = route.nodes.slice(current.from, current.to + 1).map((i) => net.nodes[i]);
+    const a0 = arrived ? net.nodes[route.nodes.at(-1)!] : segNodes[0];
+    const b0 = arrived ? a0 : segNodes.at(-1)!;
+    const focus = { lat: (a0[0] + b0[0]) / 2, lon: (a0[1] + b0[1]) / 2 };
+    const crop = Math.max(CROP_M, distanceM({ lat: a0[0], lon: a0[1] }, { lat: b0[0], lon: b0[1] }) / 2 + 30);
+    const near = (lat: number, lon: number, r = crop) => distanceM(focus, { lat, lon }) <= r;
     const fl = route.nodes.map((i) => net.nodes[i][2]);
     const [fMin, fMax] = [Math.floor(Math.min(...fl)), Math.ceil(Math.max(...fl))];
     const inRange = (f: number) => f >= fMin - 0.01 && f <= fMax + 0.01;
@@ -238,7 +244,7 @@ export default function Station3D() {
       if (!f.closed || f.coords.length < 3 || !f.floors.some(inRange)) continue;
       const walk = ["corridor", "area", "platform"].includes(f.kind);
       if (!walk && !["room", "shop"].includes(f.kind)) continue;
-      if (!f.coords.some(([lat, lon]) => near(lat, lon, CROP_M * 1.2))) continue;
+      if (!f.coords.some(([lat, lon]) => near(lat, lon, crop * 1.2))) continue;
       const shape = new THREE.Shape(f.coords.map(([lat, lon]) => {
         const v = toXYZ(lat, lon, 0);
         return new THREE.Vector2(v.x, -v.z);
@@ -281,14 +287,15 @@ export default function Station3D() {
     const tube = (ps: THREE.Vector3[], r: number, color: number) =>
       new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ps, false, "catmullrom", 0), Math.max(16, ps.length * 4), r, 6, false), new THREE.MeshBasicMaterial({ color }));
     s.layer.add(tube(pts, 0.8, COLOR.route));
-    if (current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now));
+    if (!arrived && current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now));
 
     // あなた（いまの手順の始まり）・トイレ
     const you = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: COLOR.you }));
-    you.position.copy(pts[current.from]);
+    const youAt = arrived ? pts.at(-1)! : pts[current.from];
+    you.position.copy(youAt);
     s.layer.add(you);
     const youSign = sign("あなた", "rgba(217,48,37,.92)", 180);
-    youSign.position.copy(pts[current.from]).add(new THREE.Vector3(0, 6, 0));
+    youSign.position.copy(youAt).add(new THREE.Vector3(0, 6, 0));
     s.layer.add(youSign);
     const end = pts.at(-1)!;
     const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
@@ -303,19 +310,20 @@ export default function Station3D() {
     for (let f = fMin; f <= fMax; f++) {
       if (f === 0 || !net.nodes.some((n) => n[2] === f)) continue;
       const l = sign(floorName(f), "rgba(20,20,19,.75)", Math.max(160, floorName(f).length * 30));
-      l.position.set(fx.x - CROP_M * 0.9, f * FLOOR_H, fx.z);
+      l.position.set(fx.x - crop * 0.9, f * FLOOR_H, fx.z);
       s.layer.add(l);
     }
 
     // カメラ：あなたといまの手順が真ん中に来るように、斜め上から
-    const seg = new THREE.Box3().setFromPoints(pts.slice(current.from, current.to + 1));
+    const seg = new THREE.Box3().setFromPoints(arrived ? [youAt] : pts.slice(current.from, current.to + 1));
     const c = seg.getCenter(new THREE.Vector3());
+    const size = seg.getSize(new THREE.Vector3()).length();
     s.controls.target.copy(c);
-    s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(CROP_M * 1.1)));
+    s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85))));
     s.camera.updateProjectionMatrix();
     // floorName は描くたびに作り直しているので、依存に入れない（階の役割が変わるのは駅を替えたときだけ）
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indoor, net, route, current, toXYZ]);
+  }, [indoor, net, route, current, arrived, toXYZ]);
 
   const startLabel = starts[startIdx]?.label;
 
@@ -355,9 +363,13 @@ export default function Station3D() {
             トイレまで 約{Math.max(1, Math.round(route.seconds / 60))}分・{route.meters}m
           </div>
           <div>{goal.short}</div>
-          <div className="muted" style={{ marginTop: 4 }}>あなた：{startLabel}</div>
+          <div className="muted" style={{ marginTop: 4 }}>出発：{startLabel}</div>
           {/* ② いまの一手 */}
-          {current && (
+          {arrived ? (
+            <div style={{ marginTop: 10, padding: "8px 10px", background: "rgba(31,95,191,.15)", borderRadius: 8, fontSize: "1.3rem", fontWeight: 800 }}>
+              ◎ トイレに着きました
+            </div>
+          ) : current && (
             <div style={{ marginTop: 10, padding: "8px 10px", background: "rgba(242,183,5,.18)", borderRadius: 8 }}>
               <div className="muted" style={{ fontSize: "0.8rem" }}>
                 いまの手順（{stepIdx + 1} / {guide.length}）
@@ -370,9 +382,13 @@ export default function Station3D() {
             <button onClick={() => setStep(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
               ← 前へ
             </button>
-            <button className="primary" onClick={() => setStep(Math.min(guide.length - 1, stepIdx + 1))} disabled={stepIdx >= guide.length - 1}>
-              通り過ぎた・次へ →
-            </button>
+            {arrived ? (
+              <button onClick={() => setStep(0)}>↺ 最初から</button>
+            ) : (
+              <button className="primary" onClick={() => setStep(stepIdx + 1)}>
+                {stepIdx >= guide.length - 1 ? "着いた ◎" : "済んだ・次へ →"}
+              </button>
+            )}
           </div>
         </section>
       ) : (
@@ -428,7 +444,7 @@ export default function Station3D() {
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        あなたのまわり（半径約{CROP_M}m）と、通る階だけを出しています。指で回す・2本指で拡大。
+        いまの手順のまわりと、通る階だけを出しています。指で回す・2本指で拡大。
       </p>
 
       {/* ④ 条件を変える */}
