@@ -126,7 +126,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-14-1-2"
   },
   {
    "id": "mlit-tokyo-toilet-7",
@@ -214,7 +215,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-14-1-9"
   },
   {
    "id": "mlit-tokyo-toilet-11",
@@ -1045,7 +1047,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-37-2"
   },
   {
    "id": "mlit-tokyo-toilet-52",
@@ -1127,7 +1130,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-46-1"
   },
   {
    "id": "mlit-tokyo-toilet-56",
@@ -1169,7 +1173,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-4-2"
   },
   {
    "id": "mlit-tokyo-toilet-58",
@@ -1192,7 +1197,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-9-1"
   },
   {
    "id": "mlit-tokyo-toilet-59",
@@ -1253,7 +1259,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-14-1"
   },
   {
    "id": "mlit-tokyo-toilet-62",
@@ -1295,7 +1302,8 @@
     "accessible": true,
     "ostomate": true,
     "changingTable": true
-   }
+   },
+   "sameAs": "tokyo-st-10-37-1"
   },
   {
    "id": "mlit-tokyo-toilet-64",

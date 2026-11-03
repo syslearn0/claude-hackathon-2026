@@ -8,7 +8,7 @@
 // 項目の意味は国土地理院「階層別屋内地理空間情報データ仕様書（案）」（平成30年3月）の別表による。
 // 改札の内外（toll）は、ほぼすべて「無料」か「不明」で、改札の中は含まない。
 
-import { readdir, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import * as shp from "shapefile";
 import type { Gate, Place } from "../src/lib/places";
@@ -202,6 +202,29 @@ async function main() {
       },
     };
   });
+  // 東京都の公式データと同じトイレか：どちらも多機能で、階が同じ（片方が不明なら問わない）、20m 以内。
+  // 位置が駅の代表の点しかない公式データとは比べない（どれと同じか決められないため）。同じなら sameAs で結び、読み込むときに1件にまとめる
+  const official = (JSON.parse(await readFile("data/places/official-tokyo-station-toilets.json", "utf8")) as { places: Place[] }).places.filter(
+    (o) => o.toilet?.accessible && !o.approxLocation,
+  );
+  const floorNum = (s?: string) => (s ? (s.match(/^B(\d+)/i) ? -Number(s.match(/^B(\d+)/i)![1]) : Number(s.match(/^(\d+)F/i)?.[1]) || undefined) : undefined);
+  const taken = new Set<string>();
+  let same = 0;
+  for (const p of places.filter((x) => x.toilet?.accessible)) {
+    const hit = official
+      .filter((o) => !taken.has(o.id))
+      .filter((o) => floorNum(o.floor) === undefined || floorNum(p.floor) === undefined || floorNum(o.floor) === floorNum(p.floor))
+      .map((o) => ({ o, d: meters([o.lat, o.lon], [p.lat, p.lon]) }))
+      .filter((x) => x.d <= 20)
+      .sort((a, b) => a.d - b.d)[0];
+    if (hit) {
+      p.sameAs = hit.o.id;
+      taken.add(hit.o.id);
+      same++;
+    }
+  }
+  console.log(`東京都の公式データと同じトイレ：${same}件（読み込むときに1件にまとめる）`);
+
   await writeFile(`data/places/mlit-${KEY}-toilets.json`, JSON.stringify({ fetchedFrom: URL, attribution: ATTRIBUTION, places }, null, 1) + "\n");
 
   console.log(`階：${prefixes.map((p) => path.basename(p)).join(" ")}`);

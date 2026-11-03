@@ -64,6 +64,7 @@ export type Place = {
   minFromPlatform?: number; // 秒
   minFromGate?: number; // 秒
   note?: string;
+  sameAs?: string; // 別の出典の同じ場所の id（取り込むときに判断）。読み込むときに1件にまとめる
   toilet?: ToiletAttrs;
   store?: StoreAttrs;
 };
