@@ -386,7 +386,7 @@ export default function Station3D() {
               <button onClick={() => setStep(0)}>↺ 最初から</button>
             ) : (
               <button className="primary" onClick={() => setStep(stepIdx + 1)}>
-                {stepIdx >= guide.length - 1 ? "着いた ◎" : "済んだ・次へ →"}
+                {stepIdx >= guide.length - 1 ? "トイレに着いたら押す" : "できたら押す：次の手順へ →"}
               </button>
             )}
           </div>
