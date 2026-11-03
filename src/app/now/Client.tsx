@@ -16,6 +16,7 @@ import { indoorAt, INDOOR_STATIONS } from "@/lib/indoor";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
 import { IndoorMap } from "./IndoorMap";
+import { RouteEditor } from "./RouteEditor";
 import { MapView, type MapPoint } from "./MapView";
 import { Badges, Details, Item, MapLink, NumberBadge } from "./PlaceInfo";
 
@@ -46,7 +47,7 @@ export default function NowPage() {
   // 駅の中で「いまどこ？」に選んだホーム・改札（キーは label）
   const [refKey, setRefKey] = useState<string | null>(null);
   // ①で保存した今日の計画（あれば）
-  const [plan] = useState(() => loadTodayPlan());
+  const [plan, setPlan] = useState(() => loadTodayPlan());
   // 自分の情報（スマホの中だけ）
   const [profile] = useState(() => loadProfile());
   // 位置の取得が遅れて失敗したとき、すでに選んだ駅の表示を上書きしないため
@@ -297,9 +298,10 @@ export default function NowPage() {
             </div>
           )}
           {trainCars && <div style={{ marginTop: 4 }}>{trainCars}</div>}
-          <button style={{ marginTop: 6 }} onClick={() => setTrainOff(true)}>
-            違う（いる場所の近くを出す）
-          </button>
+          <div className="row" style={{ marginTop: 6 }}>
+            <button onClick={() => setTrainOff(true)}>違う（いる場所の近くを出す）</button>
+            <button onClick={() => document.getElementById("route-editor")?.scrollIntoView({ behavior: "smooth" })}>電車の予定を変える</button>
+          </div>
         </section>
       ) : (
         pos && <p className="muted">基準：{baseAt && pos.at !== baseAt ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how}</p>
@@ -461,6 +463,18 @@ export default function NowPage() {
             この画面を開いたまま、Google マップなどで道順を見ているときに使います。いまは新宿駅だけです。
           </span>
         </p>
+      )}
+
+      {all && (
+        <RouteEditor
+          plan={plan}
+          stationNames={new Set(all.stations.map((s) => s.name))}
+          onSaved={(p) => {
+            setPlan(p);
+            // 経路を直したら、「違う」で止めた自動の切り替えも戻す
+            setTrainOff(false);
+          }}
+        />
       )}
 
       <h2>今いる場所を選ぶ</h2>

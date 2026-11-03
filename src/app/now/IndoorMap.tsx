@@ -34,8 +34,41 @@ const centerOf = (f: IndoorFeature): [number, number] => [
   f.coords.reduce((a, c) => a + c[1], 0) / f.coords.length,
 ];
 
-// 1つの階の地物を描く（面 → 線 → 印の順）。試作ページ（/lab/indoor）でも使う
-export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[]) {
+// 1つの階の地物を描く（面 → 線 → 印の順）。試作ページ（/lab/indoor）では全部（detail）、
+// 緊急の画面では見やすさを優先して、通路と部屋の形・トイレ・改札だけを出す
+const SIMPLE: Record<string, { color: string; fill: string }> = {
+  corridor: { color: "#c9d3e0", fill: "#dde7f2" },
+  area: { color: "#c9d3e0", fill: "#dde7f2" },
+  platform: { color: "#c9d3e0", fill: "#dde7f2" },
+  room: { color: "#cfccc0", fill: "#ebe9e1" },
+  shop: { color: "#cfccc0", fill: "#ebe9e1" },
+};
+const SMALL: Record<string, { label: string; bg: string }> = {
+  toilet: { label: "WC", bg: "#1f5fbf" },
+  gate: { label: "改", bg: "#d93025" },
+};
+
+export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true) {
+  if (!detail) {
+    for (const f of on.filter((x) => x.closed && SIMPLE[x.kind])) {
+      const s = SIMPLE[f.kind];
+      L.polygon(f.coords, { color: s.color, weight: 0.5, fillColor: s.fill, fillOpacity: 1, interactive: false }).addTo(g);
+    }
+    for (const f of on.filter((x) => SMALL[x.kind])) {
+      const i = SMALL[f.kind];
+      L.marker(centerOf(f), {
+        icon: L.divIcon({
+          className: "",
+          html: `<div style="background:${i.bg};color:#fff;border-radius:4px;padding:0 2px;font:700 9px/13px system-ui;opacity:.75">${i.label}</div>`,
+          iconSize: [18, 13],
+          iconAnchor: [9, 6],
+        }),
+      })
+        .bindTooltip(`${KIND_JA[f.kind]}${f.name ? `：${f.name}` : ""}（OSM）`)
+        .addTo(g);
+    }
+    return;
+  }
   for (const f of on.filter((x) => x.closed && STYLE[x.kind])) {
     const s = STYLE[f.kind];
     L.polygon(f.coords, { color: s.color, weight: s.weight, fillColor: s.fill, fillOpacity: 0.9 })
@@ -118,24 +151,32 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     if (!m || !g || !data || floor === undefined) return;
     g.clearLayers();
     const on = data.features.filter((f) => f.floors.includes(floor));
-    drawFeatures(g, on);
+    const near = (f: IndoorFeature) => points.some((p) => Math.hypot((p.place.lat - centerOf(f)[0]) * 111_000, (p.place.lon - centerOf(f)[1]) * 91_000) < 30);
+    drawFeatures(g, on.filter((f) => !(f.kind === "toilet" && near(f))), false);
     // 候補：この階のものは濃く、階が分からないものは薄く。別の階のものは出さない
     const shown: [number, number][] = [];
     for (const p of points) {
       const pf = pointFloor.get(p.place.id);
-      if (pf !== undefined && pf !== floor) continue;
+      // 駅の代表の位置しか分からない候補は、地図に置くと場所を誤って伝えるので、地図の下に文で出す
+      if (p.place.approxLocation || (pf !== undefined && pf !== floor)) continue;
       L.marker([p.place.lat, p.place.lon], { icon: pin(p.n, p.place.tier), opacity: pf === undefined ? 0.55 : 1, zIndexOffset: 1000 })
         .bindTooltip(pf === undefined ? `${p.n}（階は不明）` : `${p.n}（${floorLabel(pf)}）`)
         .addTo(g);
       shown.push([p.place.lat, p.place.lon]);
     }
     if (here) L.marker([here.lat, here.lon], { icon: HERE, zIndexOffset: 2000, title: "いまの位置（階は分かりません）" }).addTo(g);
-    // 候補と現在地が入る範囲に寄る。なければ、その階の全体
-    const pts = shown.length ? [...shown, ...(here ? [[here.lat, here.lon] as [number, number]] : [])] : on.flatMap((f) => f.coords);
-    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 19 });
+    // 一番の候補（と現在地）に寄る。一番の候補がこの階になければ、出した候補の範囲。どれもなければ、その階の全体
+    const top = points[0];
+    const topHere = top && !top.place.approxLocation && (pointFloor.get(top.place.id) ?? floor) === floor ? [[top.place.lat, top.place.lon] as [number, number]] : [];
+    const focus = topHere.length ? topHere : shown;
+    const pts = focus.length ? [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : [])] : on.flatMap((f) => f.coords);
+    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 18 });
     // 現在地は動くたびに寄せ直さない（地図を触っている人の邪魔をしないため）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, floor, points, pointFloor, here?.lat, here?.lon]);
+
+  // この階の、位置が駅の代表でしか分からない候補
+  const approx = points.filter((p) => p.place.approxLocation && (pointFloor.get(p.place.id) ?? floor) === floor);
 
   if (!key) return null;
   return (
@@ -149,7 +190,13 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       </div>
       {failed && <p className="muted">駅の中の地図を読み込めませんでした。</p>}
       {!data && !failed && <p className="muted">駅の中の地図を読み込んでいます…</p>}
-      <div ref={box} style={{ height: 340, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 6, background: "#f7f6f1" }} />
+      <div ref={box} style={{ height: 340, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 6, background: "#fcfcfa" }} />
+      {approx.length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          地図にない候補（場所は駅の代表の位置しか分からない）：
+          {approx.map((p) => `${p.n}（${p.place.floor ?? "階不明"}）`).join("、")}
+        </div>
+      )}
       <div className="chips muted" style={{ marginTop: 6, fontSize: "0.8rem" }}>
         <span>番号：上の一覧の候補</span>
         <span>
