@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
-import { FLOOR_M, nearestOnPath, pointAt, type Maneuver, type PathPoint } from "@/lib/maneuvers";
+import { FLOOR_M, nearestOnPath, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・「着いたら押す」・タップで変わる）。
@@ -66,6 +66,8 @@ export function Walk({
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
+  // 見せる道は、通路のデータの細かいジグザグをならしたもの（位置の m はそのまま）
+  const sm = useMemo(() => smoothPath(pts, cum), [pts, cum]);
   const dist = useRef(pos);
   const play = useRef(playing);
   const pick = useRef(picking);
@@ -145,16 +147,17 @@ export function Walk({
     const tex = chevronTexture();
     const pos: number[] = [];
     const uv: number[] = [];
-    for (let i = 1; i < pts.length; i++) {
-      const a = pts[i - 1];
-      const b = pts[i];
+    const { pts: way, cum: wayAt } = sm;
+    for (let i = 1; i < way.length; i++) {
+      const a = way[i - 1];
+      const b = way[i];
       const h = Math.hypot(b.x - a.x, b.z - a.z);
       if (h < 0.2) continue;
       const nx = -(b.z - a.z) / h;
       const nz = (b.x - a.x) / h;
       const w = 0.7;
-      const v0 = cum[i - 1] / 2;
-      const v1 = cum[i] / 2;
+      const v0 = wayAt[i - 1] / 2;
+      const v1 = wayAt[i] / 2;
       const quad = [
         [a.x + nx * w, a.y + 0.03, a.z + nz * w, 0, v0],
         [a.x - nx * w, a.y + 0.03, a.z - nz * w, 1, v0],
@@ -196,7 +199,8 @@ export function Walk({
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
-    let facing = Math.PI; // 水平の向き（ラジアン。+z からの角度）。最初は北
+    let facing: number | null = null; // 水平の向き（ラジアン。+z からの角度）
+    let shown = dist.current; // 画面の位置。ボタンで位置が飛んでも、そこまで滑って動く
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
@@ -211,19 +215,35 @@ export function Walk({
           cb.current.onStop();
         }
       }
-      const p = pointAt(pts, cum, dist.current);
-      const ahead = pointAt(pts, cum, Math.min(total, dist.current + 6));
+      const gap = dist.current - shown;
+      shown = play.current || Math.abs(gap) > 80 ? dist.current : shown + gap * (1 - Math.exp(-dt * 4));
+      const p = pointAt(way, wayAt, shown);
+      const ahead = pointAt(way, wayAt, Math.min(total, shown + 6));
       camera.position.set(p.x, p.y + EYE, p.z);
-      // 向きは水平に。エレベーターの中など前が真上・真下のときは、その先の歩く向き（なければ直前の向き）を見る
-      for (let k = 6; k <= 30; k += 3) {
-        const q = pointAt(pts, cum, Math.min(total, dist.current + k));
-        if (Math.hypot(q.x - p.x, q.z - p.z) >= 1.5) {
-          facing = Math.atan2(q.x - p.x, q.z - p.z);
-          break;
-        }
-        if (dist.current + k >= total) break;
+      // 向きは水平に。少し先（3〜10m）の何点かの平均の方へ、ゆっくり回る（曲がり角で一気に回らない）。
+      // エレベーターの中など前が真上・真下のときは、その先の歩く向きを探し、なければ今の向きのまま
+      let ax = 0;
+      let az = 0;
+      for (let k = 3; k <= 10; k += 1.5) {
+        const q = pointAt(way, wayAt, Math.min(total, shown + k));
+        ax += q.x - p.x;
+        az += q.z - p.z;
       }
-      camera.lookAt(p.x + Math.sin(facing), p.y + EYE - 0.05, p.z + Math.cos(facing));
+      for (let k = 12; Math.hypot(ax, az) < 1.5 && k <= 30 && shown + k <= total + 3; k += 3) {
+        const q = pointAt(way, wayAt, Math.min(total, shown + k));
+        ax = q.x - p.x;
+        az = q.z - p.z;
+      }
+      if (Math.hypot(ax, az) >= 1.5) {
+        const want = Math.atan2(ax, az);
+        if (facing === null) facing = want;
+        else {
+          const turn = ((want - facing + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
+          facing += turn * (1 - Math.exp(-dt * 3));
+        }
+      }
+      const f = facing ?? Math.PI;
+      camera.lookAt(p.x + Math.sin(f), p.y + EYE - 0.05, p.z + Math.cos(f));
       // いまの階と、上り下りの途中なら行き先の階も見せる
       const fNow = p.y / FLOOR_M;
       for (const [f, g] of byFloor) g.visible = Math.abs(f - fNow) < 0.9 || Math.abs(f - ahead.y / FLOOR_M) < 0.5;
@@ -245,7 +265,7 @@ export function Walk({
       ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
       const targets = [carpetMesh, ...[...byFloor.values()].filter((g) => g.visible)];
       const hit = ray.intersectObjects(targets, true)[0];
-      if (hit) cb.current.onPick(nearestOnPath(pts, cum, hit.point));
+      if (hit) cb.current.onPick(nearestOnPath(way, wayAt, hit.point));
     };
     renderer.domElement.addEventListener("pointerup", onTap);
     return () => {
@@ -255,7 +275,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, cum, total, center]);
+  }, [indoor, pts, sm, total, center]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));

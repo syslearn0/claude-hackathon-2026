@@ -99,3 +99,39 @@ export function nearestOnPath(pts: PathPoint[], cum: number[], q: { x: number; y
   }
   return best;
 }
+
+// 歩く目線で見せる道：1m ごとに区切り、同じ高さの続くところだけ前後 win m で横ぶれをならす。
+// 区切りの位置は元の道の距離（cum）のままなので、位置（道順の上の m）はそのまま使える。
+// 階の変わり目（エレベーター・エスカレーターの乗り口と降り口）はずらさない
+export function smoothPath(pts: PathPoint[], cum: number[], step = 1, win = 4): { pts: PathPoint[]; cum: number[] } {
+  const total = cum.at(-1) ?? 0;
+  const at: number[] = [];
+  for (let d = 0; d < total; d += step) at.push(d);
+  pts.forEach((p, i) => {
+    if (i === 0 || i === pts.length - 1 || p.y !== pts[i - 1].y || p.y !== pts[i + 1].y) at.push(cum[i]);
+  });
+  at.push(total);
+  at.sort((a, b) => a - b);
+  const s = at.filter((d, i) => i === 0 || d - at[i - 1] > 1e-6);
+  const raw = s.map((d) => pointAt(pts, cum, d));
+  // 同じ高さが続くまとまり
+  const run: number[] = [];
+  raw.forEach((p, i) => run.push(i > 0 && p.y === raw[i - 1].y ? run[i - 1] : i));
+  const runEnd: number[] = [];
+  for (let i = raw.length - 1; i >= 0; i--) runEnd[i] = i < raw.length - 1 && run[i + 1] === run[i] ? runEnd[i + 1] : i;
+  const out = raw.map((p, i) => {
+    const k = Math.min(win, s[i] - s[run[i]], s[runEnd[i]] - s[i]);
+    if (k < 0.5) return p;
+    let x = 0;
+    let z = 0;
+    let n = 0;
+    for (let j = run[i]; j <= runEnd[i]; j++) {
+      if (Math.abs(s[j] - s[i]) > k) continue;
+      x += raw[j].x;
+      z += raw[j].z;
+      n++;
+    }
+    return { ...p, x: x / n, z: z / n };
+  });
+  return { pts: out, cum: s };
+}
