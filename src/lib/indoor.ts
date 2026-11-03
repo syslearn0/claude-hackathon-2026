@@ -40,3 +40,38 @@ export function parseFloor(s?: string): number | undefined {
   const n = t.match(/^(\d+)\s*(?:F|階)$/i);
   return n ? Number(n[1]) : undefined;
 }
+
+// OSM の level（"0" "-1" "0;1" "0.5"）を日本式の階に。駅の地図と同じく「0 = 1F」とみなす（建物によって違うので目安）
+export function osmLevelFloor(level?: string): number | undefined {
+  const n = Number(level?.split(";")[0]);
+  if (!level?.trim() || !Number.isFinite(n)) return undefined;
+  const m = Math.floor(n);
+  return m < 0 ? m : m + 1;
+}
+
+// 点が多角形の中か（狭い範囲なので緯度経度のまま）
+function inside(p: { lat: number; lon: number }, poly: [number, number][]): boolean {
+  let hit = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [ai, bi] = poly[i];
+    const [aj, bj] = poly[j];
+    if (bi > p.lon !== bj > p.lon && p.lat < ((aj - ai) * (p.lon - bi)) / (bj - bi) + ai) hit = !hit;
+  }
+  return hit;
+}
+
+export type FloorGuess = { floor: number; basis: "data" | "osm" | "inside" };
+export const FLOOR_BASIS_JA: Record<FloorGuess["basis"], string> = { data: "", osm: "OSM の記載から。目安", inside: "駅の地図から推定" };
+
+// 場所の階。① 公式・現地確認の書き方（"B1F" など）② OSM の level（目安）③ 駅の地図の部屋・通路の中にあれば、その階（推定）
+type Floored = { lat: number; lon: number; tier: string; floor?: string; toilet?: { level?: string } };
+export function placeFloor(p: Floored, features: IndoorFeature[] = []): FloorGuess | undefined {
+  const written = parseFloor(p.floor) ?? (p.tier !== "osm" ? parseFloor(p.toilet?.level) : undefined);
+  if (written !== undefined) return { floor: written, basis: "data" };
+  const osm = p.tier === "osm" ? osmLevelFloor(p.toilet?.level) : undefined;
+  if (osm !== undefined) return { floor: osm, basis: "osm" };
+  // 囲んでいる部屋・通路の階が1つに決まるときだけ（重なった階どうしで食い違えば決めない）
+  const around = features.filter((f) => f.closed && f.floors.length > 0 && ["room", "corridor", "area", "platform", "shop"].includes(f.kind) && inside(p, f.coords));
+  const floors = new Set(around.flatMap((f) => f.floors));
+  return floors.size === 1 ? { floor: [...floors][0], basis: "inside" } : undefined;
+}

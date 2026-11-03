@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { NearbyItem } from "@/lib/nearby";
 import { loadProfile } from "@/lib/profile";
 import { displayName } from "@/lib/nearby";
+import { floorLabel, osmLevelFloor } from "@/lib/indoor";
 import type { Tier } from "@/lib/places";
 import { TIER_COLOR } from "./MapView";
 
@@ -67,7 +68,9 @@ export function Details({ item, compact = false }: { item: NearbyItem; compact?:
     if (p.minFromGate !== undefined) lines.push(`改札から ${fmtSec(p.minFromGate)}`);
   }
   if (p.where) lines.push(p.where);
-  const floor = p.floor ?? (p.tier !== "osm" ? p.toilet?.level : undefined);
+  // OSM の level は書き方が建物で違うので、駅の地図と同じ「0 = 1F」で読み、目安と添える
+  const osmFloor = p.tier === "osm" ? osmLevelFloor(p.toilet?.level) : undefined;
+  const floor = p.floor ?? (p.tier !== "osm" ? p.toilet?.level : osmFloor !== undefined ? `${floorLabel(osmFloor)}（OSM の記載から。目安）` : undefined);
   if (floor && !compact) lines.push(floor);
   const stock = Object.entries(p.store?.stock ?? {})
     .filter(([, has]) => has)
@@ -97,7 +100,6 @@ export function Badges({ item }: { item: NearbyItem }) {
   if (p.toilet?.ostomate) tags.push("オストメイト");
   if (p.toilet?.changingTable) tags.push("おむつ台");
   if (p.toilet?.fee) tags.push("有料");
-  // OSM の level は「0 = 地上階」の書き方と日本式の階数が混ざっていて、そのまま「○階」と出すと誤る。いまは出さない
   if (p.store?.customerToilet === true) tags.push("店内トイレあり");
   if (p.store?.storeType === "drugstore") tags.push("ドラッグストア");
   if (p.store?.storeType === "convenience") tags.push("コンビニ");

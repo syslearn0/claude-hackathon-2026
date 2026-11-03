@@ -29,7 +29,7 @@ export type ToiletAttrs = {
   sanitaryBoxMale?: boolean;
   sanitaryBoxFemale?: boolean;
   soap?: boolean;
-  level?: string; // 公式データの階（例："B1F"）。OSM の level は書き方が混ざるので画面には出さない
+  level?: string; // 公式データの階（例："B1F"）。OSM は level の数字（"0" "-1"）で、画面では「0 = 1F」で読んで目安と添える
   queue?: string; // 見たときの行列（現地確認）
   bench?: string; // 近くで座れる場所
   staffDesk?: string; // 近い駅事務室・窓口

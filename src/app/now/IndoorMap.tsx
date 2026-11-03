@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LatLon } from "@/lib/geo";
-import { floorLabel, INDOOR_STATIONS, parseFloor, type Indoor, type IndoorFeature } from "@/lib/indoor";
+import { FLOOR_BASIS_JA, floorLabel, INDOOR_STATIONS, placeFloor, type FloorGuess, type Indoor, type IndoorFeature } from "@/lib/indoor";
 import { pin, type MapPoint } from "./MapView";
 
 // 駅の中の階ごとの地図（試作）。OSM の屋内データを描き、一覧の候補を同じ番号で重ねる。
@@ -145,6 +145,8 @@ export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true
   }
 }
 
+const floorText = (g: FloorGuess) => `${floorLabel(g.floor)}${FLOOR_BASIS_JA[g.basis] ? `・${FLOOR_BASIS_JA[g.basis]}` : ""}`;
+
 const HERE = L.divIcon({
   className: "",
   html: '<div style="background:#d93025;border:3px solid #fff;border-radius:50%;width:16px;height:16px;box-shadow:0 0 0 6px rgba(217,48,37,.25)"></div>',
@@ -160,6 +162,9 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
   const fine = useRef<L.LayerGroup | null>(null);
+  // いま見えている範囲に、この階の屋内データがほとんどないか（空の地図だけを見せないため）
+  const shownFeatures = useRef<IndoorFeature[]>([]);
+  const [sparse, setSparse] = useState(false);
 
   useEffect(() => {
     if (!key) return;
@@ -169,8 +174,9 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       .catch(() => setFailed(true));
   }, [key]);
 
-  // 候補の階（分かるものだけ）
-  const pointFloor = useMemo(() => new Map(points.map((p) => [p.place.id, parseFloor(p.place.floor)])), [points]);
+  // 候補の階（分かるものだけ）。書いてある階 → OSM の level（目安）→ 駅の地図の部屋・通路から推定、の順
+  const guess = useMemo(() => new Map(points.map((p) => [p.place.id, placeFloor(p.place, data?.features)])), [points, data]);
+  const pointFloor = useMemo(() => new Map([...guess].map(([id, g]) => [id, g?.floor])), [guess]);
 
   // 選べる階：地物が多い階だけ（下から上へ）
   const floors = useMemo(() => {
@@ -197,6 +203,11 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       else fine.current!.remove();
     };
     m.on("zoomend", toggleFine);
+    m.on("moveend", () => {
+      const b = m.getBounds();
+      const n = shownFeatures.current.filter((f) => f.closed && b.contains(centerOf(f))).length;
+      setSparse(n < 8);
+    });
     map.current = m;
     return () => {
       m.remove();
@@ -211,6 +222,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     g.clearLayers();
     fine.current?.clearLayers();
     const on = data.features.filter((f) => f.floors.includes(floor));
+    shownFeatures.current = on;
     const near = (f: IndoorFeature) => points.some((p) => Math.hypot((p.place.lat - centerOf(f)[0]) * 111_000, (p.place.lon - centerOf(f)[1]) * 91_000) < 30);
     // 行き先：一番の候補（位置が分かり、この階にあるとき）と現在地。上り下りの手段のどれを目立たせるかに使う
     const top0 = points[0];
@@ -226,7 +238,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       // 駅の代表の位置しか分からない候補は、地図に置くと場所を誤って伝えるので、地図の下に文で出す
       if (p.place.approxLocation || (pf !== undefined && pf !== floor)) continue;
       L.marker([p.place.lat, p.place.lon], { icon: pin(p.n, p.place.tier), opacity: pf === undefined ? 0.55 : 1, zIndexOffset: 1000 })
-        .bindTooltip(pf === undefined ? `${p.n}（階は不明）` : `${p.n}（${floorLabel(pf)}）`)
+        .bindTooltip(pf === undefined ? `${p.n}（階は不明）` : `${p.n}（${floorText(guess.get(p.place.id)!)}）`)
         .addTo(g);
       shown.push([p.place.lat, p.place.lon]);
     }
@@ -258,7 +270,16 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       </div>
       {failed && <p className="muted">駅の中の地図を読み込めませんでした。</p>}
       {!data && !failed && <p className="muted">駅の中の地図を読み込んでいます…</p>}
-      <div ref={box} style={{ height: 340, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 6, background: "#fcfcfa" }} />
+      <div style={{ position: "relative", marginTop: 6 }}>
+        <div ref={box} style={{ height: 340, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", background: "#fcfcfa" }} />
+        {sparse && data && floor !== undefined && (
+          <div
+            style={{ position: "absolute", left: 8, right: 8, bottom: 26, zIndex: 1000, background: "rgba(255,255,255,.92)", color: "#1d1d1b", borderRadius: 8, padding: "6px 8px", fontSize: "0.85rem", pointerEvents: "none" }}
+          >
+            この辺りの{floorLabel(floor)}は、駅の中の地図がほとんどありません（まだ誰も描いていない場所です）。番号の候補と、下の一覧を見てください。
+          </div>
+        )}
+      </div>
       {approx.length > 0 && (
         <div style={{ marginTop: 6 }}>
           地図にない候補（場所は駅の代表の位置しか分からない）：
