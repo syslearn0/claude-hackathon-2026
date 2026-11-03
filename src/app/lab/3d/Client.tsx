@@ -753,13 +753,20 @@ export default function Station3D() {
               {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
             </div>
             <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
-              {view === "walk" ? (
+              <button
+                style={view === "walk" ? { ...BIG, flex: 0.6 } : BIG}
+                aria-label="ひとつ前の確認ポイントへ"
+                onClick={() => {
+                  setPlaying(false);
+                  setPos(prevCheckpoint(cps, pos)?.at ?? 0);
+                }}
+                disabled={pos < 0.5}
+              >
+                {view === "walk" ? "←" : "← 前へ"}
+              </button>
+              {view === "walk" && (
                 <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))} disabled={track}>
                   {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
-                </button>
-              ) : (
-                <button style={BIG} onClick={() => setPos(prevCheckpoint(cps, pos)?.at ?? 0)} disabled={pos < 0.5}>
-                  ← 前へ
                 </button>
               )}
               {next ? (
@@ -805,7 +812,7 @@ export default function Station3D() {
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        いまの手順のまわりと、通る階だけを出しています。指で回す・2本指で拡大。地下では現在地が取れないので、「着いたら押す」かセンサーで進めます。
+        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、「着いたら押す」かセンサーで進めます。
       </p>
 
       {/* ④ 条件を変える */}

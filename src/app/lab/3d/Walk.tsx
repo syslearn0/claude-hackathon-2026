@@ -9,7 +9,8 @@ import { FLOOR_M, nearestOnPath, pointAt, smoothPath, type Maneuver, type PathPo
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・「着いたら押す」・タップで変わる）。
 // ここでは、その位置から見た景色と次の曲がり角を描くだけ。「▶ 歩く」（playing）のときは自分で進めて知らせる。
-// 壁は、部屋・店の形を 2.8m 立ち上げたもの。いまいる階（と上り下りの途中の階）だけを見せる。
+// 壁は、部屋・店の形を 2.8m 立ち上げたものと、階の外形（国交省のデータの「床」）のふち。改札は腰の高さの仕切り。
+// いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
 
 const EYE = 1.6;
 const SPEED = 1.3; // m/秒（少し速めに歩く）
@@ -94,6 +95,7 @@ export function Walk({
     scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9a92, 2.2));
     const kx = 111_320 * Math.cos((center.lat * Math.PI) / 180);
     const xz = (lat: number, lon: number) => new THREE.Vector2((lon - center.lon) * kx, (lat - center.lat) * 110_540);
+    const { pts: way, cum: wayAt } = sm;
 
     // 階ごとの床と壁
     const byFloor = new Map<number, THREE.Group>();
@@ -135,6 +137,65 @@ export function Walk({
       const m = mergeGeometries(gs);
       if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xd8d4c8 })));
     }
+    // 立てた面（ふちに沿った帯）。道順がまたぐところは開けておく（出入口）
+    const ribbons = new Map<string, { fl: number; color: number; opacity: number; pos: number[] }>();
+    const crossesRoute = (fl: number, ax: number, az: number, bx: number, bz: number) => {
+      for (let i = 1; i < way.length; i++) {
+        const p = way[i - 1];
+        const q = way[i];
+        if (Math.abs(p.y - fl * FLOOR_M) > 0.1 || Math.abs(q.y - fl * FLOOR_M) > 0.1) continue;
+        const d1 = (bx - ax) * (p.z - az) - (bz - az) * (p.x - ax);
+        const d2 = (bx - ax) * (q.z - az) - (bz - az) * (q.x - ax);
+        const d3 = (q.x - p.x) * (az - p.z) - (q.z - p.z) * (ax - p.x);
+        const d4 = (q.x - p.x) * (bz - p.z) - (q.z - p.z) * (bx - p.x);
+        if (d1 * d2 <= 0 && d3 * d4 <= 0) return true;
+      }
+      return false;
+    };
+    const ribbon = (key: string, fl: number, coords: [number, number][], closed: boolean, h: number, color: number, opacity: number, openForRoute: boolean) => {
+      const r = ribbons.get(key) ?? { fl, color, opacity, pos: [] };
+      ribbons.set(key, r);
+      const v = coords.map(([lat, lon]) => xz(lat, lon));
+      const y = fl * FLOOR_M;
+      for (let i = 1; i < v.length + (closed ? 1 : 0); i++) {
+        const a = v[i - 1];
+        const b = v[i % v.length];
+        if (openForRoute && crossesRoute(fl, a.x, -a.y, b.x, -b.y)) continue;
+        r.pos.push(a.x, y, -a.y, b.x, y, -b.y, a.x, y + h, -a.y, b.x, y, -b.y, b.x, y + h, -b.y, a.x, y + h, -a.y);
+      }
+    };
+    // 上り下りの手段の床（エスカレーター・階段）と、エレベーターの箱
+    const pads = new Map<string, { fl: number; color: number; gs: THREE.BufferGeometry[] }>();
+    const PAD = { escalator: 0x8a63b8, steps: 0xa8875c, elevator: 0x1e7a3c } as Record<string, number>;
+    for (const f of indoor.features) {
+      if (f.coords.length < 2) continue;
+      for (const fl of f.floors) {
+        if (f.tags?.category === "floor" && f.closed) ribbon(`wall${fl}`, fl, f.coords, true, 2.8, 0xc9c4b6, 0.55, true);
+        else if (f.tags?.indoor === "wall") ribbon(`wall${fl}`, fl, f.coords, f.closed, 2.8, 0xc9c4b6, 0.55, true);
+        else if (f.kind === "gate") ribbon(`gate${fl}`, fl, f.coords, f.closed, 1.0, 0x4a5a6a, 0.45, false);
+        else if (f.closed && f.coords.length >= 3 && f.kind in PAD) {
+          const shape = new THREE.Shape(f.coords.map(([lat, lon]) => xz(lat, lon)));
+          const g = f.kind === "elevator" ? new THREE.ExtrudeGeometry(shape, { depth: 2.6, bevelEnabled: false }) : new THREE.ShapeGeometry(shape);
+          g.rotateX(-Math.PI / 2);
+          g.translate(0, fl * FLOOR_M + 0.02, 0);
+          const k = `${f.kind}${fl}`;
+          const pad = pads.get(k) ?? { fl, color: PAD[f.kind], gs: [] };
+          pad.gs.push(g);
+          pads.set(k, pad);
+        }
+      }
+    }
+    for (const r of ribbons.values()) {
+      if (!r.pos.length) continue;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(r.pos, 3));
+      g.computeVertexNormals();
+      floorGroup(r.fl).add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: r.color, side: THREE.DoubleSide, transparent: true, opacity: r.opacity, depthWrite: false })));
+    }
+    for (const pad of pads.values()) {
+      const m = mergeGeometries(pad.gs);
+      if (m) floorGroup(pad.fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: pad.color, side: THREE.DoubleSide, transparent: true, opacity: 0.55, depthWrite: false })));
+    }
     // 床のデータがない駅（OSM だけの駅など）でも、足元が見えるように広い床を敷く
     for (const f of new Set(pts.map((p) => Math.round(p.floor)))) {
       const g = new THREE.PlaneGeometry(400, 400);
@@ -147,7 +208,6 @@ export function Walk({
     const tex = chevronTexture();
     const pos: number[] = [];
     const uv: number[] = [];
-    const { pts: way, cum: wayAt } = sm;
     for (let i = 1; i < way.length; i++) {
       const a = way[i - 1];
       const b = way[i];
@@ -201,6 +261,7 @@ export function Walk({
     let lastHud = 0;
     let facing: number | null = null; // 水平の向き（ラジアン。+z からの角度）
     let shown = dist.current; // 画面の位置。ボタンで位置が飛んでも、そこまで滑って動く
+    const look = { yaw: 0, pitch: 0, last: -Infinity }; // 指で見渡した分。離して 2.5 秒たつと前に戻る
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
@@ -242,8 +303,13 @@ export function Walk({
           facing += turn * (1 - Math.exp(-dt * 3));
         }
       }
-      const f = facing ?? Math.PI;
-      camera.lookAt(p.x + Math.sin(f), p.y + EYE - 0.05, p.z + Math.cos(f));
+      if (now - look.last > 2500) {
+        const k = Math.exp(-dt * 2.5);
+        look.yaw *= k;
+        look.pitch *= k;
+      }
+      const f = (facing ?? Math.PI) + look.yaw;
+      camera.lookAt(p.x + Math.sin(f), p.y + EYE - 0.05 + Math.tan(look.pitch), p.z + Math.cos(f));
       // いまの階と、上り下りの途中なら行き先の階も見せる
       const fNow = p.y / FLOOR_M;
       for (const [f, g] of byFloor) g.visible = Math.abs(f - fNow) < 0.9 || Math.abs(f - ahead.y / FLOOR_M) < 0.5;
@@ -259,6 +325,25 @@ export function Walk({
     window.addEventListener("resize", onResize);
     // 位置を直す：タップしたところ（見えている床か矢印の帯）にいちばん近い、道順の上の位置へ
     const ray = new THREE.Raycaster();
+    let drag: { x: number; y: number; moved: number } | null = null;
+    const onDown = (e: PointerEvent) => {
+      drag = { x: e.clientX, y: e.clientY, moved: 0 };
+      renderer.domElement.setPointerCapture(e.pointerId);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      const dy = e.clientY - drag.y;
+      drag = { x: e.clientX, y: e.clientY, moved: drag.moved + Math.hypot(dx, dy) };
+      look.yaw += dx * 0.006;
+      look.pitch = Math.max(-0.7, Math.min(0.7, look.pitch + dy * 0.004));
+      look.last = performance.now();
+    };
+    const onUp = (e: PointerEvent) => {
+      const tap = drag && drag.moved < 8;
+      drag = null;
+      if (tap) onTap(e);
+    };
     const onTap = (e: PointerEvent) => {
       if (!pick.current) return;
       const r = el.getBoundingClientRect();
@@ -267,10 +352,14 @@ export function Walk({
       const hit = ray.intersectObjects(targets, true)[0];
       if (hit) cb.current.onPick(nearestOnPath(way, wayAt, hit.point));
     };
-    renderer.domElement.addEventListener("pointerup", onTap);
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointermove", onMove);
+    renderer.domElement.addEventListener("pointerup", onUp);
     return () => {
       cancelAnimationFrame(raf);
-      renderer.domElement.removeEventListener("pointerup", onTap);
+      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointermove", onMove);
+      renderer.domElement.removeEventListener("pointerup", onUp);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
       el.removeChild(renderer.domElement);
