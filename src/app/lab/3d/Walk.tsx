@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
-import { FLOOR_M, maneuvers, pointAt, routePath } from "@/lib/maneuvers";
-import type { GuideStep, Network, Route } from "@/lib/route";
+import { FLOOR_M, nearestOnPath, pointAt, type Maneuver, type PathPoint } from "@/lib/maneuvers";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
-// 地下で現在地が取れなくても使える。進み方は「▶ 歩く」（自動）か「次の曲がり角へ」。
+// 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・「着いたら押す」・タップで変わる）。
+// ここでは、その位置から見た景色と次の曲がり角を描くだけ。「▶ 歩く」（playing）のときは自分で進めて知らせる。
 // 壁は、部屋・店の形を 2.8m 立ち上げたもの。いまいる階（と上り下りの途中の階）だけを見せる。
 
 const EYE = 1.6;
-const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 }; // 押しやすい大きさ（上から見る画面と同じ）
 const SPEED = 1.3; // m/秒（少し速めに歩く）
 
 // 矢印の帯の模様（進む向きが上）
@@ -39,29 +38,45 @@ function chevronTexture() {
 }
 
 export function Walk({
-  net,
   indoor,
-  route,
+  pts,
+  cum,
+  list,
   center,
-  goal,
-  steps,
   floorName,
+  pos,
+  onPos,
+  playing,
+  onStop,
+  picking,
+  onPick,
 }: {
-  net: Network;
   indoor: Indoor;
-  route: Route;
+  pts: PathPoint[];
+  cum: number[];
+  list: Maneuver[]; // 文は呼ぶ側で作る（「エスカレーターで B5（ホーム）→ B3（改札の階）」）
   center: { lat: number; lon: number };
-  goal: string;
-  steps: GuideStep[]; // 文は呼ぶ側で作る（「エスカレーターで B5（ホーム）→ B3（改札の階）」）
   floorName: (f: number) => string;
+  pos: number;
+  onPos: (d: number) => void;
+  playing: boolean;
+  onStop: () => void;
+  picking: boolean; // 「地図で位置を直す」：次のタップで、そこを今の位置にする
+  onPick: (d: number) => void;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const { pts, cum } = useMemo(() => routePath(net, route, center), [net, route, center]);
   const total = cum.at(-1) ?? 0;
-  const list = useMemo(() => maneuvers(pts, cum, steps), [pts, cum, steps]);
-  const dist = useRef(0);
-  const [hud, setHud] = useState({ d: 0, playing: false });
-  const playing = useRef(false);
+  const dist = useRef(pos);
+  const play = useRef(playing);
+  const pick = useRef(picking);
+  const cb = useRef({ onPos, onStop, onPick });
+  // 外で位置が変わったら合わせる（自分で歩いている途中の小さな差は、自分の位置のまま）
+  useLayoutEffect(() => {
+    if (!playing || Math.abs(pos - dist.current) > 2) dist.current = pos;
+    play.current = playing;
+    pick.current = picking;
+    cb.current = { onPos, onStop, onPick };
+  }, [pos, playing, picking, onPos, onStop, onPick]);
 
   useEffect(() => {
     const el = box.current;
@@ -154,7 +169,8 @@ export function Walk({
     const carpet = new THREE.BufferGeometry();
     carpet.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
     carpet.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-    scene.add(new THREE.Mesh(carpet, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, opacity: 0.92 })));
+    const carpetMesh = new THREE.Mesh(carpet, new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true, opacity: 0.92 }));
+    scene.add(carpetMesh);
 
     // 行き先の目印（青い柱）
     const end = pts.at(-1)!;
@@ -184,9 +200,16 @@ export function Walk({
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (playing.current) {
+      if (play.current) {
         dist.current = Math.min(total, dist.current + dt * SPEED);
-        if (dist.current >= total) playing.current = false;
+        if (now - lastHud > 120 || dist.current >= total) {
+          lastHud = now;
+          cb.current.onPos(dist.current);
+        }
+        if (dist.current >= total) {
+          play.current = false;
+          cb.current.onStop();
+        }
       }
       const p = pointAt(pts, cum, dist.current);
       const ahead = pointAt(pts, cum, Math.min(total, dist.current + 6));
@@ -205,10 +228,6 @@ export function Walk({
       const fNow = p.y / FLOOR_M;
       for (const [f, g] of byFloor) g.visible = Math.abs(f - fNow) < 0.9 || Math.abs(f - ahead.y / FLOOR_M) < 0.5;
       renderer.render(scene, camera);
-      if (now - lastHud > 120) {
-        lastHud = now;
-        setHud({ d: dist.current, playing: playing.current });
-      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -218,28 +237,39 @@ export function Walk({
       renderer.setSize(el.clientWidth, el.clientHeight);
     };
     window.addEventListener("resize", onResize);
+    // 位置を直す：タップしたところ（見えている床か矢印の帯）にいちばん近い、道順の上の位置へ
+    const ray = new THREE.Raycaster();
+    const onTap = (e: PointerEvent) => {
+      if (!pick.current) return;
+      const r = el.getBoundingClientRect();
+      ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+      const targets = [carpetMesh, ...[...byFloor.values()].filter((g) => g.visible)];
+      const hit = ray.intersectObjects(targets, true)[0];
+      if (hit) cb.current.onPick(nearestOnPath(pts, cum, hit.point));
+    };
+    renderer.domElement.addEventListener("pointerup", onTap);
     return () => {
       cancelAnimationFrame(raf);
+      renderer.domElement.removeEventListener("pointerup", onTap);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
   }, [indoor, pts, cum, total, center]);
 
-  const next = list.find((m) => m.at > hud.d + 0.5) ?? list.at(-1)!;
-  const toNext = Math.max(0, Math.round(next.at - hud.d));
-  const left = Math.max(0, Math.round(total - hud.d));
-  const arrived = hud.d >= total - 0.5;
+  const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
+  const toNext = Math.max(0, Math.round(next.at - pos));
+  const arrived = pos >= total - 0.5;
   const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : "◎";
-  const here = pointAt(pts, cum, hud.d);
+  const here = pointAt(pts, cum, pos);
 
   return (
-    <div style={{ position: "relative" }}>
+    <>
       <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
       {/* 上：次の曲がり角 */}
       <div style={{ position: "absolute", left: 8, right: 8, top: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" }}>
         {arrived ? (
-          <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ 到着しました</div>
+          <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
         ) : (
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>
             {icon} {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
@@ -247,36 +277,6 @@ export function Walk({
         )}
         <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>いま：{floorName(Math.round(here.floor * 2) / 2)}</div>
       </div>
-      {/* 下：行き先と残り */}
-      <div style={{ position: "absolute", left: 8, right: 8, bottom: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "8px 10px" }}>
-        <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {goal}・のこり {left} メートル
-        </div>
-        <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
-          <button
-            style={BIG}
-            onClick={() => {
-              if (arrived) dist.current = 0;
-              playing.current = !playing.current;
-            }}
-          >
-            {hud.playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
-          </button>
-          <button
-            className="primary"
-            style={{ ...BIG, flex: 2 }}
-            onClick={() => {
-              playing.current = false;
-              // 曲がり角の少し手前で止まる。いまの止まり位置より先の、次の止まり位置へ（最後は到着）
-              const stops = list.map((m) => (m.kind === "arrive" ? total : Math.max(0, m.at - 1.5)));
-              dist.current = stops.find((s) => s > dist.current + 0.5) ?? total;
-            }}
-            disabled={arrived}
-          >
-            次の曲がり角へ →
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

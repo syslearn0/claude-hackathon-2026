@@ -1,20 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { barometerAvailable, heightDiffM, watchPressure } from "@/lib/barometer";
 import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
+import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
+import { advanceBySteps, checkpoints, nextCheckpoint, prevCheckpoint, snapFloor, snapTurn, STEP_M, StepCounter, TurnWatcher, yawRate, type Checkpoint } from "@/lib/tracking";
 import { Walk } from "./Walk";
 
 // 試作：駅の中の道順を 3D で見る。急いでいる人が読む順に並べる：
 //   ① トイレまで何分・何m、② いまの一手（「エスカレーターで B5（ホーム）→ B3（改札の階）」）、③ 自分のまわりだけを切り出した 3D、④ 条件を変える
+// 自分の位置は「道順の上で何 m 進んだか」の1つの数（pos）。歩く目線・上から見る・センサー・「着いたら押す」・地図のタップのどれで変えても同じ。
 // 3D は、いまの手順の始まりを中心に半径 CROP_M だけを、出発と行き先の間の階だけ描く（駅の全体は情報が多すぎる）。
 
 const CROP_M = 70;
@@ -71,6 +75,7 @@ export default function Station3D() {
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
+  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite } | null>(null);
 
   useEffect(() => {
     fetch("/api/places")
@@ -182,12 +187,136 @@ export default function Station3D() {
   }, [net, starts, startIdx, goal, mode]);
   const guide = useMemo(() => (route ? guideSteps(route) : []), [route]);
   const routeKey = route?.nodes.join(",") ?? "";
-  const [stepState, setStepState] = useState({ key: "", idx: 0 });
-  // stepIdx が guide.length のときは「着いた」
-  const stepIdx = stepState.key === routeKey ? Math.min(stepState.idx, guide.length) : 0;
-  const setStep = (idx: number) => setStepState({ key: routeKey, idx });
-  const arrived = guide.length > 0 && stepIdx >= guide.length;
-  const current = guide[Math.min(stepIdx, guide.length - 1)];
+  const path = useMemo(() => (route && net ? routePath(net, route, center) : { pts: [], cum: [0] }), [net, route, center]);
+  const total = path.cum.at(-1) ?? 0;
+  const list = useMemo(() => (path.pts.length ? maneuvers(path.pts, path.cum, guide) : []), [path, guide]);
+  const cps = useMemo(() => checkpoints(list), [list]);
+  const [posState, setPosState] = useState({ key: "", d: 0 });
+  const pos = posState.key === routeKey ? Math.min(posState.d, total) : 0;
+  const setPos = useCallback((d: number) => setPosState({ key: routeKey, d }), [routeKey]);
+  const arrived = total > 0 && pos >= total - 0.5;
+  let stepIdx = 0;
+  guide.forEach((g, i) => {
+    if (path.cum[g.from] <= pos + 0.5) stepIdx = i;
+  });
+  const current = guide[stepIdx];
+  const next = nextCheckpoint(cps, pos);
+  const [playing, setPlaying] = useState(false); // 歩く目線の「▶ 歩く」（試しに自動で進める）
+  const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
+  const [track, setTrack] = useState(false); // センサーで追う
+  const [trackNote, setTrackNote] = useState("");
+  const live = useRef({ pos, cps, picking, path, pick: (d: number) => setPos(d) });
+  useLayoutEffect(() => {
+    live.current = {
+      pos,
+      cps,
+      picking,
+      path,
+      pick: (d: number) => {
+        setPos(d);
+        setPicking(false);
+        setPlaying(false);
+      },
+    };
+  });
+
+  // 確認ポイントの呼び方と、そこで押すボタン
+  const cpLabel = (c: Checkpoint) =>
+    c.kind === "turn"
+      ? `${c.dir === "right" ? "右" : "左"}に曲がる角`
+      : c.kind === "board"
+        ? `${KIND_JA[c.via!]}の乗り口`
+        : c.kind === "alight"
+          ? `${KIND_JA[c.via!]}を降りたところ・${floorName(c.toFloor!)}`
+          : "トイレ";
+  const cpButton = (c: Checkpoint) => (c.kind === "alight" ? `${KIND_JA[c.via!]}を降りたら押す` : c.kind === "arrive" ? "トイレに着いたら押す" : `${cpLabel(c)}に着いたら押す`);
+  // 歩く目線の上の案内の文（上り下りは手順の文と同じ言い方に）
+  const listText: Maneuver[] = list.map((m) => {
+    const g = m.kind === "floor" ? guide.find((x) => path.cum[x.from] === m.at && x.fromFloor !== x.toFloor) : undefined;
+    return g ? { ...m, text: stepText(g) } : m;
+  });
+
+  // センサーで追う：歩数で進め、曲がった・気圧で階が変わったら近くの確認ポイントに合わせ直す
+  useEffect(() => {
+    if (!track) return;
+    const steps = new StepCounter();
+    const turns = new TurnWatcher();
+    let n = 0;
+    let fixes = 0;
+    let got = false;
+    let baro = "";
+    let alive = true;
+    let stopBaro: (() => void) | undefined;
+    const note = () => setTrackNote(`歩数 ${n}・曲がり角などで自動で合わせ直した ${fixes} 回${baro}`);
+    const go = (d: number | undefined, fix: boolean) => {
+      if (d === undefined || Math.abs(d - live.current.pos) < 0.05) return;
+      if (fix) fixes++;
+      setPos(d);
+      note();
+    };
+    const onMotion = (e: DeviceMotionEvent) => {
+      const g = e.accelerationIncludingGravity;
+      if (g?.x == null || g.y == null || g.z == null) return;
+      got = true;
+      if (steps.push(e.timeStamp, Math.hypot(g.x, g.y, g.z))) {
+        n++;
+        go(advanceBySteps(live.current.cps, live.current.pos, STEP_M), false);
+        note();
+      }
+      const r = e.rotationRate;
+      if (r?.alpha == null || r.beta == null || r.gamma == null) return;
+      const dir = turns.push(e.timeStamp, yawRate({ alpha: r.alpha, beta: r.beta, gamma: r.gamma }, { x: g.x, y: g.y, z: g.z }));
+      if (dir) go(snapTurn(live.current.cps, live.current.pos, dir), true);
+    };
+    window.addEventListener("devicemotion", onMotion);
+    const check = setTimeout(() => {
+      if (!got) setTrackNote("動きのセンサーが届いていません（パソコンのときなど）。「着いたら押す」と地図のタップで進めてください。");
+    }, 3000);
+    barometerAvailable().then(async (ok) => {
+      if (!ok || !alive) return;
+      baro = "・気圧で階の変化も見ています";
+      note();
+      let smooth: number | undefined;
+      let base: number | undefined;
+      const t0 = Date.now();
+      const stop = await watchPressure((p) => {
+        smooth = smooth === undefined ? p : smooth + (p - smooth) * 0.2;
+        if (base === undefined || Date.now() - t0 < 2000) {
+          base = smooth;
+          return;
+        }
+        const h = heightDiffM(base, smooth);
+        if (Math.abs(h) < 3.5) return;
+        base = smooth;
+        go(snapFloor(live.current.cps, live.current.pos, h > 0), true);
+      });
+      if (alive) stopBaro = stop;
+      else stop();
+    });
+    return () => {
+      alive = false;
+      window.removeEventListener("devicemotion", onMotion);
+      clearTimeout(check);
+      stopBaro?.();
+    };
+  }, [track, setPos]);
+  const toggleTrack = async () => {
+    if (track) {
+      setTrack(false);
+      setTrackNote("");
+      return;
+    }
+    // iPhone は、ボタンを押したときに許可を聞く。断られても止めない（届かなければ 3 秒後に知らせる）
+    const DM = (window as unknown as { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } }).DeviceMotionEvent;
+    try {
+      await DM?.requestPermission?.();
+    } catch {
+      // 許可を聞けない（http のときなど）。そのまま試す
+    }
+    setPlaying(false);
+    setTrackNote("センサーで追っています。スマホを手に持って歩いてください。");
+    setTrack(true);
+  };
 
   // 3D の舞台
   useEffect(() => {
@@ -219,9 +348,25 @@ export default function Station3D() {
       renderer.setSize(el.clientWidth, el.clientHeight);
     };
     window.addEventListener("resize", onResize);
+    // 位置を直す：回す・拡大の操作と分けるため、ほとんど動かさずに離したときだけ
+    const ray = new THREE.Raycaster();
+    let down: { x: number; y: number } | null = null;
+    const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY });
+    const onUp = (e: PointerEvent) => {
+      const { picking, path, pick } = live.current;
+      if (!picking || !down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return;
+      const r = el.getBoundingClientRect();
+      ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+      const hit = ray.intersectObjects(layer.children, false).find((h) => !(h.object instanceof THREE.Sprite));
+      if (hit) pick(nearestOnPath(path.pts, path.cum, hit.point, FLOOR_H / FLOOR_M));
+    };
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointerup", onUp);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
+      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointerup", onUp);
       controls.dispose();
       renderer.dispose();
       el.removeChild(renderer.domElement);
@@ -300,14 +445,13 @@ export default function Station3D() {
     s.layer.add(tube(pts, 0.8, COLOR.route));
     if (!arrived && current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now));
 
-    // あなた（いまの手順の始まり）・トイレ
+    // あなた（位置は下の効果で動かす）・トイレ
     const you = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: COLOR.you }));
     const youAt = arrived ? pts.at(-1)! : pts[current.from];
-    you.position.copy(youAt);
     s.layer.add(you);
     const youSign = sign("あなた", "rgba(217,48,37,.92)", 180);
-    youSign.position.copy(youAt).add(new THREE.Vector3(0, 6, 0));
     s.layer.add(youSign);
+    youMark.current = { you, sign: youSign };
     const end = pts.at(-1)!;
     const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
     wc.position.copy(end).add(new THREE.Vector3(0, 2.5, 0));
@@ -335,6 +479,14 @@ export default function Station3D() {
     // floorName は描くたびに作り直しているので、依存に入れない（階の役割が変わるのは駅を替えたときだけ）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indoor, net, route, current, arrived, toXYZ]);
+  useEffect(() => {
+    const m = youMark.current;
+    if (!m || !path.pts.length) return;
+    const p = pointAt(path.pts, path.cum, pos);
+    const v = new THREE.Vector3(p.x, (p.y / FLOOR_M) * FLOOR_H + 0.6, p.z);
+    m.you.position.copy(v);
+    m.sign.position.copy(v).add(new THREE.Vector3(0, 6, 0));
+  }, [pos, path, current, arrived]);
 
   const startLabel = starts[startIdx]?.label;
 
@@ -412,60 +564,98 @@ export default function Station3D() {
           歩く目線
         </button>
       </div>
-      {view === "walk" && route && net && indoor && goal && (
-        <div style={{ marginTop: 8 }}>
+      <div style={{ position: "relative", marginTop: 8 }}>
+        {view === "walk" && route && indoor && goal && (
           <Walk
             key={routeKey}
-            net={net}
             indoor={indoor}
-            route={route}
+            pts={path.pts}
+            cum={path.cum}
+            list={listText}
             center={center}
-            goal={goal.short}
-            steps={guide.map((g, i) => ({ ...g, text: stepText(g, guide[i + 1]) }))}
             floorName={floorName}
+            pos={pos}
+            onPos={setPos}
+            playing={playing}
+            onStop={() => setPlaying(false)}
+            picking={picking}
+            onPick={(d) => live.current.pick(d)}
           />
-        </div>
-      )}
-      {/* 上から見る 3D。いまの手順は上に、進めるボタンは下に重ねる（歩く目線と同じ並び） */}
-      <div style={{ position: "relative", marginTop: 8, display: view === "above" ? "block" : "none" }}>
-        <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
-        {route && goal && current && (
-          <>
-            <div style={{ ...HUD, top: 8 }}>
-              {arrived ? (
-                <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
-              ) : (
-                <>
-                  <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
-                    いまの手順（{stepIdx + 1} / {guide.length}）
-                  </div>
-                  <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepText(current, guide[stepIdx + 1])}</div>
-                  {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepText(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
-                </>
-              )}
-            </div>
-            <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
-              <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {goal.short}・のこり {Math.round(guide.slice(stepIdx).reduce((m, g) => m + g.meters, 0))} メートル
+        )}
+        <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }} />
+        {view === "above" && route && goal && current && (
+          <div style={{ ...HUD, top: 8 }}>
+            {arrived ? (
+              <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
+            ) : (
+              <>
+                <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
+                  いまの手順（{stepIdx + 1} / {guide.length}）
+                </div>
+                <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepText(current, guide[stepIdx + 1])}</div>
+                {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepText(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
+              </>
+            )}
+          </div>
+        )}
+        {/* 下：次の確認ポイントと、着いたら押すボタン（どちらの見方でも同じ場所） */}
+        {route && goal && (
+          <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+            {picking ? (
+              <div style={{ fontWeight: 800 }}>📍 道順の上の、いまいるところをタップしてください</div>
+            ) : next ? (
+              <div style={{ fontWeight: 800 }}>
+                次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
               </div>
-              <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
-                <button style={BIG} onClick={() => setStep(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
+            ) : (
+              <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
+            )}
+            <div style={{ fontSize: "0.8rem", opacity: 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
+            </div>
+            <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
+              {view === "walk" ? (
+                <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))} disabled={track}>
+                  {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+                </button>
+              ) : (
+                <button style={BIG} onClick={() => setPos(prevCheckpoint(cps, pos)?.at ?? 0)} disabled={pos < 0.5}>
                   ← 前へ
                 </button>
-                {arrived ? (
-                  <button style={{ ...BIG, flex: 2 }} onClick={() => setStep(0)}>
-                    ↺ 最初から
-                  </button>
-                ) : (
-                  <button className="primary" style={{ ...BIG, flex: 2 }} onClick={() => setStep(stepIdx + 1)}>
-                    {stepIdx >= guide.length - 1 ? "トイレに着いたら押す" : "できたら次へ →"}
-                  </button>
-                )}
-              </div>
+              )}
+              {next ? (
+                <button
+                  className="primary"
+                  style={{ ...BIG, flex: 2 }}
+                  onClick={() => {
+                    setPlaying(false);
+                    setPos(next.at);
+                  }}
+                >
+                  {cpButton(next)}
+                </button>
+              ) : (
+                <button style={{ ...BIG, flex: 2 }} onClick={() => setPos(0)}>
+                  ↺ 最初から
+                </button>
+              )}
             </div>
-          </>
+          </div>
         )}
       </div>
+      <div className="chips" style={{ marginTop: 6 }}>
+        <button aria-pressed={track} onClick={toggleTrack}>
+          📡 センサーで位置を追う（試作）
+        </button>
+        <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
+          📍 地図で位置を直す
+        </button>
+      </div>
+      {trackNote && (
+        <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
+          {trackNote}
+        </p>
+      )}
       {view === "above" && (
         <div className="chips muted" style={{ fontSize: "0.8rem", marginTop: 6 }}>
           <span style={{ color: "#f2b705" }}>━ いまの手順</span>
@@ -476,7 +666,7 @@ export default function Station3D() {
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        いまの手順のまわりと、通る階だけを出しています。指で回す・2本指で拡大。
+        いまの手順のまわりと、通る階だけを出しています。指で回す・2本指で拡大。地下では現在地が取れないので、「着いたら押す」かセンサーで進めます。
       </p>
 
       {/* ④ 条件を変える */}
@@ -520,7 +710,7 @@ export default function Station3D() {
           </summary>
           <ol style={{ paddingLeft: 20, margin: "6px 0 0" }}>
             {guide.map((g, i) => (
-              <li key={i} onClick={() => setStep(i)} style={{ fontWeight: i === stepIdx ? 800 : 400, cursor: "pointer" }}>
+              <li key={i} onClick={() => setPos(path.cum[g.from])} style={{ fontWeight: i === stepIdx ? 800 : 400, cursor: "pointer" }}>
                 {stepText(g, guide[i + 1])}
               </li>
             ))}

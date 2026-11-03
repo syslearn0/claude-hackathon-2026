@@ -1,11 +1,12 @@
 // 経路の形から、曲がり角ごとの案内（「7m 先を右方向」「エスカレーターで B3 → B1」）を作る。
 // 歩く目線の 3D（/lab/3d の「歩く」）で使う。距離は経路に沿った長さ（m）。上り下りの高さも足す（1階 5m とみなす）。
-import type { GuideStep, Network, Route } from "./route";
+import type { GuideStep, KindName, Network, Route } from "./route";
 
 export const FLOOR_M = 5; // 1階ぶんの高さ（m）。歩く目線では実際に近い高さで描く
 
 export type PathPoint = { x: number; y: number; z: number; floor: number }; // x：東、z：南、y：上（m）
-export type Maneuver = { at: number; kind: "left" | "right" | "floor" | "arrive"; text: string };
+// 階が変わるところは、乗り口（at）と降り口（end）、手段（via）、行き先の階も持つ
+export type Maneuver = { at: number; kind: "left" | "right" | "floor" | "arrive"; text: string; end?: number; via?: KindName; toFloor?: number; up?: boolean };
 
 // 経路の点を、駅の中心からの m の座標に
 export function routePath(net: Network, route: Route, center: { lat: number; lon: number }): { pts: PathPoint[]; cum: number[] } {
@@ -59,7 +60,7 @@ const heading = (a: PathPoint, b: PathPoint) => (Math.atan2(b.x - a.x, -(b.z - a
 export function maneuvers(pts: PathPoint[], cum: number[], steps: GuideStep[]): Maneuver[] {
   const out: Maneuver[] = [];
   // 階が変わるところ（エスカレーター・階段・エレベーター）
-  for (const s of steps) if (s.fromFloor !== s.toFloor) out.push({ at: cum[s.from], kind: "floor", text: s.text });
+  for (const s of steps) if (s.fromFloor !== s.toFloor) out.push({ at: cum[s.from], kind: "floor", text: s.text, end: cum[s.to], via: s.kind, toFloor: s.toFloor, up: s.toFloor > s.fromFloor });
   // 同じ階の続くところごとに、ならしてから 40 度より大きく曲がるところ
   let start = 0;
   for (let i = 1; i <= pts.length; i++) {
@@ -78,4 +79,23 @@ export function maneuvers(pts: PathPoint[], cum: number[], steps: GuideStep[]): 
   out.sort((a, b) => a.at - b.at);
   out.push({ at: cum.at(-1)!, kind: "arrive", text: "到着" });
   return out;
+}
+
+// 点 q にいちばん近い、経路の上の位置（始まりからの m）。yk は高さの縮尺（3D の描き方が違うとき）
+export function nearestOnPath(pts: PathPoint[], cum: number[], q: { x: number; y: number; z: number }, yk = 1): number {
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 1; i < pts.length; i++) {
+    const a = { x: pts[i - 1].x, y: pts[i - 1].y * yk, z: pts[i - 1].z };
+    const b = { x: pts[i].x, y: pts[i].y * yk, z: pts[i].z };
+    const v = { x: b.x - a.x, y: b.y - a.y, z: b.z - a.z };
+    const len2 = v.x * v.x + v.y * v.y + v.z * v.z;
+    const t = len2 ? Math.max(0, Math.min(1, ((q.x - a.x) * v.x + (q.y - a.y) * v.y + (q.z - a.z) * v.z) / len2)) : 0;
+    const d = Math.hypot(a.x + v.x * t - q.x, a.y + v.y * t - q.y, a.z + v.z * t - q.z);
+    if (d < bestD) {
+      bestD = d;
+      best = cum[i - 1] + (cum[i] - cum[i - 1]) * t;
+    }
+  }
+  return best;
 }
