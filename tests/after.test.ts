@@ -29,7 +29,7 @@ test("簡易版：下着を汚した → 替えを買う店と、着替える場
 
 test("簡易版：帰るか続けるかは選択肢として並べるだけ", () => {
   const r = buildAfterFallback(places, from, ["soiled_clothes", "dispose", "not_yet", "go_home"]);
-  assert.match(r.steps.at(-1)!.text, /あなたが決めて.*準備中/);
+  assert.match(r.steps.at(-1)!.text, /どちらも選べます.*準備中/);
   assert.equal(r.steps[0].text, "替えの下着や防臭袋を買う");
 });
 
@@ -58,6 +58,6 @@ test("回数制限：全体の上限", () => {
 test("簡易版：替えを持ち歩いている人には、下着だけなら買う手順を出さない", () => {
   const spare = { carriesSpare: true };
   const r = buildAfterFallback(places, from, ["soiled_underwear"], spare);
-  assert.equal(r.steps[0].text, "個室で着替えられる多機能トイレで着替える");
+  assert.equal(r.steps[0].text, "多機能トイレ（広い個室）で着替える");
   assert.equal(buildAfterFallback(places, from, ["soiled_underwear", "dispose"], spare).steps[0].text, "防臭袋を買う");
 });

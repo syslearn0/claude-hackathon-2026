@@ -100,7 +100,7 @@ export function EmergencyReview({
           オフにする
         </button>
       </div>
-      {state === "busy" && <div className="muted">見直しています…（そのあいだも上の候補へ向かって大丈夫です）</div>}
+      {state === "busy" && <div className="muted">見直しています…（そのあいだも、上の候補へ向かえます）</div>}
       {state === "error" && <div className="muted">見直しができませんでした。上の候補を使ってください。</div>}
       {review && (
         <>

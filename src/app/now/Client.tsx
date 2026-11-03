@@ -211,7 +211,7 @@ export default function NowPage() {
       {train ? (
         <section className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
           <strong>
-            {train.betweenStations ? "駅と駅の間で止まっているようです" : "電車で移動中と判断しました"}：次の駅（推定）
+            {train.betweenStations ? "駅と駅の間で止まっていると推定しました" : "電車で移動中と推定しました"}：次の駅（推定）
             {train.nextStation!.name}駅のトイレを出しています
           </strong>
           <div className="muted">{train.reason}</div>
@@ -279,7 +279,7 @@ export default function NowPage() {
             </>
           ) : (
             <div className="muted">
-              この駅の中は、まだ現地で測っていません。駅の中では方角と直線距離が当てにならないので、改札の内外や階など分かっていることを先に出しています。
+              この駅の中はまだ現地で測っていません。方角と距離は目安です。改札の内外・階を先に出しています。
             </div>
           )}
         </section>

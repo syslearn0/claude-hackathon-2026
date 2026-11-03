@@ -33,7 +33,7 @@ export function buildAfterFallback(places: Place[], from: LatLon, situations: re
     const room = findNearby(places, { from, kind: "toilet", accessibleOnly: true, limit: 1, preferOstomate: profile.needOstomate === true })[0];
     steps.push(
       room
-        ? { text: "個室で着替えられる多機能トイレで着替える", placeIds: [room.place.id] }
+        ? { text: "多機能トイレ（広い個室）で着替える", placeIds: [room.place.id] }
         : { text: "近くに多機能トイレのデータがありません", placeIds: [] },
     );
   }
@@ -49,13 +49,14 @@ export function buildAfterFallback(places: Place[], from: LatLon, situations: re
   }
 
   if (has("go_home") || has("continue")) {
-    steps.push({ text: "帰るか続けるかは、あなたが決めてください。帰り道の案内は準備中です", placeIds: [] });
+    steps.push({ text: "帰るか続けるかは、どちらも選べます。帰り道の案内は準備中です", placeIds: [] });
   }
 
   if (steps.length === 0) {
     const near = findNearby(places, { from, kind: "store", limit: 1 })[0];
-    steps.push(near ? { text: "近くの店", placeIds: [near.place.id] } : { text: "近くの場所のデータがありません", placeIds: [] });
+    steps.push(near ? { text: "替えが要るときは、近くのこの店で買えるか確かめる", placeIds: [near.place.id] } : { text: "近くの場所のデータがありません", placeIds: [] });
   }
 
-  return { summary: "近い順に、次の手順をまとめました。", steps, notes };
+  // 結論は1つ目の手順そのもの（定型文で始めない）
+  return { summary: `まず：${steps[0].text}`, steps, notes };
 }

@@ -29,9 +29,9 @@
    "cars": 16,
    "toiletCars": [1, 3, 5, 7, 9, 11, 13, 15],
    "accessibleToiletCars": [11],
-   "weakAcCars": [],
+   "weakAcCars": null,
    "carNumbering": null,
-   "conditions": "奇数号車の共用トイレ2か所のうち1か所は女性専用（2025年3月から順次）。弱冷房車は夏の一部「ひかり」の3号車で試験導入のみ",
+   "conditions": "奇数号車の共用トイレ2か所のうち1か所は女性専用（2025年3月から順次）",
    "sources": [
     "https://www.westjr.co.jp/press/article/items/241213_00_press_2025harudaiyakaisei4_1.pdf",
     "https://jr-central.co.jp/news/release/_pdf/000045595.pdf",
@@ -39,7 +39,7 @@
    ],
    "official": true,
    "checkedAt": "2026-11-03",
-   "note": "11号車に多目的トイレと多目的室"
+   "note": "11号車に多目的トイレと多目的室。弱冷房車は出典で確かめられなかったため null（2026-11-03 の出典チェックで外した）"
   },
   {
    "operator": "JR東日本",
@@ -140,9 +140,9 @@
    "carNumbering": null,
    "conditions": null,
    "sources": ["https://ssl.tokyometro.jp/support/faq_answer?lang=ja&faqno=OpenFAQ-000175"],
-   "official": true,
+   "official": false,
    "checkedAt": "2026-11-03",
-   "note": "公式FAQで銀座線と丸ノ内線には弱冷房車なし（FAQ は検索の抜粋で確認）。車内トイレについて公式の記載は見つからない"
+   "note": "公式FAQで銀座線と丸ノ内線には弱冷房車なし（FAQ は検索の抜粋で確認。本文は開けていないので official=false）。車内トイレについて公式の記載は見つからない"
   }
  ]
 }
