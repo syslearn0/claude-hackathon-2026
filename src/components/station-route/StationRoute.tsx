@@ -80,7 +80,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
-  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group } | null>(null);
+  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group; cpSign: THREE.Sprite } | null>(null);
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
   const compass = useRef<number | null>(null);
   const [hasCompass, setHasCompass] = useState(false);
@@ -618,18 +618,20 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     beam.visible = compass.current !== null;
     if (compass.current !== null) beam.rotation.y = (-compass.current * Math.PI) / 180;
     s.layer.add(beam);
-    // 次の確認ポイント：ピンクの輪と柱（位置は下の効果で動かす）。ボタンを押すと、ここに位置を合わせる
+    // 次の確認ポイント：道順をまたぐピンクの門（丸い「あなた」と形で見分け、近くても両脇の柱が見える）。位置と向きは下の効果で。
+    // 札は、離れているときだけ（近いと「あなた」の札にかぶる）
     const cp = new THREE.Group();
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.5, 8, 32), new THREE.MeshBasicMaterial({ color: COLOR.checkpoint }));
-    ring.rotation.x = Math.PI / 2;
-    ring.position.y = 0.4;
-    cp.add(ring);
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 12), new THREE.MeshBasicMaterial({ color: COLOR.checkpoint, transparent: true, opacity: 0.7 }));
-    post.position.y = 3;
-    cp.add(post);
+    const cpMat = new THREE.MeshBasicMaterial({ color: COLOR.checkpoint });
+    cp.add(new THREE.Mesh(new THREE.BoxGeometry(11, 0.4, 1.4), cpMat).translateY(0.7)); // 床の線
+    for (const x of [-5.2, 5.2]) cp.add(new THREE.Mesh(new THREE.BoxGeometry(0.7, 6, 0.7), cpMat).translateX(x).translateY(3)); // 両脇の柱
+    cp.add(new THREE.Mesh(new THREE.BoxGeometry(11.1, 0.7, 0.7), cpMat).translateY(6)); // 上の横木（門の形。真上から見ても線に見える）
+    const cpSign = sign("次の確認ポイント", "rgba(214,51,138,.92)", 300);
+    cpSign.position.y = 9;
+    cpSign.scale.multiplyScalar(0.75);
+    cp.add(cpSign);
     cp.visible = false;
     s.layer.add(cp);
-    youMark.current = { you, sign: youSign, beam, cp };
+    youMark.current = { you, sign: youSign, beam, cp, cpSign };
     const end = pts.at(-1)!;
     const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
     wc.position.copy(end).add(new THREE.Vector3(0, 2.5, 0));
@@ -670,6 +672,16 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (next) {
       const c = pointAt(path.pts, path.cum, next.at);
       m.cp.position.set(c.x, (c.y / FLOOR_M) * FLOOR_H, c.z);
+      // 帯は、そこへ来る向き（エレベーターの降り口のように真上から来るときは、出ていく向き）に直角に
+      const flat = (a: number, b: number) => {
+        const p = pointAt(path.pts, path.cum, a);
+        const q = pointAt(path.pts, path.cum, b);
+        return { dx: q.x - p.x, dz: q.z - p.z };
+      };
+      let d = flat(next.at - 3, next.at);
+      if (Math.hypot(d.dx, d.dz) < 0.5) d = flat(next.at, next.at + 3);
+      m.cp.rotation.y = Math.atan2(d.dx, d.dz);
+      m.cpSign.visible = next.at - pos > 12;
     }
   }, [pos, path, current, arrived, next]);
 
