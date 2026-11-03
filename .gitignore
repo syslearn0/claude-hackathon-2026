@@ -53,3 +53,6 @@ next-env.d.ts
 # デモ動画の録画（大きいので共有しない）
 /demo/recordings/
 /demo/.pw/
+
+# 国交省の新宿駅屋内地図（元の Shapefile。変換したものだけを data/indoor に置く）
+/data/raw/mlit-shinjuku/

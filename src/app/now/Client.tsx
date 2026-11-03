@@ -442,7 +442,7 @@ export default function NowPage() {
             <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
           ))}
           <p className="muted">
-            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成
+            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成／出典：国土交通省 高精度測位社会プロジェクト、「新宿駅周辺屋内地図データ」（国土交通省）を加工して作成
           </p>
           <p className="muted">近くの場所はこの端末の中で探しています。現在地をサーバーに送るのは、AI の見直しがオンのときだけです（保存はしません）。</p>
         </>

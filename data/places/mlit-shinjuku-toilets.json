@@ -1,0 +1,550 @@
+{
+ "fetchedFrom": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2",
+ "attribution": "出典：国土交通省 高精度測位社会プロジェクト／「新宿駅周辺屋内地図データ」（国土交通省）（https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2）を加工して作成",
+ "places": [
+  {
+   "id": "mlit-shinjuku-toilet-1",
+   "kind": "toilet",
+   "name": "新宿駅周辺 2F トイレ（男性・女性）",
+   "lat": 35.688417,
+   "lon": 139.700561,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-2",
+   "kind": "toilet",
+   "name": "新宿駅周辺 2F 多機能トイレ",
+   "lat": 35.688414,
+   "lon": 139.700515,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-3",
+   "kind": "toilet",
+   "name": "新宿駅周辺 3F トイレ（男性・女性）",
+   "lat": 35.688192,
+   "lon": 139.700433,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "3F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-4",
+   "kind": "toilet",
+   "name": "新宿駅周辺 3F 多機能トイレ",
+   "lat": 35.688165,
+   "lon": 139.700395,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "3F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-5",
+   "kind": "toilet",
+   "name": "新宿駅周辺 4F トイレ（男性・女性）",
+   "lat": 35.688327,
+   "lon": 139.701292,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "4F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-6",
+   "kind": "toilet",
+   "name": "新宿駅周辺 4F 多機能トイレ",
+   "lat": 35.68887,
+   "lon": 139.701449,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "4F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-7",
+   "kind": "toilet",
+   "name": "新宿駅周辺 4F トイレ（男性・女性）",
+   "lat": 35.688889,
+   "lon": 139.701495,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "4F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-8",
+   "kind": "toilet",
+   "name": "新宿駅周辺 4F 多機能トイレ",
+   "lat": 35.688345,
+   "lon": 139.701358,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "4F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-9",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.692064,
+   "lon": 139.69817,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-10",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F 多機能トイレ",
+   "lat": 35.691925,
+   "lon": 139.699446,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-11",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.691975,
+   "lon": 139.699326,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-12",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F 多機能トイレ",
+   "lat": 35.692077,
+   "lon": 139.698169,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-13",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.690813,
+   "lon": 139.701654,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-14",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F 多機能トイレ",
+   "lat": 35.690834,
+   "lon": 139.701688,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-15",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F 多機能トイレ",
+   "lat": 35.690186,
+   "lon": 139.698314,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-16",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.690187,
+   "lon": 139.698343,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-17",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.692002,
+   "lon": 139.698734,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-18",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.687977,
+   "lon": 139.69747,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-19",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F 多機能トイレ",
+   "lat": 35.687994,
+   "lon": 139.697512,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-20",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.689604,
+   "lon": 139.698722,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-21",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.691818,
+   "lon": 139.700808,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B1F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-22",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（女性）",
+   "lat": 35.693075,
+   "lon": 139.702967,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-23",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（男性）",
+   "lat": 35.693139,
+   "lon": 139.702503,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-24",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（女性）",
+   "lat": 35.693429,
+   "lon": 139.701301,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-25",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F 多機能トイレ",
+   "lat": 35.69342,
+   "lon": 139.701341,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-26",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.693937,
+   "lon": 139.700614,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-27",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F 多機能トイレ",
+   "lat": 35.692188,
+   "lon": 139.701348,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-shinjuku-toilet-28",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.692188,
+   "lon": 139.70139,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-shinjuku-toilet-29",
+   "kind": "toilet",
+   "name": "新宿駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.692139,
+   "lon": 139.698805,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 新宿駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2"
+   },
+   "checkedAt": "202008",
+   "station": "新宿",
+   "floor": "B2F",
+   "note": "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  }
+ ]
+}

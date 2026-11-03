@@ -93,6 +93,15 @@ export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true
       const c = centerOf(f);
       return focus.some((p) => Math.hypot((p[0] - c[0]) * 111_000, (p[1] - c[1]) * 91_000) < 60);
     };
+    // 文字を添えるのは、行き先に近いエレベーターとエスカレーターを2つずつだけ（階段には添えない。数が多くて込み合うため）
+    const away = (f: IndoorFeature) => Math.min(...focus.map((p) => Math.hypot((p[0] - centerOf(f)[0]) * 111_000, (p[1] - centerOf(f)[1]) * 91_000)));
+    const nearest = (kind: string) =>
+      on
+        .filter((x) => x.kind === kind && x.floors.length > 1 && nearFocus(x))
+        .sort((x, y) => away(x) - away(y))
+        .slice(0, 2)
+        .map((x) => x.id);
+    const tagged = new Set([...nearest("elevator"), ...nearest("escalator")]);
     for (const f of on.filter((x) => x.kind === "escalator" || x.kind === "steps")) {
       const v = VERT[f.kind as keyof typeof VERT];
       const close = nearFocus(f);
@@ -102,7 +111,7 @@ export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true
       shape.bindTooltip(`${f.kind === "steps" ? "階段" : "エスカレーター"}（${floorsText(f) || "階不明"}）`);
       // 階段は、行き先のそば以外は大きくしたときだけ
       shape.addTo(f.kind === "steps" && !close && opts.fine ? opts.fine : g);
-      if (close && f.floors.length > 1) tag(centerOf(f), `${v.label} ${floorsText(f)}`, v.color).addTo(g);
+      if (tagged.has(f.id)) tag(centerOf(f), `${v.label} ${floorsText(f)}`, v.color).addTo(g);
     }
     for (const f of on.filter((x) => x.kind === "elevator")) {
       const close = nearFocus(f);
@@ -116,7 +125,7 @@ export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true
       })
         .bindTooltip(`エレベーター（${floorsText(f) || "階不明"}）${f.name ? `：${f.name}` : ""}`)
         .addTo(g);
-      if (close && f.floors.length > 1) tag(centerOf(f), `EV ${floorsText(f)}`, "#1e7a3c").addTo(g);
+      if (tagged.has(f.id)) tag(centerOf(f), `EV ${floorsText(f)}`, "#1e7a3c").addTo(g);
     }
     return;
   }
@@ -194,7 +203,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     if (!box.current) return;
     const m = L.map(box.current, { zoomControl: true, attributionControl: true });
     m.attributionControl.setPrefix(false);
-    m.attributionControl.addAttribution("© OpenStreetMap contributors");
+    m.attributionControl.addAttribution('© OpenStreetMap contributors／出典：国土交通省 高精度測位社会プロジェクト');
     layer.current = L.layerGroup().addTo(m);
     fine.current = L.layerGroup();
     // 階段（細かい層）は、地図を大きくしたときだけ出す
@@ -205,8 +214,9 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     m.on("zoomend", toggleFine);
     m.on("moveend", () => {
       const b = m.getBounds();
-      const n = shownFeatures.current.filter((f) => f.closed && b.contains(centerOf(f))).length;
-      setSparse(n < 8);
+      // 見えている範囲に重なる面の数（大きな通路は中心が範囲の外にあることが多いので、重なりで数える）
+      const n = shownFeatures.current.filter((f) => f.closed && b.intersects(L.latLngBounds(f.coords))).length;
+      setSparse(n < 5);
     });
     map.current = m;
     return () => {
@@ -251,6 +261,8 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     const c = INDOOR_STATIONS[station].center;
     const pts = focus.length || here ? [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : []), [c.lat, c.lon] as [number, number]] : on.flatMap((f) => f.coords);
     if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 18 });
+    // 寄せ直さなかったとき（同じ範囲）も、「地図がほとんどない」の判定をこの階でやり直す
+    m.fire("moveend");
     // 現在地は動くたびに寄せ直さない（地図を触っている人の邪魔をしないため）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, floor, points, pointFloor, here?.lat, here?.lon, station]);
@@ -305,7 +317,11 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
         </span>
       </div>
       <p className="muted" style={{ fontSize: "0.8rem", margin: "4px 0 0" }}>
-        試作：OpenStreetMap の屋内データ（有志が描いたもの）で、抜けや古いところがあります。南口・新南のあたりはほとんど描かれていません。階が分からない候補は薄く出しています。
+        試作：OpenStreetMap の屋内データ（有志が描いたもの）と、
+        <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2" target="_blank" rel="noreferrer">
+          「新宿駅周辺屋内地図データ」（国土交通省）
+        </a>
+        を加工して重ねています（国の案内ではありません）。国交省のデータは2020年8月時点で、改札の外が中心です。抜けや古いところがあります。階が分からない候補は薄く出しています。
       </p>
     </div>
   );

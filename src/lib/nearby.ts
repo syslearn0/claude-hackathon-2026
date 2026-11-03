@@ -25,6 +25,9 @@ const PREFER_PENALTY_MIN = 4;
 // 確かな情報ほど前に出す。改札の内外も分からない OSM のトイレが数十m近いだけで、
 // 現地確認したトイレより上に来ないよう、並べるときだけ「分」を足して比べる（表示する分数はそのまま）
 const TIER_PENALTY_MIN: Record<Tier, number> = { verified: 0, official: 1, osm: 3, report: 3 };
+// 位置が駅の代表の点しか分からない場所は、距離が 0 に見えるが、実際にはどこにあるか探す手間がかかる。
+// 階と位置が分かる場所より前に並ばないように足す
+const APPROX_PENALTY_MIN = 4;
 
 export function findNearby(places: Place[], q: NearbyQuery): NearbyItem[] {
   const limit = q.limit ?? 3;
@@ -49,7 +52,7 @@ export function findNearby(places: Place[], q: NearbyQuery): NearbyItem[] {
 function rankMin(x: NearbyItem, q: NearbyQuery): number {
   const t = x.place.toilet;
   const miss = (q.preferAccessible && t?.accessible !== true) || (q.preferOstomate && t?.ostomate !== true);
-  return x.walkMin + TIER_PENALTY_MIN[x.place.tier] + (miss ? PREFER_PENALTY_MIN : 0);
+  return x.walkMin + TIER_PENALTY_MIN[x.place.tier] + (x.place.approxLocation ? APPROX_PENALTY_MIN : 0) + (miss ? PREFER_PENALTY_MIN : 0);
 }
 
 export function displayName(p: Place): string {

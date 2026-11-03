@@ -44,7 +44,7 @@ export default function About() {
           <strong>現地確認済み</strong>：協力者が現地で確かめた情報（確認日つき）
         </li>
         <li>
-          <strong>公式データ</strong>：東京都のオープンデータ
+          <strong>公式データ</strong>：東京都・国土交通省のオープンデータ
         </li>
         <li>
           <strong>OSM・未確認</strong>：OpenStreetMap の情報
@@ -61,6 +61,11 @@ export default function About() {
           東京都「
           <a href="https://catalog.data.metro.tokyo.lg.jp/">車椅子使用者対応トイレのバリアフリー情報（令和7年度更新版）</a>
           」（CC BY 4.0）を加工して作成
+        </li>
+        <li>
+          出典：国土交通省 高精度測位社会プロジェクト。
+          <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2">「新宿駅周辺屋内地図データ」（国土交通省）</a>
+          を加工して作成（新宿駅の中の地図と、新宿駅周辺のトイレ。2020年8月時点。政府標準利用規約）。加工した情報は、国が作ったものではありません
         </li>
         <li>
           <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（国土地理院）
