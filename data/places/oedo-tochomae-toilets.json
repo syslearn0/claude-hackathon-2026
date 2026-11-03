@@ -1,0 +1,25 @@
+{
+ "fetchedFrom": "https://ckan.hokonavi.go.jp/dataset/0497448d-15ca-44be-b27b-89d99f83c85d",
+ "attribution": "出典：国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 都庁前駅）構内地図データ」（https://ckan.hokonavi.go.jp/dataset/0497448d-15ca-44be-b27b-89d99f83c85d）を加工して作成",
+ "places": [
+  {
+   "id": "oedo-tochomae-toilet-1",
+   "kind": "toilet",
+   "name": "都営大江戸線 都庁前駅 B2F トイレ（男性・女性）",
+   "lat": 35.690622,
+   "lon": 139.693024,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 都庁前駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/0497448d-15ca-44be-b27b-89d99f83c85d"
+   },
+   "checkedAt": "202609",
+   "station": "都庁前",
+   "floor": "B2F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  }
+ ]
+}

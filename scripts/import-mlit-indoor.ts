@@ -1,10 +1,12 @@
-// 国土交通省の駅周辺屋内地図オープンデータ（令和2年度更新版、Shapefile）を取り込む。いまは新宿駅と東京駅。
-// 使い方：G空間情報センターから Shapefile の ZIP を取り、data/raw/mlit-<駅>/ に展開して npx tsx scripts/import-mlit-indoor.ts <shinjuku|tokyo>
-//   （元のファイルは大きいので公開しない。.gitignore 済み）
+// 国土地理院「階層別屋内地理空間情報データ仕様書」の形の屋内地図（Shapefile）を取り込む。
+//   shinjuku / tokyo：国交省の駅周辺屋内地図オープンデータ（令和2年度更新版、G空間情報センター）。data/raw/mlit-<駅>/ に展開
+//   oedo：都営大江戸線12駅の構内地図データ（国交省、ほこナビ。公共交通オープンデータチャレンジ2026 の期間中の限定公開）。
+//         data/raw/hokonavi-oedo/<駅>/ に展開し、list.txt（駅の英字・駅名・ZIP の URL）を置く
+// 使い方：npx tsx scripts/import-mlit-indoor.ts <shinjuku|tokyo|oedo>（元のファイルは公開しない。.gitignore 済み）
 // 出力：
-//   data/indoor/<駅>-mlit.json …… 駅の中の地図（/api/indoor が OSM の <駅>.json と重ねて返す）
-//   data/places/mlit-<駅>-toilets.json …… トイレの場所（階・正確な位置つき。一覧と地図の候補に出る）
-// 利用規約：政府標準利用規約（第2.0版）。出典と、加工したことを書く。国が作ったように見せない。
+//   data/indoor/<駅>-<出典>.json …… 駅の中の地図（/api/indoor が OSM の <駅>.json と重ねて返す）
+//   data/places/<出典>-<駅>-toilets.json …… トイレの場所（階・正確な位置つき。一覧と地図の候補に出る）
+// 利用規約：政府標準利用規約（第2.0版）／公共データ利用規約（第1.0版）。出典と、加工したことを書く。国が作ったように見せない。
 // 項目の意味は国土地理院「階層別屋内地理空間情報データ仕様書（案）」（平成30年3月）の別表による。
 // 改札の内外（toll）は、ほぼすべて「無料」か「不明」で、改札の中は含まない。
 
@@ -13,31 +15,92 @@ import path from "node:path";
 import * as shp from "shapefile";
 import type { Gate, Place } from "../src/lib/places";
 
-const STATIONS: Record<string, { name: string; dataset: string; title: string }> = {
-  shinjuku: { name: "新宿", dataset: "mlit-indoor-shinjuku-r2", title: "新宿駅周辺屋内地図" },
-  tokyo: { name: "東京", dataset: "mlit-indoor-tokyo-r2", title: "東京駅周辺屋内地図" },
+// 取り込む1つの単位（駅とデータの出典の組）
+type Job = {
+  dir: string;
+  station: string; // アプリの駅名（station-mode・屋内地図の駅名）
+  indoorOut: string;
+  placesOut: string;
+  idPrefix: string;
+  placeName: string; // トイレの名前の頭（例：「東京駅周辺」「都営大江戸線 新宿駅」）
+  url: string;
+  sourceName: string;
+  attribution: string;
+  license: string;
+  checkedAt: string; // データの作成（年月、"202008"）。画面では「2020年8月」
+  noteFrom: string;
+  allStation: boolean; // データ全体が駅の構内か（「有料」= 改札の中とみなせるか）
 };
-const KEY = process.argv[2] ?? "shinjuku";
-const ST = STATIONS[KEY];
-if (!ST) throw new Error(`駅は ${Object.keys(STATIONS).join(" / ")} のどれか`);
-const DIR = `data/raw/mlit-${KEY}`;
-const URL = `https://www.geospatial.jp/ckan/dataset/${ST.dataset}`;
-const ATTRIBUTION = `出典：国土交通省 高精度測位社会プロジェクト／「${ST.title}データ」（国土交通省）（${URL}）を加工して作成`;
-const LICENSE = "政府標準利用規約 第2.0版（CC BY 4.0 互換）";
+const GOV = "政府標準利用規約 第2.0版（CC BY 4.0 互換）";
+const PDL = "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）";
 
-// ファイル名の最後の階（"…_B1" "…_0" "…_2out"）→ 日本式の階。"0" は建物の外の地表（グランドレベル）なので 1F とする
-const floorOf = (prefix: string) => {
-  const m = prefix.match(/_(B?)(\d+)(?:out)?$/)!;
-  return m[1] ? -Number(m[2]) : Math.max(1, Number(m[2]));
+function mlitJob(key: string, name: string, dataset: string, title: string): Job {
+  const url = `https://www.geospatial.jp/ckan/dataset/${dataset}`;
+  return {
+    dir: `data/raw/mlit-${key}`,
+    station: name,
+    indoorOut: `data/indoor/${key}-mlit.json`,
+    placesOut: `data/places/mlit-${key}-toilets.json`,
+    idPrefix: `mlit-${key}`,
+    placeName: `${name}駅周辺`,
+    url,
+    sourceName: `国土交通省 ${title}オープンデータ（令和2年度更新版）`,
+    attribution: `出典：国土交通省 高精度測位社会プロジェクト／「${title}データ」（国土交通省）（${url}）を加工して作成`,
+    license: GOV,
+    checkedAt: "202008",
+    noteFrom: "国交省の屋内地図（2020年8月時点）",
+    allStation: false,
+  };
+}
+
+// 大江戸線：list.txt の駅（英字 駅名 ZIP の URL）。屋内地図の駅のキーは、新宿だけ OSM・国交省の新宿と同じ "shinjuku" にして重ねる
+async function oedoJobs(): Promise<Job[]> {
+  const dir = "data/raw/hokonavi-oedo";
+  const lines = (await readFile(`${dir}/list.txt`, "utf8")).trim().split("\n");
+  return lines.map((l) => {
+    const [slug, nameEki, zip] = l.trim().split(/\s+/);
+    const name = nameEki.replace(/駅$/, "");
+    const url = zip.replace(/\/resource\/.*$/, "");
+    const key = slug === "shinjuku" ? "shinjuku" : slug;
+    const title = `歩行空間ネットワークデータ（都営地下鉄大江戸線 ${name}駅）構内地図データ`;
+    return {
+      dir: `${dir}/${slug}`,
+      station: name,
+      indoorOut: `data/indoor/${key}-oedo.json`,
+      placesOut: `data/places/oedo-${slug}-toilets.json`,
+      idPrefix: `oedo-${slug}`,
+      placeName: `都営大江戸線 ${name}駅`,
+      url,
+      sourceName: `国土交通省「${title}」`,
+      attribution: `出典：国土交通省「${title}」（${url}）を加工して作成`,
+      license: PDL,
+      checkedAt: "202609",
+      noteFrom: "大江戸線の構内地図（国交省、2026年9月）",
+      allStation: true,
+    };
+  });
+}
+
+// ファイル名の階（"B1" "0" "2out" "B0.5"）→ 日本式の階。"0" は建物の外の地表（グランドレベル）なので 1F とする。
+// "B0.5"（地下の中2階）は B1 に入れる（階のボタンは整数の階だけ）
+const floorOf = (token: string) => {
+  const m = token.match(/^(B?)(\d+(?:\.\d+)?)(?:out)?$/)!;
+  return m[1] ? -Math.ceil(Number(m[2])) : Math.max(1, Math.floor(Number(m[2])));
 };
 
-// フォルダの中を下までたどって、階ごとのファイルの組（"<フォルダ>/<名前>_<階>"）を集める
-async function floorPrefixes(dir: string): Promise<string[]> {
-  const out: string[] = [];
+// 1つの階のファイルの組。名前の付け方が2通りある（"<名前>_<階>_<種類>" と "<名前>_<種類>_<階>"）
+type FloorFiles = { label: string; token: string; file: (layer: string) => string };
+
+// フォルダの中を下までたどって、階ごとのファイルの組を集める
+async function floorPrefixes(dir: string): Promise<FloorFiles[]> {
+  const out: FloorFiles[] = [];
   for (const e of await readdir(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
     if (e.isDirectory()) out.push(...(await floorPrefixes(p)));
-    else if (e.name.endsWith("_Floor.shp")) out.push(p.replace(/_Floor\.shp$/, ""));
+    const a = e.name.match(/^(.*)_([^_]+)_Floor\.shp$/);
+    const b = e.name.match(/^(.*)_Floor_([^_]+)\.shp$/);
+    if (a) out.push({ label: `${a[1]}_${a[2]}`, token: a[2], file: (layer) => path.join(dir, `${a[1]}_${a[2]}_${layer}`) });
+    else if (b) out.push({ label: `${b[1]}_${b[2]}`, token: b[2], file: (layer) => path.join(dir, `${b[1]}_${layer}_${b[2]}`) });
   }
   return out;
 }
@@ -117,8 +180,8 @@ function gateAt(at: [number, number], tolls: { toll: string; ring: [number, numb
 const meters = (a: [number, number], b: [number, number]) => Math.hypot((a[0] - b[0]) * 111_000, (a[1] - b[1]) * 91_000);
 const center = (cs: [number, number][]): [number, number] => [cs.reduce((s, c) => s + c[0], 0) / cs.length, cs.reduce((s, c) => s + c[1], 0) / cs.length];
 
-async function main() {
-  const prefixes = await floorPrefixes(DIR);
+async function run(job: Job) {
+  const prefixes = await floorPrefixes(job.dir);
   const features: Feature[] = [];
   const toilets: { floor: number; at: [number, number]; t: (typeof TOILET)[string]; gate: Gate }[] = [];
   const count: Record<string, number> = {};
@@ -127,16 +190,17 @@ async function main() {
     count[f.kind] = (count[f.kind] ?? 0) + 1;
   };
 
-  for (const pre of prefixes) {
-    const floor = floorOf(pre);
-    const base = { levels: [path.basename(pre)], floors: [floor], floorBasis: "国交省データの階" };
+  for (const ff of prefixes) {
+    const pre = ff.file("");
+    const floor = floorOf(ff.token);
+    const base = { levels: [ff.label], floors: [floor], floorBasis: "国交省データの階" };
     // 階の範囲（通路を含む、歩ける範囲の外形）を先に。部屋・店はこの上に重ねて描く
-    for (const r of await read(`${pre}_Floor`)) {
+    for (const r of await read(ff.file("Floor"))) {
       rings(r.geometry).forEach((coords, i) => add({ id: `mlit-${r.properties.id}-${i}`, kind: "area", ...base, coords, closed: true, tags: { source: "mlit", category: "floor" } }));
     }
     // 有料施設（toll）：2 = 有料（駅では改札の中）、3 = 無料（改札の外）、1 = 不明。トイレの点がどの空間の中かで改札の内外を決める
     const tolls: { toll: string; ring: [number, number][] }[] = [];
-    for (const r of await read(`${pre}_Space`)) {
+    for (const r of await read(ff.file("Space"))) {
       const cat = String(r.properties.category ?? "");
       for (const ring of rings(r.geometry)) tolls.push({ toll: String(r.properties.toll ?? ""), ring });
       const kind = SPACE[cat];
@@ -145,16 +209,16 @@ async function main() {
         add({ id: `mlit-${r.properties.id}-${i}`, kind, ...base, name: (r.properties.name as string) || SPACE_JA[cat], coords, closed: true, tags: { source: "mlit", category: cat } }),
       );
     }
-    for (const r of await read(`${pre}_Facility`)) {
+    for (const r of await read(ff.file("Facility"))) {
       const cat = String(r.properties.category ?? "");
       if (r.geometry.type !== "Point") continue;
       const at = ll(r.geometry.coordinates as number[]);
-      if (TOILET[cat]) toilets.push({ floor, at, t: TOILET[cat], gate: gateAt(at, tolls, isStation(pre)) });
+      if (TOILET[cat]) toilets.push({ floor, at, t: TOILET[cat], gate: gateAt(at, tolls, job.allStation || isStation(pre)) });
       const kind = TOILET[cat] ? "toilet" : cat === "F106" ? "gate" : cat === "F108" || cat === "F017" ? "entrance" : undefined;
       if (kind) add({ id: `mlit-${r.properties.id}`, kind, ...base, name: (r.properties.name as string) || undefined, coords: [at], closed: false, tags: { source: "mlit", category: cat } });
     }
     // 開口部（出入口・改札の線）のうち、名前に「改札」があるものは改札として、名前つきで
-    for (const r of await read(`${pre}_Opening`)) {
+    for (const r of await read(ff.file("Opening"))) {
       const name = String(r.properties.name ?? "");
       if (!name.includes("改札")) continue;
       for (const coords of lines(r.geometry)) add({ id: `mlit-${r.properties.id}`, kind: "gate", ...base, name, coords, closed: false, tags: { source: "mlit" } });
@@ -166,8 +230,8 @@ async function main() {
   const indoor = features.filter((f) => !(f.kind === "gate" && !f.name && named.some((n) => n.floors[0] === f.floors[0] && meters(center(n.coords), f.coords[0]) < 15)));
 
   await writeFile(
-    `data/indoor/${KEY}-mlit.json`,
-    JSON.stringify({ station: `${ST.name}駅`, source: URL, attribution: ATTRIBUTION, license: LICENSE, dataCreated: "2020-08", features: indoor }) + "\n",
+    job.indoorOut,
+    JSON.stringify({ station: `${job.station}駅`, source: job.url, attribution: job.attribution, license: job.license, features: indoor }) + "\n",
   );
 
   // トイレの場所：同じ階で 15m 以内の男性・女性の点は1か所にまとめる。多機能トイレは別の場所にする
@@ -181,20 +245,23 @@ async function main() {
   const fl = (n: number) => (n < 0 ? `B${-n}F` : `${n}F`);
   const places: Place[] = groups.map((g, i) => {
     const accessible = g.ts.some((t) => t.accessible);
-    const sides = [g.ts.some((t) => t.male) && "男性", g.ts.some((t) => t.female) && "女性"].filter(Boolean).join("・");
+    // 男女共用の個室（だれでもトイレのことが多いが、データが多機能と言っていないので多機能とは書かない）
+    const sides = [g.ts.some((t) => t.male && !t.female) && "男性", g.ts.some((t) => t.female && !t.male) && "女性", g.ts.some((t) => t.male && t.female) && "男女共用"]
+      .filter(Boolean)
+      .join("・");
     return {
-      id: `mlit-${KEY}-toilet-${i + 1}`,
+      id: `${job.idPrefix}-toilet-${i + 1}`,
       kind: "toilet",
-      name: `${ST.name}駅周辺 ${fl(g.floor)} ${accessible ? "多機能トイレ" : `トイレ${sides ? `（${sides}）` : ""}`}`,
+      name: `${job.placeName} ${fl(g.floor)} ${accessible ? "多機能トイレ" : `トイレ${sides ? `（${sides}）` : ""}`}`,
       lat: g.at[0],
       lon: g.at[1],
       tier: "official",
-      source: { name: `国土交通省 ${ST.title}オープンデータ（令和2年度更新版）`, license: LICENSE, url: URL },
-      checkedAt: "202008", // データの作成（年月）。画面では「2020年8月」
-      station: ST.name,
+      source: { name: job.sourceName, license: job.license, url: job.url },
+      checkedAt: job.checkedAt,
+      station: job.station,
       floor: fl(g.floor),
       gate: g.gate,
-      note: `国交省の屋内地図にあるトイレ（2020年8月時点）${g.gate === "unknown" ? "。改札の内外は地図からは分からない" : ""}`,
+      note: `${job.noteFrom}にあるトイレ${g.gate === "unknown" ? "。改札の内外は地図からは分からない" : ""}`,
       toilet: {
         accessible: accessible || undefined,
         ostomate: g.ts.some((t) => t.ostomate) || undefined,
@@ -202,7 +269,7 @@ async function main() {
       },
     };
   });
-  // 東京都の公式データと同じトイレか：どちらも多機能で、階が同じ（片方が不明なら問わない）、20m 以内。
+  // 東京都の公式データと同じトイレか：公式が多機能で、こちらが多機能か男女共用、階が同じ（片方が不明なら問わない）、20m 以内。
   // 位置が駅の代表の点しかない公式データとは比べない（どれと同じか決められないため）。同じなら sameAs で結び、読み込むときに1件にまとめる
   const official = (JSON.parse(await readFile("data/places/official-tokyo-station-toilets.json", "utf8")) as { places: Place[] }).places.filter(
     (o) => o.toilet?.accessible && !o.approxLocation,
@@ -210,7 +277,7 @@ async function main() {
   const floorNum = (s?: string) => (s ? (s.match(/^B(\d+)/i) ? -Number(s.match(/^B(\d+)/i)![1]) : Number(s.match(/^(\d+)F/i)?.[1]) || undefined) : undefined);
   const taken = new Set<string>();
   let same = 0;
-  for (const p of places.filter((x) => x.toilet?.accessible)) {
+  for (const p of places.filter((x) => x.toilet?.accessible || /男女共用/.test(x.name ?? ""))) {
     const hit = official
       .filter((o) => !taken.has(o.id))
       .filter((o) => floorNum(o.floor) === undefined || floorNum(p.floor) === undefined || floorNum(o.floor) === floorNum(p.floor))
@@ -225,9 +292,10 @@ async function main() {
   }
   console.log(`東京都の公式データと同じトイレ：${same}件（読み込むときに1件にまとめる）`);
 
-  await writeFile(`data/places/mlit-${KEY}-toilets.json`, JSON.stringify({ fetchedFrom: URL, attribution: ATTRIBUTION, places }, null, 1) + "\n");
+  await writeFile(job.placesOut, JSON.stringify({ fetchedFrom: job.url, attribution: job.attribution, places }, null, 1) + "\n");
 
-  console.log(`階：${prefixes.map((p) => path.basename(p)).join(" ")}`);
+  console.log(`== ${job.placeName}`);
+  console.log(`階：${prefixes.map((p) => p.label).join(" ")}`);
   console.log(`屋内の地物 ${indoor.length}件`, count);
   console.log(`トイレの場所 ${places.length}件（多機能 ${places.filter((p) => p.toilet?.accessible).length}）`);
   const byFloor: Record<string, number> = {};
@@ -236,6 +304,20 @@ async function main() {
   const byGate: Record<string, number> = {};
   for (const p of places) byGate[p.gate!] = (byGate[p.gate!] ?? 0) + 1;
   console.log("改札の内外", byGate);
+}
+
+async function main() {
+  const which = process.argv[2] ?? "shinjuku";
+  const jobs =
+    which === "shinjuku"
+      ? [mlitJob("shinjuku", "新宿", "mlit-indoor-shinjuku-r2", "新宿駅周辺屋内地図")]
+      : which === "tokyo"
+        ? [mlitJob("tokyo", "東京", "mlit-indoor-tokyo-r2", "東京駅周辺屋内地図")]
+        : which === "oedo"
+          ? await oedoJobs()
+          : [];
+  if (!jobs.length) throw new Error("shinjuku / tokyo / oedo のどれか");
+  for (const job of jobs) await run(job);
 }
 
 main().catch((e) => {

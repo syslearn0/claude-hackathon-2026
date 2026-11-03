@@ -1,0 +1,44 @@
+{
+ "fetchedFrom": "https://ckan.hokonavi.go.jp/dataset/ea3daead-46e4-41f8-a18e-e1f65f8835a6",
+ "attribution": "出典：国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 青山一丁目駅）構内地図データ」（https://ckan.hokonavi.go.jp/dataset/ea3daead-46e4-41f8-a18e-e1f65f8835a6）を加工して作成",
+ "places": [
+  {
+   "id": "oedo-aoyama-itchome-toilet-1",
+   "kind": "toilet",
+   "name": "都営大江戸線 青山一丁目駅 B1F トイレ（男性・女性・男女共用）",
+   "lat": 35.672525,
+   "lon": 139.724033,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 青山一丁目駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/ea3daead-46e4-41f8-a18e-e1f65f8835a6"
+   },
+   "checkedAt": "202609",
+   "station": "青山一丁目",
+   "floor": "B1F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  },
+  {
+   "id": "oedo-aoyama-itchome-toilet-2",
+   "kind": "toilet",
+   "name": "都営大江戸線 青山一丁目駅 B1F トイレ（男性・女性・男女共用）",
+   "lat": 35.673463,
+   "lon": 139.723782,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 青山一丁目駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/ea3daead-46e4-41f8-a18e-e1f65f8835a6"
+   },
+   "checkedAt": "202609",
+   "station": "青山一丁目",
+   "floor": "B1F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  }
+ ]
+}

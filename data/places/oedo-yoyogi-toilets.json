@@ -1,0 +1,25 @@
+{
+ "fetchedFrom": "https://ckan.hokonavi.go.jp/dataset/573faa86-9665-43e9-8435-4940f1749cd5",
+ "attribution": "出典：国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 代々木駅）構内地図データ」（https://ckan.hokonavi.go.jp/dataset/573faa86-9665-43e9-8435-4940f1749cd5）を加工して作成",
+ "places": [
+  {
+   "id": "oedo-yoyogi-toilet-1",
+   "kind": "toilet",
+   "name": "都営大江戸線 代々木駅 B1F トイレ（男性・女性・男女共用）",
+   "lat": 35.683952,
+   "lon": 139.701428,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 代々木駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/573faa86-9665-43e9-8435-4940f1749cd5"
+   },
+   "checkedAt": "202609",
+   "station": "代々木",
+   "floor": "B1F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  }
+ ]
+}

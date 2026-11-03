@@ -203,7 +203,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     if (!box.current) return;
     const m = L.map(box.current, { zoomControl: true, attributionControl: true });
     m.attributionControl.setPrefix(false);
-    m.attributionControl.addAttribution('© OpenStreetMap contributors／出典：国土交通省 高精度測位社会プロジェクト');
+    m.attributionControl.addAttribution("© OpenStreetMap contributors／出典：国土交通省（下に詳しく）");
     layer.current = L.layerGroup().addTo(m);
     fine.current = L.layerGroup();
     // 階段（細かい層）は、地図を大きくしたときだけ出す
@@ -259,8 +259,10 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     const focus = topHere.length ? topHere : shown;
     // 駅の中心もいつも入れる（中心の近くほど屋内データが多い。端に立っていても駅の中が見えるように）
     const c = INDOOR_STATIONS[station].center;
-    const pts = focus.length || here ? [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : []), [c.lat, c.lon] as [number, number]] : on.flatMap((f) => f.coords);
-    if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 18 });
+    const pts = [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : []), [c.lat, c.lon] as [number, number]];
+    // 候補も現在地もなければ、駅の中心に寄る（階の全体に合わせると、外形の大きな面に引っぱられて遠くなる）
+    if (pts.length > 1) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 18 });
+    else m.setView([c.lat, c.lon], 18);
     // 寄せ直さなかったとき（同じ範囲）も、「地図がほとんどない」の判定をこの階でやり直す
     m.fire("moveend");
     // 現在地は動くたびに寄せ直さない（地図を触っている人の邪魔をしないため）
@@ -301,7 +303,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       <div className="chips muted" style={{ marginTop: 6, fontSize: "0.8rem" }}>
         <span>番号：上の一覧の候補</span>
         <span>
-          <span style={{ background: ICON.toilet.bg, color: "#fff", borderRadius: 4, padding: "0 3px" }}>WC</span> OSM に描かれたトイレ
+          <span style={{ background: ICON.toilet.bg, color: "#fff", borderRadius: 4, padding: "0 3px" }}>WC</span> 駅の地図に描かれたトイレ
         </span>
         <span>
           <span style={{ background: ICON.gate.bg, color: "#fff", borderRadius: 4, padding: "0 3px" }}>改</span> 改札
@@ -318,10 +320,15 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
       </div>
       <p className="muted" style={{ fontSize: "0.8rem", margin: "4px 0 0" }}>
         試作：OpenStreetMap の屋内データ（有志が描いたもの。ある駅だけ）と、
-        <a href={`https://www.geospatial.jp/ckan/dataset/${INDOOR_STATIONS[station].mlit?.dataset}`} target="_blank" rel="noreferrer">
-          「{INDOOR_STATIONS[station].mlit?.title}」（国土交通省）
-        </a>
-        を加工して重ねています（国の案内ではありません）。国交省のデータは2020年8月時点で、改札の外が中心です。抜けや古いところがあります。階が分からない候補は薄く出しています。
+        {INDOOR_STATIONS[station].sources.map((s, i) => (
+          <span key={s.url}>
+            {i > 0 && "、"}
+            <a href={s.url} target="_blank" rel="noreferrer">
+              {s.title}
+            </a>
+          </span>
+        ))}
+        を加工して重ねています（国の案内ではありません）。抜けや古いところがあります。階が分からない候補は薄く出しています。
       </p>
     </div>
   );

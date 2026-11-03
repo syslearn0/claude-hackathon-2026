@@ -1,0 +1,63 @@
+{
+ "fetchedFrom": "https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063",
+ "attribution": "出典：国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 大門駅）構内地図データ」（https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063）を加工して作成",
+ "places": [
+  {
+   "id": "oedo-daimon-toilet-1",
+   "kind": "toilet",
+   "name": "都営大江戸線 大門駅 B1F トイレ",
+   "lat": 35.656795,
+   "lon": 139.754037,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 大門駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063"
+   },
+   "checkedAt": "202609",
+   "station": "大門",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  },
+  {
+   "id": "oedo-daimon-toilet-2",
+   "kind": "toilet",
+   "name": "都営大江戸線 大門駅 B1F トイレ（男性・女性・男女共用）",
+   "lat": 35.656816,
+   "lon": 139.754992,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 大門駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063"
+   },
+   "checkedAt": "202609",
+   "station": "大門",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  },
+  {
+   "id": "oedo-daimon-toilet-3",
+   "kind": "toilet",
+   "name": "都営大江戸線 大門駅 B3F トイレ（男性・女性・男女共用）",
+   "lat": 35.656641,
+   "lon": 139.755994,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 大門駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063"
+   },
+   "checkedAt": "202609",
+   "station": "大門",
+   "floor": "B3F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  }
+ ]
+}

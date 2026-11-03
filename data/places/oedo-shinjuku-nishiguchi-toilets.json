@@ -1,0 +1,44 @@
+{
+ "fetchedFrom": "https://ckan.hokonavi.go.jp/dataset/4200135e-9754-4974-a371-bd47bdb6a530",
+ "attribution": "出典：国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 新宿西口駅）構内地図データ」（https://ckan.hokonavi.go.jp/dataset/4200135e-9754-4974-a371-bd47bdb6a530）を加工して作成",
+ "places": [
+  {
+   "id": "oedo-shinjuku-nishiguchi-toilet-1",
+   "kind": "toilet",
+   "name": "都営大江戸線 新宿西口駅 B3F トイレ（男性・男女共用）",
+   "lat": 35.693313,
+   "lon": 139.699113,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 新宿西口駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/4200135e-9754-4974-a371-bd47bdb6a530"
+   },
+   "checkedAt": "202609",
+   "station": "新宿西口",
+   "floor": "B3F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  },
+  {
+   "id": "oedo-shinjuku-nishiguchi-toilet-2",
+   "kind": "toilet",
+   "name": "都営大江戸線 新宿西口駅 B3F トイレ（女性）",
+   "lat": 35.69348,
+   "lon": 139.699133,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省「歩行空間ネットワークデータ（都営地下鉄大江戸線 新宿西口駅）構内地図データ」",
+    "license": "公共データ利用規約 第1.0版（PDL1.0、CC BY 4.0 互換）",
+    "url": "https://ckan.hokonavi.go.jp/dataset/4200135e-9754-4974-a371-bd47bdb6a530"
+   },
+   "checkedAt": "202609",
+   "station": "新宿西口",
+   "floor": "B3F",
+   "gate": "inside",
+   "note": "大江戸線の構内地図（国交省、2026年9月）にあるトイレ",
+   "toilet": {}
+  }
+ ]
+}
