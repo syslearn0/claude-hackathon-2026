@@ -12,6 +12,7 @@
     "import:tokyo": "tsx scripts/import-tokyo-stations.ts",
     "import:survey": "tsx scripts/import-survey.ts",
     "try:agent": "tsx scripts/try-agent.ts",
+    "normalize:indoor": "tsx scripts/normalize-indoor.ts",
     "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {

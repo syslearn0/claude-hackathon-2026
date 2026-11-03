@@ -1,5 +1,6 @@
 // 駅の屋内データ（OpenStreetMap の indoor / level）を取り込む。試作：まず新宿駅。
 // 使い方：npx tsx scripts/fetch-indoor.ts
+// 取り込んだあとは npm run normalize:indoor で階（floors）をそろえる
 // 出力：data/indoor/<駅>.json（ODbL 1.0。表示時は「© OpenStreetMap contributors」）
 
 import { mkdir, writeFile } from "node:fs/promises";

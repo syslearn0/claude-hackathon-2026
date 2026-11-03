@@ -11,6 +11,8 @@ type Feature = {
   id: string;
   kind: string;
   levels: string[];
+  floors: number[]; // 日本式の階（1 = 1F、-1 = B1。scripts/normalize-indoor.ts が付ける）
+  floorBasis: string;
   name?: string;
   coords: [number, number][];
   closed: boolean;
@@ -35,12 +37,14 @@ const ICON: Record<string, { label: string; bg: string }> = {
   entrance: { label: "出", bg: "#444" },
 };
 
-// "1F" のような日本式と、"0" を地上階とする書き方が混ざるので、数字で並べる
-const levelNum = (l: string) => (Number.isFinite(Number(l)) ? Number(l) : 999);
+// 階の呼び名。0 は「階不明」の目印に使う（日本式の階に 0 は無い）
+const UNKNOWN = 0;
+const floorLabel = (n: number) => (n === UNKNOWN ? "階不明" : n < 0 ? `B${-n}` : `${n}F`);
+const floorsOf = (f: Feature) => (f.floors.length ? f.floors : [UNKNOWN]);
 
 export default function IndoorLab() {
   const [data, setData] = useState<Indoor | null>(null);
-  const [level, setLevel] = useState<string | null>(null);
+  const [level, setLevel] = useState<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
@@ -51,10 +55,11 @@ export default function IndoorLab() {
       .then((d: Indoor) => setData(d));
   }, []);
 
-  const levels = useMemo(() => {
-    const count = new Map<string, number>();
-    for (const f of data?.features ?? []) for (const l of f.levels) count.set(l, (count.get(l) ?? 0) + 1);
-    return [...count.entries()].sort((a, b) => levelNum(a[0]) - levelNum(b[0]));
+  // 下の階から上へ。階不明は最後
+  const floors = useMemo(() => {
+    const count = new Map<number, number>();
+    for (const f of data?.features ?? []) for (const n of floorsOf(f)) count.set(n, (count.get(n) ?? 0) + 1);
+    return [...count.entries()].sort((a, b) => (a[0] === UNKNOWN ? 1 : b[0] === UNKNOWN ? -1 : a[0] - b[0]));
   }, [data]);
 
   useEffect(() => {
@@ -78,7 +83,7 @@ export default function IndoorLab() {
     const g = layer.current;
     if (!g || !data || level === null) return;
     g.clearLayers();
-    const on = data.features.filter((f) => f.levels.includes(level));
+    const on = data.features.filter((f) => floorsOf(f).includes(level));
     // その階の範囲に合わせて寄る
     const pts = on.flatMap((f) => f.coords);
     if (pts.length) map.current?.fitBounds(L.latLngBounds(pts), { padding: [12, 12], maxZoom: 19 });
@@ -111,7 +116,7 @@ export default function IndoorLab() {
     }
   }, [data, level]);
 
-  const on = data && level !== null ? data.features.filter((f) => f.levels.includes(level)) : [];
+  const on = data && level !== null ? data.features.filter((f) => floorsOf(f).includes(level)) : [];
   const count = (k: string) => on.filter((f) => f.kind === k).length;
 
   return (
@@ -122,9 +127,9 @@ export default function IndoorLab() {
       <h1>新宿駅の屋内データ（OSM）を階ごとに見る</h1>
       {!data && <p>読み込み中…</p>}
       <div className="chips">
-        {levels.map(([l, n]) => (
+        {floors.map(([l, n]) => (
           <button key={l} aria-pressed={level === l} onClick={() => setLevel(l)}>
-            level={l}（{n}）
+            {floorLabel(l)}（{n}）
           </button>
         ))}
       </div>
