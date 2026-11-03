@@ -161,7 +161,7 @@ export function findRoute(g: Network, from: number, to: number, o: RouteOptions 
 }
 
 const fl = (f: number) => (Number.isInteger(f) ? (f < 0 ? `B${-f}` : `${f}F`) : `${f < 0 ? `B${Math.ceil(-f)}` : `${Math.floor(f)}F`}と${f < 0 ? (Math.floor(-f) === 0 ? "1F" : `B${Math.floor(-f)}`) : `${Math.ceil(f)}F`}の間`);
-const KIND_JA: Record<KindName, string> = { walk: "歩く", stairs: "階段", escalator: "エスカレーター", elevator: "エレベーター", slope: "スロープ", movingWalk: "動く歩道", crossing: "横断" };
+export const KIND_JA: Record<KindName, string> = { walk: "歩く", stairs: "階段", escalator: "エスカレーター", elevator: "エレベーター", slope: "スロープ", movingWalk: "動く歩道", crossing: "横断" };
 
 export type GuideStep = RouteStep & { text: string };
 

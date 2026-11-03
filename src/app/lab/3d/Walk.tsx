@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
 import { FLOOR_M, maneuvers, pointAt, routePath } from "@/lib/maneuvers";
-import { guideSteps, type Network, type Route } from "@/lib/route";
+import type { GuideStep, Network, Route } from "@/lib/route";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。進み方は「▶ 歩く」（自動）か「次の曲がり角へ」。
@@ -37,11 +37,27 @@ function chevronTexture() {
   return t;
 }
 
-export function Walk({ net, indoor, route, center, goal }: { net: Network; indoor: Indoor; route: Route; center: { lat: number; lon: number }; goal: string }) {
+export function Walk({
+  net,
+  indoor,
+  route,
+  center,
+  goal,
+  steps,
+  floorName,
+}: {
+  net: Network;
+  indoor: Indoor;
+  route: Route;
+  center: { lat: number; lon: number };
+  goal: string;
+  steps: GuideStep[]; // 文は呼ぶ側で作る（「エスカレーターで B5（ホーム）→ B3（改札の階）」）
+  floorName: (f: number) => string;
+}) {
   const box = useRef<HTMLDivElement>(null);
   const { pts, cum } = useMemo(() => routePath(net, route, center), [net, route, center]);
   const total = cum.at(-1) ?? 0;
-  const list = useMemo(() => maneuvers(pts, cum, guideSteps(route)), [pts, cum, route]);
+  const list = useMemo(() => maneuvers(pts, cum, steps), [pts, cum, steps]);
   const dist = useRef(0);
   const [hud, setHud] = useState({ d: 0, playing: false });
   const playing = useRef(false);
@@ -144,6 +160,21 @@ export function Walk({ net, indoor, route, center, goal }: { net: Network; indoo
     const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 2.4, 20), new THREE.MeshBasicMaterial({ color: 0x1f5fbf }));
     pin.position.set(end.x, end.y + 1.2, end.z);
     scene.add(pin);
+    const c = document.createElement("canvas");
+    c.width = 200;
+    c.height = 64;
+    const g2 = c.getContext("2d")!;
+    g2.fillStyle = "rgba(31,95,191,.95)";
+    g2.fillRect(0, 0, 200, 64);
+    g2.fillStyle = "#fff";
+    g2.font = "bold 36px system-ui";
+    g2.textAlign = "center";
+    g2.textBaseline = "middle";
+    g2.fillText("トイレ", 100, 34);
+    const wcSign = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+    wcSign.scale.set(3.2, 1, 1);
+    wcSign.position.set(end.x, end.y + 3.2, end.z);
+    scene.add(wcSign);
 
     let raf = 0;
     let last = performance.now();
@@ -190,6 +221,7 @@ export function Walk({ net, indoor, route, center, goal }: { net: Network; indoo
   const left = Math.max(0, Math.round(total - hud.d));
   const arrived = hud.d >= total - 0.5;
   const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : "◎";
+  const here = pointAt(pts, cum, hud.d);
 
   return (
     <div style={{ position: "relative" }}>
@@ -203,6 +235,7 @@ export function Walk({ net, indoor, route, center, goal }: { net: Network; indoo
             {icon} {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
           </div>
         )}
+        <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>いま：{floorName(Math.round(here.floor * 2) / 2)}</div>
       </div>
       {/* 下：行き先と残り */}
       <div style={{ position: "absolute", left: 8, right: 8, bottom: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "8px 12px" }}>
