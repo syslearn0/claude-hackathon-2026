@@ -35,7 +35,10 @@ const centerOf = (f: IndoorFeature): [number, number] => [
 ];
 
 // 1つの階の地物を描く（面 → 線 → 印の順）。試作ページ（/lab/indoor）では全部（detail）、
-// 緊急の画面では見やすさを優先して、通路と部屋の形・トイレ・改札だけを出す
+// 緊急の画面では見やすさを優先して、通路と部屋の形・トイレ・改札と、上り下りの手段を控えめに出す：
+// ・エスカレーターは細い紫の線、エレベーターは小さな緑の点（文字なし）
+// ・階段は数が多いので、細い点線にして、地図を大きくしたとき（fine）だけ出す
+// ・行き先（focus）のそばの上り下りの手段だけ、どの階とつながるかを文字で添える
 const SIMPLE: Record<string, { color: string; fill: string }> = {
   corridor: { color: "#c9d3e0", fill: "#dde7f2" },
   area: { color: "#c9d3e0", fill: "#dde7f2" },
@@ -48,7 +51,24 @@ const SMALL: Record<string, { label: string; bg: string }> = {
   gate: { label: "改", bg: "#d93025" },
 };
 
-export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true) {
+const floorsText = (f: IndoorFeature) => f.floors.map(floorLabel).join("・");
+const VERT = {
+  escalator: { color: "#8a63b8", weight: 2.5, label: "エスカ" },
+  steps: { color: "#a8875c", weight: 1.5, label: "階段" },
+} as const;
+
+function tag(at: [number, number], text: string, bg: string) {
+  return L.marker(at, {
+    interactive: false,
+    icon: L.divIcon({
+      className: "",
+      html: `<div style="background:${bg};color:#fff;border-radius:4px;padding:0 3px;font:700 9px/13px system-ui;white-space:nowrap;transform:translate(6px,-14px)">${text}</div>`,
+      iconSize: [0, 0],
+    }),
+  });
+}
+
+export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true, opts: { fine?: L.LayerGroup; focus?: [number, number][] } = {}) {
   if (!detail) {
     for (const f of on.filter((x) => x.closed && SIMPLE[x.kind])) {
       const s = SIMPLE[f.kind];
@@ -66,6 +86,37 @@ export function drawFeatures(g: L.LayerGroup, on: IndoorFeature[], detail = true
       })
         .bindTooltip(`${KIND_JA[f.kind]}${f.name ? `：${f.name}` : ""}（OSM）`)
         .addTo(g);
+    }
+    // 上り下りの手段
+    const focus = opts.focus ?? [];
+    const nearFocus = (f: IndoorFeature) => {
+      const c = centerOf(f);
+      return focus.some((p) => Math.hypot((p[0] - c[0]) * 111_000, (p[1] - c[1]) * 91_000) < 60);
+    };
+    for (const f of on.filter((x) => x.kind === "escalator" || x.kind === "steps")) {
+      const v = VERT[f.kind as keyof typeof VERT];
+      const close = nearFocus(f);
+      const shape = f.closed
+        ? L.polygon(f.coords, { color: v.color, weight: v.weight * (close ? 1.5 : 1), fillOpacity: 0.15, fillColor: v.color })
+        : L.polyline(f.coords, { color: v.color, weight: v.weight * (close ? 1.5 : 1), dashArray: f.kind === "steps" ? "3 3" : undefined });
+      shape.bindTooltip(`${f.kind === "steps" ? "階段" : "エスカレーター"}（${floorsText(f) || "階不明"}）`);
+      // 階段は、行き先のそば以外は大きくしたときだけ
+      shape.addTo(f.kind === "steps" && !close && opts.fine ? opts.fine : g);
+      if (close && f.floors.length > 1) tag(centerOf(f), `${v.label} ${floorsText(f)}`, v.color).addTo(g);
+    }
+    for (const f of on.filter((x) => x.kind === "elevator")) {
+      const close = nearFocus(f);
+      L.marker(centerOf(f), {
+        icon: L.divIcon({
+          className: "",
+          html: `<div style="width:${close ? 11 : 8}px;height:${close ? 11 : 8}px;border-radius:2px;background:#1e7a3c;border:1px solid #fff"></div>`,
+          iconSize: [close ? 11 : 8, close ? 11 : 8],
+          iconAnchor: [close ? 5 : 4, close ? 5 : 4],
+        }),
+      })
+        .bindTooltip(`エレベーター（${floorsText(f) || "階不明"}）${f.name ? `：${f.name}` : ""}`)
+        .addTo(g);
+      if (close && f.floors.length > 1) tag(centerOf(f), `EV ${floorsText(f)}`, "#1e7a3c").addTo(g);
     }
     return;
   }
@@ -108,6 +159,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
   const box = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
+  const fine = useRef<L.LayerGroup | null>(null);
 
   useEffect(() => {
     if (!key) return;
@@ -138,6 +190,13 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     m.attributionControl.setPrefix(false);
     m.attributionControl.addAttribution("© OpenStreetMap contributors");
     layer.current = L.layerGroup().addTo(m);
+    fine.current = L.layerGroup();
+    // 階段（細かい層）は、地図を大きくしたときだけ出す
+    const toggleFine = () => {
+      if (m.getZoom() >= 19) fine.current!.addTo(m);
+      else fine.current!.remove();
+    };
+    m.on("zoomend", toggleFine);
     map.current = m;
     return () => {
       m.remove();
@@ -150,9 +209,16 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     const g = layer.current;
     if (!m || !g || !data || floor === undefined) return;
     g.clearLayers();
+    fine.current?.clearLayers();
     const on = data.features.filter((f) => f.floors.includes(floor));
     const near = (f: IndoorFeature) => points.some((p) => Math.hypot((p.place.lat - centerOf(f)[0]) * 111_000, (p.place.lon - centerOf(f)[1]) * 91_000) < 30);
-    drawFeatures(g, on.filter((f) => !(f.kind === "toilet" && near(f))), false);
+    // 行き先：一番の候補（位置が分かり、この階にあるとき）と現在地。上り下りの手段のどれを目立たせるかに使う
+    const top0 = points[0];
+    const goal: [number, number][] = [
+      ...(top0 && !top0.place.approxLocation && (pointFloor.get(top0.place.id) ?? floor) === floor ? [[top0.place.lat, top0.place.lon] as [number, number]] : []),
+      ...(here ? [[here.lat, here.lon] as [number, number]] : []),
+    ];
+    drawFeatures(g, on.filter((f) => !(f.kind === "toilet" && near(f))), false, { fine: fine.current ?? undefined, focus: goal });
     // 候補：この階のものは濃く、階が分からないものは薄く。別の階のものは出さない
     const shown: [number, number][] = [];
     for (const p of points) {
@@ -169,11 +235,13 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
     const top = points[0];
     const topHere = top && !top.place.approxLocation && (pointFloor.get(top.place.id) ?? floor) === floor ? [[top.place.lat, top.place.lon] as [number, number]] : [];
     const focus = topHere.length ? topHere : shown;
-    const pts = focus.length ? [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : [])] : on.flatMap((f) => f.coords);
+    // 駅の中心もいつも入れる（中心の近くほど屋内データが多い。端に立っていても駅の中が見えるように）
+    const c = INDOOR_STATIONS[station].center;
+    const pts = focus.length || here ? [...focus, ...(here ? [[here.lat, here.lon] as [number, number]] : []), [c.lat, c.lon] as [number, number]] : on.flatMap((f) => f.coords);
     if (pts.length) m.fitBounds(L.latLngBounds(pts), { padding: [28, 28], maxZoom: 18 });
     // 現在地は動くたびに寄せ直さない（地図を触っている人の邪魔をしないため）
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, floor, points, pointFloor, here?.lat, here?.lon]);
+  }, [data, floor, points, pointFloor, here?.lat, here?.lon, station]);
 
   // この階の、位置が駅の代表でしか分からない候補
   const approx = points.filter((p) => p.place.approxLocation && (pointFloor.get(p.place.id) ?? floor) === floor);
@@ -204,6 +272,15 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
         </span>
         <span>
           <span style={{ background: ICON.gate.bg, color: "#fff", borderRadius: 4, padding: "0 3px" }}>改</span> 改札
+        </span>
+        <span>
+          <span style={{ color: VERT.escalator.color, fontWeight: 800 }}>━</span> エスカレーター
+        </span>
+        <span>
+          <span style={{ display: "inline-block", width: 8, height: 8, background: "#1e7a3c", borderRadius: 2 }} /> エレベーター
+        </span>
+        <span>
+          <span style={{ color: VERT.steps.color }}>┅</span> 階段（拡大すると出ます）
         </span>
       </div>
       <p className="muted" style={{ fontSize: "0.8rem", margin: "4px 0 0" }}>

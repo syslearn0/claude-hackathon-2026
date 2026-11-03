@@ -73,7 +73,6 @@ async function stationPos(...names: string[]): Promise<LatLon[]> {
 
 // a から b へ向かう途中（0〜1）の点
 const between = (a: LatLon, b: LatLon, t: number): LatLon => ({ lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t });
-const metersNorth = (p: LatLon, m: number): LatLon => ({ lat: p.lat + m / 110_540, lon: p.lon });
 
 // ---------- 画面の操作 ----------
 
@@ -168,12 +167,13 @@ scenes["shinjuku-enter"] = {
     await c.addInitScript(seedProfile);
   },
   async run({ ctx, page, base }) {
-    const [s, w, n, e] = INDOOR_STATIONS["新宿"].bbox;
-    // 範囲の少し南から、駅の中心へ北上。アプリの範囲に入るまで OUTSIDE_M だけ歩く（既定 120m、時速5km で約1分半）
+    const { center, radiusM } = INDOOR_STATIONS["新宿"];
+    // 東（新宿三丁目側）から、屋内データの多い JR 新宿駅の中心部へ西に歩く。
+    // 「駅に入った」（中心から radiusM）まで OUTSIDE_M だけ歩く（既定 120m、時速5km で約1分半）
     const outsideM = Number(process.env.OUTSIDE_M ?? 120);
-    const lon = (w + e) / 2;
-    const start = metersNorth({ lat: s, lon }, -outsideM);
-    const mover = new Mover(ctx, [start, { lat: (s + n) / 2, lon }], 5);
+    const lat = center.lat;
+    const start = { lat, lon: center.lon + (radiusM + outsideM) / (111_320 * Math.cos((lat * Math.PI) / 180)) };
+    const mover = new Mover(ctx, [start, center], 5);
     await mover.set(start);
     mover.start();
     await page.goto(`${base}/now`);

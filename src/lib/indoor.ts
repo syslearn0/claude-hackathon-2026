@@ -1,3 +1,4 @@
+import { distanceM } from "./geo";
 // 駅の屋内データ（OpenStreetMap の indoor、試作）。data/indoor/<key>.json を /api/indoor から受け取る。
 // 階は scripts/normalize-indoor.ts が日本式（1 = 1F、-1 = B1）にそろえた floors を使う。
 
@@ -14,15 +15,15 @@ export type IndoorFeature = {
 };
 export type Indoor = { station: string; bbox: [number, number, number, number]; features: IndoorFeature[]; attribution: string };
 
-// 屋内データのある駅（駅名 → ファイル名と範囲）。範囲は「駅の中に入った」の判定にも使う
-export const INDOOR_STATIONS: Record<string, { key: string; bbox: [number, number, number, number] }> = {
-  新宿: { key: "shinjuku", bbox: [35.6855, 139.696, 35.6935, 139.704] },
+// 屋内データのある駅（駅名 → ファイル名と、データの範囲）。
+// 「駅に入った」は、データの範囲（広め）ではなく、駅の中心から radiusM 以内で決める（範囲の端は屋内データが少ないため）
+export const INDOOR_STATIONS: Record<string, { key: string; bbox: [number, number, number, number]; center: { lat: number; lon: number }; radiusM: number }> = {
+  新宿: { key: "shinjuku", bbox: [35.6855, 139.696, 35.6935, 139.704], center: { lat: 35.6898, lon: 139.7004 }, radiusM: 250 },
 };
 
 export function indoorAt(at: { lat: number; lon: number }): string | undefined {
-  for (const [name, { bbox }] of Object.entries(INDOOR_STATIONS)) {
-    const [s, w, n, e] = bbox;
-    if (at.lat >= s && at.lat <= n && at.lon >= w && at.lon <= e) return name;
+  for (const [name, { center, radiusM }] of Object.entries(INDOOR_STATIONS)) {
+    if (distanceM(at, center) <= radiusM) return name;
   }
   return undefined;
 }
