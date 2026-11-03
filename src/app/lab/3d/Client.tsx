@@ -208,35 +208,38 @@ export default function Station3D() {
   const [track, setTrack] = useState(false); // センサーで追う
   const [trackNote, setTrackNote] = useState("");
   const [pickNote, setPickNote] = useState("");
-  // 地図のタップ（qs：タップの線が当たった床の点、手前から順。floorH：その 3D の1階ぶんの高さ）。
-  // 上から見ると上の階の床が手前に重なるので、今いる階の床に当たっていればそれを使う。
-  // 道順の近く（同じ階で 6m 以内）なら道順の上に合わせ、
-  // 離れていれば、そこのいちばん近い通路を新しい出発地点にして道順を引き直す
+  const floors = useMemo(() => (net ? [...new Set(net.nodes.map((n) => n[2]))] : []), [net]); // データにある階（B1.5 のような中二階も）
+  // 地図のタップ（qs：タップの線が当たった床の点、手前から順。いちばん後ろは今の階の高さの平面。floorH：その 3D の1階ぶんの高さ）。
+  // 手前から順に見て、最初に使える点を使う：道順の近く（同じ階で 6m 以内）なら道順の上に合わせ、
+  // 離れていても通路が近ければ（30m 以内）、そこのいちばん近い通路を新しい出発地点にして道順を引き直す
   const pickAt = (qs: { x: number; y: number; z: number }[], floorH: number) => {
     if (!net || !qs.length) return;
-    const q = qs.find((x) => Math.round(x.y / floorH) === floorNow) ?? qs[0];
-    const floor = Math.round(q.y / floorH);
-    const d = nearestOnPath(path.pts, path.cum, { x: q.x, y: floor * FLOOR_M, z: q.z });
-    const onRoute = pointAt(path.pts, path.cum, d);
     setPicking(false);
     setPlaying(false);
-    if (Math.abs(onRoute.y - floor * FLOOR_M) < 0.1 && Math.hypot(onRoute.x - q.x, onRoute.z - q.z) <= 6) {
-      setPos(d);
-      setPickNote("");
+    for (const q of qs) {
+      const f = q.y / floorH;
+      const floor = floors.reduce((a, b) => (Math.abs(b - f) < Math.abs(a - f) ? b : a), floors[0]);
+      if (Math.abs(floor - f) > 0.15) continue;
+      const d = nearestOnPath(path.pts, path.cum, { x: q.x, y: floor * FLOOR_M, z: q.z });
+      const onRoute = pointAt(path.pts, path.cum, d);
+      if (Math.abs(onRoute.y - floor * FLOOR_M) < 0.1 && Math.hypot(onRoute.x - q.x, onRoute.z - q.z) <= 6) {
+        setPos(d);
+        setPickNote("");
+        return;
+      }
+      const at = { lat: center.lat - q.z / 110_540, lon: center.lon + q.x / kx };
+      const node = nearestNode(net, at, floor);
+      const n = net.nodes[node];
+      if (n[2] !== floor || distanceM(at, { lat: n[0], lon: n[1] }) > 30) continue;
+      const where = Number.isInteger(floor) ? floorLabel(floor) : "中間の階";
+      setPicked({ key, start: { label: `地図で選んだ場所（${where}）`, node } });
+      setStartIdx(0);
+      setPickNote(`${where}のタップしたところから、道順を出し直しました。`);
       return;
     }
-    const at = { lat: center.lat - q.z / 110_540, lon: center.lon + q.x / kx };
-    const node = nearestNode(net, at, floor);
-    const n = net.nodes[node];
-    if (n[2] !== floor || distanceM(at, { lat: n[0], lon: n[1] }) > 30) {
-      setPickNote("そこには通路のデータがありません。通路（青い床）の上をタップしてください。");
-      return;
-    }
-    setPicked({ key, start: { label: `地図で選んだ場所（${floorLabel(floor)}）`, node } });
-    setStartIdx(0);
-    setPickNote(`${floorLabel(floor)}のタップしたところから、道順を出し直しました。`);
+    setPickNote("そこには通路のデータがありません。通路（青い床）の上をタップしてください。");
   };
-  const floorNow = path.pts.length ? Math.round(pointAt(path.pts, path.cum, pos).floor) : 0;
+  const floorNow = path.pts.length ? pointAt(path.pts, path.cum, pos).floor : 0;
   const live = useRef({ pos, cps, picking, path, floorNow, pick: pickAt });
   useLayoutEffect(() => {
     live.current = { pos, cps, picking, path, floorNow, pick: pickAt };
