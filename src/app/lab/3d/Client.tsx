@@ -77,7 +77,47 @@ export default function Station3D() {
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
-  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite } | null>(null);
+  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh } | null>(null);
+  // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
+  const compass = useRef<number | null>(null);
+  const [hasCompass, setHasCompass] = useState(false);
+  const [askCompass, setAskCompass] = useState(false); // iPhone：許可を聞くボタンを出す
+  useEffect(() => {
+    const set = (h: number) => {
+      compass.current = h;
+      const b = youMark.current?.beam;
+      if (b) {
+        b.rotation.y = (-h * Math.PI) / 180;
+        b.visible = true;
+      }
+      setHasCompass(true);
+    };
+    const onAbs = (e: DeviceOrientationEvent) => {
+      if (e.alpha !== null) set((360 - e.alpha) % 360);
+    };
+    const onIos = (e: DeviceOrientationEvent) => {
+      const h = (e as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading;
+      if (typeof h === "number") set(h);
+    };
+    window.addEventListener("deviceorientationabsolute", onAbs as EventListener);
+    window.addEventListener("deviceorientation", onIos);
+    const DO = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+    const t = setTimeout(() => setAskCompass(compass.current === null && typeof DO?.requestPermission === "function"), 1500);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("deviceorientationabsolute", onAbs as EventListener);
+      window.removeEventListener("deviceorientation", onIos);
+    };
+  }, []);
+  const allowCompass = async () => {
+    const DO = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+    try {
+      await DO?.requestPermission?.();
+    } catch {
+      // 聞けないとき（http など）は出さないまま
+    }
+    setAskCompass(false);
+  };
 
   useEffect(() => {
     fetch("/api/places")
@@ -254,6 +294,10 @@ export default function Station3D() {
         : c.kind === "alight"
           ? `${KIND_JA[c.via!]}を降りたところ・${floorName(c.toFloor!)}`
           : "トイレ";
+  // エレベーターのボタンの書き方（B3・1・2。中二階はボタンの名前が駅ごとに違うので、階の名前で）
+  const liftButton = (f: number) => (!Number.isInteger(f) ? floorName(f) : f < 0 ? `B${-f}` : `${f}`);
+  // エレベーターの手前 25m から降りるまで、押す階を大きく出す
+  const lift = cps.find((c) => c.via === "elevator" && ((c.kind === "board" && c.at > pos - 0.5 && c.at - pos <= 25) || (c.kind === "alight" && pos >= c.boardAt! - 0.5 && pos < c.at - 0.01)));
   const cpButton = (c: Checkpoint) => (c.kind === "alight" ? `${KIND_JA[c.via!]}を降りたら押す` : c.kind === "arrive" ? "トイレに着いたら押す" : `${cpLabel(c)}に着いたら押す`);
   // 歩く目線の上の案内の文（上り下りは手順の文と同じ言い方に）
   const listText: Maneuver[] = list.map((m) => {
@@ -488,7 +532,19 @@ export default function Station3D() {
     s.layer.add(you);
     const youSign = sign("あなた", "rgba(217,48,37,.92)", 180);
     s.layer.add(youSign);
-    youMark.current = { you, sign: youSign };
+    // スマホの向き：あなたから前へ広がる扇（北から時計回りの度で回す。向きが取れないときは出さない）
+    const fan = new THREE.Shape();
+    fan.moveTo(0, 0);
+    fan.lineTo(Math.sin(-0.45) * 12, Math.cos(-0.45) * 12);
+    fan.quadraticCurveTo(0, 14, Math.sin(0.45) * 12, Math.cos(0.45) * 12);
+    fan.lineTo(0, 0);
+    const fanG = new THREE.ShapeGeometry(fan);
+    fanG.rotateX(-Math.PI / 2);
+    const beam = new THREE.Mesh(fanG, new THREE.MeshBasicMaterial({ color: COLOR.you, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+    beam.visible = compass.current !== null;
+    if (compass.current !== null) beam.rotation.y = (-compass.current * Math.PI) / 180;
+    s.layer.add(beam);
+    youMark.current = { you, sign: youSign, beam };
     const end = pts.at(-1)!;
     const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
     wc.position.copy(end).add(new THREE.Vector3(0, 2.5, 0));
@@ -523,6 +579,7 @@ export default function Station3D() {
     const v = new THREE.Vector3(p.x, (p.y / FLOOR_M) * FLOOR_H + 0.6, p.z);
     m.you.position.copy(v);
     m.sign.position.copy(v).add(new THREE.Vector3(0, 6, 0));
+    m.beam.position.copy(v).add(new THREE.Vector3(0, 0.3, 0));
   }, [pos, path, current, arrived]);
 
   const startLabel = starts[startIdx]?.label;
@@ -775,6 +832,38 @@ export default function Station3D() {
         {/* 下：次の確認ポイントと、着いたら押すボタン（どちらの見方でも同じ場所） */}
         {route && goal && (
           <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+            {lift && !picking && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff4c2", color: "#3a2f00", borderRadius: 8, padding: "6px 10px", marginBottom: 6 }}>
+                <div style={{ fontSize: "0.95rem", fontWeight: 800, flex: 1 }}>
+                  {lift.kind === "board" ? "エレベーターに乗ったら" : "エレベーターの中："}
+                  <br />
+                  <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>
+                    {floorName(lift.toFloor!)}
+                    {lift.up ? "・上へ" : "・下へ"}
+                  </span>
+                </div>
+                <div style={{ fontSize: "0.8rem", fontWeight: 800, textAlign: "center" }}>
+                  <div
+                    aria-label={`押すボタン ${liftButton(lift.toFloor!)}`}
+                    style={{
+                      minWidth: 56,
+                      height: 56,
+                      borderRadius: 28,
+                      border: "3px solid #3a2f00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.6rem",
+                      padding: "0 8px",
+                      background: "#fff",
+                    }}
+                  >
+                    {liftButton(lift.toFloor!)}
+                  </div>
+                  を押す
+                </div>
+              </div>
+            )}
             {picking ? (
               <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
             ) : next ? (
@@ -831,6 +920,7 @@ export default function Station3D() {
         <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
           📍 地図で位置を直す
         </button>
+        {askCompass && !hasCompass && <button onClick={allowCompass}>🧭 スマホの向きを出す</button>}
       </div>
       {pickNote && (
         <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
@@ -849,6 +939,7 @@ export default function Station3D() {
           <span style={{ color: "#8a63b8" }}>━ エスカレーター</span>
           <span style={{ color: "#1e7a3c" }}>━ エレベーター</span>
           <span style={{ color: "#a8875c" }}>━ 階段</span>
+          {hasCompass && <span style={{ color: "#d93025" }}>◢◣ スマホの向き</span>}
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
