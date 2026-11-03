@@ -1,6 +1,6 @@
 // 地下で GPS が届かなくても、決まった道順の上で「どこまで進んだか」をスマホのセンサーで数える。
 // 当てるのは道順の上の位置（始まりからの m）の1つの数だけ。歩数で進め、曲がった・階が変わったで確認ポイントに合わせ直す。
-// 手でも直せる（「着いたら押す」・地図をタップ）。歩数のずれは 100m あたり 5〜10m ほど出るので、合わせ直しが前提。
+// 手でも直せる（確認ポイントの「いま〜にいる」ボタン・地図をタップ）。歩数のずれは 100m あたり 5〜10m ほど出るので、合わせ直しが前提。
 import type { Maneuver } from "./maneuvers";
 import type { KindName } from "./route";
 
@@ -87,5 +87,45 @@ export class TurnWatcher {
     this.last = t;
     this.hist = [];
     return sum > 0 ? "left" : "right";
+  }
+}
+
+// 歩いている向きが、道順の向きと合っているか。位置は道順の上のまま動かし、向きは「合っているかの確かめ」だけに使う
+// （駅の地下ではコンパスが狂いやすく、ジャイロだけで追う向きもだんだんずれるので、自由には動かさない）。
+// 向き（北から時計回りの度）はジャイロで回った分を足して追い、道順の向きに合わせ直したところを基準にする
+// （始めたとき・角や階で合わせ直したとき・ボタンや地図で位置を直したとき・本人が「向きは合っている」と押したとき）。
+export type Drift = "back" | "aside";
+const angleDiff = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
+
+export class HeadingCheck {
+  private heading: number | null = null;
+  private lastT: number | null = null;
+  private gyro = false; // ジャイロが届いていないと向きは分からないので、何も言わない
+  private recent: [number, number][] = []; // 直近 6 歩の、道順の向きとの差（度）：[いまの向きとの差, 先の向きも許したときの差]
+  calibrate(routeDeg: number) {
+    this.heading = routeDeg;
+    this.recent = [];
+  }
+  // yaw：鉛直のまわりの回る速さ（度/秒。左回りが正 → 時計回りの向きは減る）
+  turn(t: number, yaw: number) {
+    if (this.lastT !== null && this.heading !== null) this.heading -= (yaw * Math.min(200, t - this.lastT)) / 1000;
+    this.lastT = t;
+    this.gyro = true;
+  }
+  // 1歩ごとに。route：いまの位置の道順の向き、ahead：数 m 先の向き（角の手前で先に曲がっても止めない）。
+  // advance：この1歩で道順の上を進めてよいか。drift：逆向き・横向きが続いているか
+  step(route: number, ahead = route): { advance: boolean; drift?: Drift } {
+    if (!this.gyro || this.heading === null) {
+      this.heading ??= route;
+      return { advance: true };
+    }
+    const now = angleDiff(this.heading, route);
+    const d = Math.min(now, angleDiff(this.heading, ahead));
+    this.recent = [...this.recent, [now, d] as [number, number]].slice(-6);
+    // 逆向きは、いまの道順の向きと比べる（先の角の向きと比べると、横向きに見えてしまう）
+    const back = this.recent.filter(([x]) => x > 120).length;
+    const aside = this.recent.filter(([, x]) => x > 60).length;
+    const drift: Drift | undefined = back >= 4 ? "back" : this.recent.length >= 6 && aside >= 5 ? "aside" : undefined;
+    return { advance: d <= 75, drift };
   }
 }

@@ -7,7 +7,8 @@ import type { Indoor } from "@/lib/indoor";
 import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
-// 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・「着いたら押す」・タップで変わる）。
+// 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
+// 次の確認ポイント（mark）には、ピンクの輪と薄い柱を立てる（ここに来たらボタンで位置を合わせる）。
 // ここでは、その位置から見た景色と次の曲がり角を描くだけ。「▶ 歩く」（playing）のときは自分で進めて知らせる。
 // 壁は、部屋・店の形を 2.8m 立ち上げたものと、階の外形（国交省のデータの「床」）のふち。改札は腰の高さの仕切り。
 // いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
@@ -51,6 +52,7 @@ export function Walk({
   onStop,
   picking,
   onPick,
+  mark,
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -64,6 +66,7 @@ export function Walk({
   onStop: () => void;
   picking: boolean; // 「地図で位置を直す」：次のタップで、そこを今の位置にする
   onPick: (q: { x: number; y: number; z: number }) => void; // タップした床の点（この 3D の座標）
+  mark?: number; // 次の確認ポイント（道順の上の m）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -74,6 +77,7 @@ export function Walk({
   const pick = useRef(picking);
   const cb = useRef({ onPos, onStop, onPick });
   const lst = useRef(list);
+  const markAt = useRef(mark);
   const veil = useRef<HTMLDivElement>(null); // エレベーターに乗っている間の暗幕
   // 外で位置が変わったら合わせる（自分で歩いている途中の小さな差は、自分の位置のまま）
   useLayoutEffect(() => {
@@ -82,7 +86,8 @@ export function Walk({
     pick.current = picking;
     cb.current = { onPos, onStop, onPick };
     lst.current = list;
-  }, [pos, playing, picking, onPos, onStop, onPick, list]);
+    markAt.current = mark;
+  }, [pos, playing, picking, onPos, onStop, onPick, list, mark]);
 
   useEffect(() => {
     const el = box.current;
@@ -291,6 +296,20 @@ export function Walk({
     wcSign.position.set(end.x, end.y + 3.2, end.z);
     scene.add(wcSign);
 
+    // 次の確認ポイントの印（ピンクの輪と、くぐれる薄い柱）
+    const cpMark = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.07, 8, 40), new THREE.MeshBasicMaterial({ color: 0xd6338a }));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.05;
+    cpMark.add(ring);
+    const glow = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.9, 0.9, 2.6, 32, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0xd6338a, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false }),
+    );
+    glow.position.y = 1.3;
+    cpMark.add(glow);
+    scene.add(cpMark);
+
     let raf = 0;
     let last = performance.now();
     let lastHud = 0;
@@ -365,6 +384,15 @@ export function Walk({
         const text = lift ? `${moving.text}\n（乗っています）` : "";
         if (veil.current.textContent !== text) veil.current.textContent = text;
       }
+      // 確認ポイントの印：同じ階にあるときだけ（目の前 1.5m より近いと柱が画面をふさぐので、輪だけ）
+      const mk = markAt.current;
+      if (mk === undefined) cpMark.visible = false;
+      else {
+        const q = pointAt(way, wayAt, mk);
+        cpMark.position.set(q.x, q.y, q.z);
+        cpMark.visible = Math.abs(q.y - p.y) < 1;
+        glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 1.5;
+      }
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     };
@@ -417,7 +445,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, sm, total, center]);
+  }, [indoor, pts, cum, sm, total, center]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));

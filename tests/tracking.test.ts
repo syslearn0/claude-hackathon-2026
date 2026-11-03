@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Maneuver } from "../src/lib/maneuvers";
-import { advanceBySteps, checkpoints, nextCheckpoint, snapFloor, snapTurn, StepCounter, TurnWatcher, yawRate } from "../src/lib/tracking";
+import { advanceBySteps, checkpoints, HeadingCheck, nextCheckpoint, snapFloor, snapTurn, StepCounter, TurnWatcher, yawRate } from "../src/lib/tracking";
 
 // 30m で右、40m でエレベーター（B6→B3、降り口 55m）、80m でトイレ
 const list: Maneuver[] = [
@@ -50,4 +50,29 @@ test("曲がり：画面を上にして持ち、1 秒で 90 度右へ回ると�
   let any: string | undefined;
   for (let t = 0; t <= 5000; t += 20) any ??= sway.push(t, yawRate({ alpha: 40 * Math.sin((2 * Math.PI * t) / 1000), beta: 0, gamma: 0 }, flat));
   assert.equal(any, undefined);
+});
+
+test("向き：道順と同じ向きなら進め、逆向きが続けば止めて知らせる。曲がる手前で先に曲がっても止めない", () => {
+  const hc = new HeadingCheck();
+  hc.calibrate(0);
+  hc.turn(0, 0);
+  assert.deepEqual(hc.step(0), { advance: true, drift: undefined });
+  // その場で 180 度回る（左回り 90 度/秒 × 2 秒）
+  for (let t = 20; t <= 2000; t += 20) hc.turn(t, 90);
+  let last = hc.step(0);
+  for (let i = 0; i < 3; i++) last = hc.step(0);
+  assert.deepEqual(last, { advance: false, drift: "back" });
+  // 合わせ直すと、また進む
+  hc.calibrate(180);
+  assert.equal(hc.step(180).advance, true);
+  // 右へ 90 度回ったが、道順は数 m 先で右（90 度）に曲がる
+  const c = new HeadingCheck();
+  c.calibrate(0);
+  c.turn(0, 0);
+  for (let t = 20; t <= 1000; t += 20) c.turn(t, -90);
+  assert.equal(c.step(0, 90).advance, true);
+  // ジャイロが届かない端末では、何も言わずに進める
+  const none = new HeadingCheck();
+  none.calibrate(0);
+  assert.deepEqual(none.step(90), { advance: true });
 });

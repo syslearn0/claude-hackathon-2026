@@ -13,14 +13,15 @@ import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } 
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
-import { advanceBySteps, checkpoints, nextCheckpoint, prevCheckpoint, snapFloor, snapTurn, STEP_M, StepCounter, TurnWatcher, yawRate, type Checkpoint } from "@/lib/tracking";
+import { advanceBySteps, checkpoints, HeadingCheck, nextCheckpoint, prevCheckpoint, snapFloor, snapTurn, STEP_M, StepCounter, TurnWatcher, yawRate, type Checkpoint, type Drift } from "@/lib/tracking";
 import { Walk } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
 //   ① トイレまで何分・何m、② いまの一手（「エスカレーターで B5（ホーム）→ B3（改札の階）」）、③ 自分のまわりだけを切り出した 3D、④ 条件を変える
 // 出発地点は、すぐ道順を出せるように推し量る（号車・地上なら GPS）。分からなければ「いまどこ？」を1回だけ聞く（ホーム・改札・地上）。
 // 違っていたら「ここじゃない」から、地図のタップか看板の写真で直す。embedded では、歩く目線・センサーは「もっと見る」にしまう。
-// 自分の位置は「道順の上で何 m 進んだか」の1つの数（pos）。歩く目線・上から見る・センサー・「着いたら押す」・地図のタップのどれで変えても同じ。
+// 自分の位置は「道順の上で何 m 進んだか」の1つの数（pos）。歩く目線・上から見る・センサー・確認ポイントのボタン・地図のタップのどれで変えても同じ。
+// 次の確認ポイントは 3D にピンクの印で出し、ボタンで「いまここにいる」と位置をそこに合わせる（ずれを直す、という見せ方）。
 // 3D は、いまの手順の始まりを中心に半径 CROP_M だけを、出発と行き先の間の階だけ描く（駅の全体は情報が多すぎる）。
 
 const CROP_M = 70;
@@ -28,7 +29,8 @@ const CROP_M = 70;
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
 const FLOOR_H = 10; // 1階ぶんの高さ（m。見やすさのため実際の約2倍）
-const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, route: 0xd93025, now: 0xf2b705, toilet: 0x1f5fbf, you: 0xd93025 };
+const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, route: 0xd93025, now: 0xf2b705, toilet: 0x1f5fbf, you: 0xd93025, checkpoint: 0xd6338a };
+const CP_CSS = "#ff6fb5"; // 確認ポイントの印の色（暗い案内の上の文字用に少し明るく）
 
 type Start = { label: string; node: number; kind?: "car" | "platform" | "ground" | "gate" };
 type Goal = { label: string; short: string; node: number; place: Place };
@@ -78,7 +80,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
-  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh } | null>(null);
+  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group } | null>(null);
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
   const compass = useRef<number | null>(null);
   const [hasCompass, setHasCompass] = useState(false);
@@ -323,7 +325,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const liftButton = (f: number) => (!Number.isInteger(f) ? floorName(f) : f < 0 ? `B${-f}` : `${f}`);
   // エレベーターの手前 25m から降りるまで、押す階を大きく出す
   const lift = cps.find((c) => c.via === "elevator" && ((c.kind === "board" && c.at > pos - 0.5 && c.at - pos <= 25) || (c.kind === "alight" && pos >= c.boardAt! - 0.5 && pos < c.at - 0.01)));
-  const cpButton = (c: Checkpoint) => (c.kind === "alight" ? `${KIND_JA[c.via!]}を降りたら押す` : c.kind === "arrive" ? "トイレに着いたら押す" : `${cpLabel(c)}に着いたら押す`);
+  // ボタン：「いまここにいる」と押して、位置をピンクの印に合わせる
+  const cpButton = (c: Checkpoint) => (c.kind === "alight" ? `${KIND_JA[c.via!]}を降りた` : c.kind === "arrive" ? "トイレに着いた" : `いま${cpLabel(c)}にいる`);
+  const [drift, setDrift] = useState<Drift | null>(null); // センサーで追っているとき、逆向き・横向きに歩いている
+  const recal = useRef(false); // 「向きは合っている」：次の1歩で、いまの向きを道順の向きに合わせ直す
   // 歩く目線の上の案内の文（上り下りは手順の文と同じ言い方に）
   const listText: Maneuver[] = list.map((m) => {
     const g = m.kind === "floor" ? guide.find((x) => path.cum[x.from] === m.at && x.fromFloor !== x.toFloor) : undefined;
@@ -342,9 +347,26 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     let alive = true;
     let stopBaro: (() => void) | undefined;
     const note = () => setTrackNote(`歩数 ${n}・曲がり角などで自動で合わせ直した ${fixes} 回${baro}`);
+    // 向き：歩いている向きと道順の向きを比べ、逆向き・横向きのときは進めずに知らせる
+    const heads = new HeadingCheck();
+    const bearing = (d: number) => {
+      const { path } = live.current;
+      const a = pointAt(path.pts, path.cum, d);
+      const b = pointAt(path.pts, path.cum, d + 2);
+      return (Math.atan2(b.x - a.x, -(b.z - a.z)) * 180) / Math.PI;
+    };
+    const spun: [number, number][] = []; // 回った角度の合計（度。左回りが正）の、直近 6 秒
+    let turning: { t: number; dir: "left" | "right" } | null = null;
+    let mine = live.current.pos; // センサーで置いた位置。ほかで変わったら（ボタン・地図）、その向きに合わせ直す
+    heads.calibrate(bearing(mine));
     const go = (d: number | undefined, fix: boolean) => {
       if (d === undefined || Math.abs(d - live.current.pos) < 0.05) return;
-      if (fix) fixes++;
+      if (fix) {
+        fixes++;
+        heads.calibrate(bearing(d));
+        setDrift(null);
+      }
+      mine = d;
       setPos(d);
       note();
     };
@@ -352,19 +374,42 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       const g = e.accelerationIncludingGravity;
       if (g?.x == null || g.y == null || g.z == null) return;
       got = true;
+      const r = e.rotationRate;
+      const yaw = r?.alpha != null && r.beta != null && r.gamma != null ? yawRate({ alpha: r.alpha, beta: r.beta, gamma: r.gamma }, { x: g.x, y: g.y, z: g.z }) : undefined;
+      if (yaw !== undefined) {
+        heads.turn(e.timeStamp, yaw);
+        spun.push([e.timeStamp, (spun.at(-1)?.[1] ?? 0) + (yaw * Math.min(200, e.timeStamp - (spun.at(-1)?.[0] ?? e.timeStamp))) / 1000]);
+        while (spun.length && e.timeStamp - spun[0][0] > 6000) spun.shift();
+      }
+      const at = live.current.pos;
+      if (Math.abs(at - mine) > 0.05 || recal.current) {
+        heads.calibrate(bearing(at));
+        mine = at;
+        recal.current = false;
+        setDrift(null);
+      }
       if (steps.push(e.timeStamp, Math.hypot(g.x, g.y, g.z))) {
         n++;
-        go(advanceBySteps(live.current.cps, live.current.pos, STEP_M), false);
+        const h = heads.step(bearing(at), bearing(at + 5));
+        setDrift(h.drift ?? null);
+        if (h.advance) go(advanceBySteps(live.current.cps, at, STEP_M), false);
         note();
       }
-      const r = e.rotationRate;
-      if (r?.alpha == null || r.beta == null || r.gamma == null) return;
-      const dir = turns.push(e.timeStamp, yawRate({ alpha: r.alpha, beta: r.beta, gamma: r.gamma }, { x: g.x, y: g.y, z: g.z }));
-      if (dir) go(snapTurn(live.current.cps, live.current.pos, dir), true);
+      if (yaw === undefined) return;
+      // 曲がった：回り終わるのを待って、回った角度をはかる。45〜135 度なら角を曲がった（近くの角に合わせる）。
+      // それより大きいのは引き返した（角には合わせない。向きの確かめが「逆に歩いていませんか」と知らせる）
+      const dir = turns.push(e.timeStamp, yaw);
+      if (dir && !turning) turning = { t: e.timeStamp, dir };
+      if (turning && e.timeStamp - turning.t > 1000 && Math.abs(yaw) < 20) {
+        const before = spun.find(([t]) => t >= turning!.t - 2500)?.[1] ?? 0;
+        const total = Math.abs((spun.at(-1)?.[1] ?? 0) - before);
+        if (total >= 45 && total <= 135) go(snapTurn(live.current.cps, live.current.pos, turning.dir), true);
+        turning = null;
+      }
     };
     window.addEventListener("devicemotion", onMotion);
     const check = setTimeout(() => {
-      if (!got) setTrackNote("動きのセンサーが届いていません（パソコンのときなど）。「着いたら押す」と地図のタップで進めてください。");
+      if (!got) setTrackNote("動きのセンサーが届いていません（パソコンのときなど）。ピンクの印のところで「いま〜にいる」を押すか、地図のタップで進めてください。");
     }, 3000);
     barometerAvailable().then(async (ok) => {
       if (!ok || !alive) return;
@@ -389,6 +434,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     });
     return () => {
       alive = false;
+      setDrift(null);
       window.removeEventListener("devicemotion", onMotion);
       clearTimeout(check);
       stopBaro?.();
@@ -572,7 +618,18 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     beam.visible = compass.current !== null;
     if (compass.current !== null) beam.rotation.y = (-compass.current * Math.PI) / 180;
     s.layer.add(beam);
-    youMark.current = { you, sign: youSign, beam };
+    // 次の確認ポイント：ピンクの輪と柱（位置は下の効果で動かす）。ボタンを押すと、ここに位置を合わせる
+    const cp = new THREE.Group();
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.5, 8, 32), new THREE.MeshBasicMaterial({ color: COLOR.checkpoint }));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.4;
+    cp.add(ring);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 12), new THREE.MeshBasicMaterial({ color: COLOR.checkpoint, transparent: true, opacity: 0.7 }));
+    post.position.y = 3;
+    cp.add(post);
+    cp.visible = false;
+    s.layer.add(cp);
+    youMark.current = { you, sign: youSign, beam, cp };
     const end = pts.at(-1)!;
     const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
     wc.position.copy(end).add(new THREE.Vector3(0, 2.5, 0));
@@ -608,7 +665,13 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     m.you.position.copy(v);
     m.sign.position.copy(v).add(new THREE.Vector3(0, 6, 0));
     m.beam.position.copy(v).add(new THREE.Vector3(0, 0.3, 0));
-  }, [pos, path, current, arrived]);
+    // 次の確認ポイント（トイレは青い柱があるので出さない）
+    m.cp.visible = !!next && next.kind !== "arrive";
+    if (next) {
+      const c = pointAt(path.pts, path.cum, next.at);
+      m.cp.position.set(c.x, (c.y / FLOOR_M) * FLOOR_H, c.z);
+    }
+  }, [pos, path, current, arrived, next]);
 
   const startLabel = starts[startIdx]?.label;
 
@@ -906,6 +969,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             onStop={() => setPlaying(false)}
             picking={picking}
             onPick={(q) => live.current.pick([q], FLOOR_M)}
+            mark={next && next.kind !== "arrive" ? next.at : undefined}
           />
         )}
         <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }} />
@@ -924,7 +988,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             )}
           </div>
         )}
-        {/* 下：次の確認ポイントと、着いたら押すボタン（どちらの見方でも同じ場所） */}
+        {/* 下：次の確認ポイント（ピンクの印）と、そこに位置を合わせるボタン（どちらの見方でも同じ場所） */}
         {route && goal && (
           <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
             {/* 案内の2行。エレベーターの手前と中では、2行目を行き先にして、右に押すボタンを出す（高さは変えない。3D を狭めない） */}
@@ -934,13 +998,24 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                   <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
                 ) : next ? (
                   <div style={{ fontWeight: 800 }}>
+                    {next.kind !== "arrive" && <span style={{ color: CP_CSS }}>● </span>}
                     次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
                   </div>
                 ) : (
                   <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
                 )}
                 <div style={{ fontSize: "0.8rem", opacity: lift && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {lift && !picking ? (
+                  {drift && !picking ? (
+                    <button
+                      onClick={() => {
+                        recal.current = true;
+                        setDrift(null);
+                      }}
+                      style={{ all: "unset", cursor: "pointer", color: "#ffb4a8", fontWeight: 800 }}
+                    >
+                      ⚠ {drift === "back" ? "逆に歩いていませんか" : "道順からそれていませんか"}（合っていれば押す）
+                    </button>
+                  ) : lift && !picking ? (
                     <span style={{ color: "#ffe27a", fontWeight: 800 }}>
                       {lift.kind === "board" ? "乗ったら右を押す：" : "行き先："}
                       {floorName(lift.toFloor!)}
@@ -1001,7 +1076,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                     setPos(next.at);
                   }}
                 >
-                  {cpButton(next)}
+                  <span style={{ display: "block", lineHeight: 1.25 }}>{cpButton(next)}</span>
+                  <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, opacity: 0.9 }}>
+                    {next.kind === "arrive" ? "押すと、ここまで進めます" : "押すと、ピンクの印に位置を合わせます"}
+                  </span>
                 </button>
               ) : (
                 <button style={{ ...BIG, flex: 2 }} onClick={() => setPos(0)}>
@@ -1044,11 +1122,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           <span style={{ color: "#8a63b8" }}>━ エスカレーター</span>
           <span style={{ color: "#1e7a3c" }}>━ エレベーター</span>
           <span style={{ color: "#a8875c" }}>━ 階段</span>
+          <span style={{ color: CP_CSS }}>◯ 次の確認ポイント</span>
           {hasCompass && <span style={{ color: "#d93025" }}>◢◣ スマホの向き</span>}
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、「着いたら押す」かセンサーで進めます。
+        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。センサーは、逆向き・横向きに歩いていると進めずに知らせます。
       </p>
 
       {/* ④ 条件を変える */}
