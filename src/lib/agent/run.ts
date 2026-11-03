@@ -8,7 +8,7 @@ import { runTool, TOOLS, type ToolContext } from "./tools";
 export const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5";
 
 // 安全のための判定で断られたとき別のモデルで続ける仕組みは、使えるモデルだけで有効にする
-const SUPPORTS_FALLBACK = /^claude-(opus-5|sonnet-5-5|fable-5)/;
+export const SUPPORTS_FALLBACK = /^claude-(opus-5|sonnet-5-5|fable-5)/;
 
 // 共通の約束ごと。場面ごとの指示（③トイレの後、①出かける前など）は modeInstruction で足す
 export const BASE_SYSTEM = `あなたは、急なトイレの不安がある人（腸の病気など）の外出を、事実の情報で支える案内役です。

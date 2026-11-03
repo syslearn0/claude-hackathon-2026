@@ -7,8 +7,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { barometerAvailable, heightDiffM, watchPressure } from "@/lib/barometer";
 import { distanceM } from "@/lib/geo";
-import { floorLabel, INDOOR_STATIONS, placeFloor, type Indoor } from "@/lib/indoor";
+import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
+import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
@@ -72,6 +73,7 @@ export default function Station3D() {
   const [startIdx, setStartIdx] = useState(0);
   const [goalIdx, setGoalIdx] = useState(-1); // -1：URL のトイレ（なければ一番近いトイレ）
   const [mode, setMode] = useState(0);
+  const [picked, setPicked] = useState<{ key: string; start: Start } | null>(null); // 「いまどこ？」で決めた出発地点
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
@@ -143,8 +145,8 @@ export default function Station3D() {
       const c = { lat: g.coords.reduce((a, p) => a + p[0], 0) / g.coords.length, lon: g.coords.reduce((a, p) => a + p[1], 0) / g.coords.length };
       list.push({ label: `改札：${name}`, node: nearestNode(net, c, g.floors[0]) });
     }
-    return list;
-  }, [net, indoor, center, station, car, stations, minFloor, line]);
+    return picked?.key === key ? [picked.start, ...list] : list;
+  }, [net, indoor, center, station, car, stations, minFloor, line, picked, key]);
 
   // 行き先：駅のまわりの、階が分かるトイレを、出発から「経路でかかる時間」の短い順に。
   // 直線の近さで選ぶと、真上の別の階のトイレ（何階も上り下りが要る）を選んでしまうため。
@@ -490,6 +492,94 @@ export default function Station3D() {
 
   const startLabel = starts[startIdx]?.label;
 
+  // 「いまどこ？」：看板を撮る → AI が看板と配置を読む → 地図のデータで候補を作る（GPS も）→ AI が写真と候補を比べる → 本人が選ぶ
+  const lms = useMemo(() => (indoor ? landmarks(indoor.features) : []), [indoor]);
+  const [loc, setLoc] = useState<{ busy?: string; error?: string; read?: string[]; cands?: Candidate[]; choice?: string; facing?: string; confidence?: string; reason?: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const heading = useRef<number | null>(null);
+  const gpsWait = useRef<Promise<Gps | undefined> | null>(null);
+  const stopHeading = useRef<(() => void) | null>(null);
+  const startLocate = async () => {
+    // 撮る直前の向き（iPhone は許可が要る）と GPS を、撮っている間に取っておく
+    const DO = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+    try {
+      await DO?.requestPermission?.();
+    } catch {
+      // 聞けないときは向きなしで
+    }
+    heading.current = null;
+    const onAbs = (e: DeviceOrientationEvent) => {
+      if (e.alpha !== null) heading.current = (360 - e.alpha) % 360;
+    };
+    const onIos = (e: DeviceOrientationEvent) => {
+      const h = (e as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading;
+      if (typeof h === "number") heading.current = h;
+    };
+    window.addEventListener("deviceorientationabsolute", onAbs as EventListener);
+    window.addEventListener("deviceorientation", onIos);
+    stopHeading.current?.();
+    stopHeading.current = () => {
+      window.removeEventListener("deviceorientationabsolute", onAbs as EventListener);
+      window.removeEventListener("deviceorientation", onIos);
+    };
+    gpsWait.current = new Promise((done) => {
+      if (!navigator.geolocation) return done(undefined);
+      navigator.geolocation.getCurrentPosition(
+        (p) => done({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
+        () => done(undefined),
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 30_000 },
+      );
+    });
+    fileRef.current?.click();
+  };
+  const onPhoto = async (file: File | undefined) => {
+    const h = heading.current;
+    stopHeading.current?.();
+    if (!file || !net) return;
+    try {
+      setLoc({ busy: "看板を読んでいます…" });
+      const image = await shrinkPhoto(file);
+      const ask = async (body: object) => {
+        const r = await fetch("/api/locate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ image, ...body }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error ?? "うまくいきませんでした");
+        return d;
+      };
+      const read = (await ask({ step: "read" })) as { signs: { text: string; where: string; arrow: string }[]; floor: string; scene: string };
+      const texts = read.signs.map((x) => x.text);
+      const gps = (await gpsWait.current) ?? undefined;
+      const cands = candidates(net, lms, texts, station, gps, parseFloor(read.floor));
+      if (!cands.length) {
+        setLoc({ read: texts, cands: [], error: "看板の名前が、この駅の地図のデータと合いませんでした。改札名や出口番号が写るように撮り直すか、下の「出発・行き先」で選んでください。" });
+        return;
+      }
+      setLoc({ busy: "地図と照らし合わせています…", read: texts, cands });
+      const signs = [
+        ...read.signs.map((x) => `「${x.text}」（写真の${x.where}${x.arrow !== "なし" ? `・矢印は${x.arrow}` : ""}）`),
+        read.floor && `階の表示：${read.floor}`,
+        read.scene && `配置：${read.scene}`,
+      ]
+        .filter(Boolean)
+        .join("、");
+      const judged = (await ask({
+        step: "judge",
+        ids: cands.map((c) => c.id),
+        candidates: cands.map((c) => describe(c, lms, gps)).join("\n\n"),
+        signs,
+        heading: h,
+        gps: gps ? `精度 ±${Math.round(gps.accuracy)}m` : "",
+      })) as { choice: string; facing: string; confidence: string; reason: string };
+      setLoc({ read: texts, cands, ...judged });
+    } catch (e) {
+      setLoc({ error: e instanceof Error ? e.message : "うまくいきませんでした" });
+    }
+  };
+  const pickCandidate = (c: Candidate) => {
+    setPicked({ key, start: { label: `写真で決めた場所：${candidateLabel(c)}`, node: c.node } });
+    setStartIdx(0);
+    setLoc(null);
+  };
+
   return (
     <main style={{ maxWidth: 900 }}>
       <p className="muted">
@@ -534,6 +624,54 @@ export default function Station3D() {
         net && <p className="card">この条件では経路が見つかりませんでした。下で条件を変えてください。</p>
       )}
 
+      {/* いまどこ？（看板の写真と GPS から出発地点を決める） */}
+      <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={(e) => (onPhoto(e.target.files?.[0]), (e.target.value = ""))} />
+      <button className="big" style={{ marginTop: 8, width: "100%" }} onClick={startLocate} disabled={!net || !!loc?.busy}>
+        📷 いまどこか分からない：近くの看板を撮る
+      </button>
+      {loc && (
+        <section className="card" style={{ marginTop: 8 }}>
+          {loc.busy && <p style={{ margin: 0, fontWeight: 700 }}>{loc.busy}</p>}
+          {loc.error && <p style={{ margin: 0 }}>{loc.error}</p>}
+          {!loc.busy && loc.cands && loc.cands.length > 0 && (
+            <>
+              <div className="muted" style={{ fontSize: "0.85rem" }}>
+                読めた看板：{loc.read?.slice(0, 6).join("、") || "なし"}
+              </div>
+              {loc.choice === "none" && <p style={{ margin: "6px 0" }}>写真と合う場所を決めきれませんでした。下の候補から、近いものを選んでください。</p>}
+              {[...loc.cands]
+                .sort((a, b) => Number(b.id === loc.choice) - Number(a.id === loc.choice))
+                .map((c) => (
+                  <div key={c.id} style={{ borderTop: "1px solid var(--line)", padding: "8px 0" }}>
+                    <div style={{ fontWeight: 800 }}>
+                      {c.id === loc.choice ? "たぶんここ：" : "ほかの候補："}
+                      {candidateLabel(c)}
+                    </div>
+                    {c.id === loc.choice && (
+                      <div style={{ fontSize: "0.9rem" }}>
+                        {loc.reason}
+                        {loc.facing && loc.facing !== "不明" && `（撮ったとき${loc.facing}を向いていたようです）`}
+                        <span className="muted">（確からしさ：{loc.confidence}）</span>
+                      </div>
+                    )}
+                    <button className={c.id === loc.choice ? "primary" : ""} style={{ marginTop: 4 }} onClick={() => pickCandidate(c)}>
+                      ここから出発
+                    </button>
+                  </div>
+                ))}
+            </>
+          )}
+          {!loc.busy && (
+            <button style={{ marginTop: 6 }} onClick={() => setLoc(null)}>
+              閉じる
+            </button>
+          )}
+          <p className="muted" style={{ fontSize: "0.8rem", margin: "6px 0 0" }}>
+            看板だけを撮ってください。写真は AI に場所を聞くためだけに使い、保存しません。地上なら GPS も手がかりにします。
+          </p>
+        </section>
+      )}
+
       {/* 乗っていた号車（大江戸線）：出発の位置がこれで決まるので、すぐ見えるところに */}
       {carEnds(station) && (
         <div style={{ marginTop: 8 }}>
@@ -545,6 +683,7 @@ export default function Station3D() {
                 aria-pressed={car === n && startIdx === 0}
                 onClick={() => {
                   setCar(n);
+                  setPicked(null);
                   setStartIdx(0);
                 }}
               >
@@ -722,4 +861,15 @@ export default function Station3D() {
       </p>
     </main>
   );
+}
+
+// 写真を長い辺 1280px の JPEG に縮める（送る量を減らし、撮影情報（位置など）も落とす）。base64 で返す
+async function shrinkPhoto(file: File): Promise<string> {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(bmp.width * k);
+  cv.height = Math.round(bmp.height * k);
+  cv.getContext("2d")!.drawImage(bmp, 0, 0, cv.width, cv.height);
+  return cv.toDataURL("image/jpeg", 0.8).split(",")[1];
 }
