@@ -6,9 +6,9 @@
 // 開発中（?dev=1）は通知だけ扱い、何も持たない（作り直した画面が古いまま出ないように）
 
 const DEV = new URL(self.location.href).searchParams.has("dev");
-const CACHE = "toilet-v3"; // 持つものを変えたら上げる（古い入れ物は消える）
+const CACHE = "toilet-v4"; // 持つものを変えたら上げる（古い入れ物は消える）
 const PAGES = ["/", "/now", "/me", "/plan", "/about"];
-const DATA = ["/api/places", ...["shinjuku", "tokyo", "akabanebashi", "tochomae", "azabu-juban", "yoyogi", "ueno-okachimachi", "roppongi", "higashi-shinjuku", "kokuritsu-kyogijo", "aoyama-itchome", "daimon", "shinjuku-nishiguchi"].map((k) => `/api/indoor?station=${k}`)];
+const DATA = ["/api/places", ...["shinjuku", "tokyo", "akabanebashi", "tochomae", "azabu-juban", "yoyogi", "ueno-okachimachi", "roppongi", "higashi-shinjuku", "kokuritsu-kyogijo", "aoyama-itchome", "daimon", "shinjuku-nishiguchi"].flatMap((k) => [`/api/indoor?station=${k}`, `/api/network?station=${k}`])];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
@@ -77,7 +77,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (req.method !== "GET" || url.origin !== self.location.origin) return;
   if (req.mode === "navigate") return e.respondWith(networkFirst(req, url.pathname));
-  if (url.pathname === "/api/places" || url.pathname === "/api/indoor") return e.respondWith(staleWhileRevalidate(e, req));
+  if (url.pathname === "/api/places" || url.pathname === "/api/indoor" || url.pathname === "/api/network") return e.respondWith(staleWhileRevalidate(e, req));
   if (url.pathname.startsWith("/_next/static/")) return e.respondWith(cacheFirst(req));
   if (/\.(png|ico|webmanifest)$/.test(url.pathname) || url.pathname === "/manifest.webmanifest") return e.respondWith(staleWhileRevalidate(e, req));
 });
