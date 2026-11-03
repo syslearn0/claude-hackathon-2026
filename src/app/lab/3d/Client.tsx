@@ -11,6 +11,7 @@ import type { Place } from "@/lib/places";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, nearestNode, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
+import { Walk } from "./Walk";
 
 // 試作：駅の中を 3D で見る。階を積み重ね、階段・エスカレーター・エレベーターを縦の線で、経路を太い線で描く。
 // 階の高さは見やすさのために実際より広げている（floorHeightFor）。
@@ -66,6 +67,8 @@ export default function Station3D() {
   const [startIdx, setStartIdx] = useState(0);
   const [goalIdx, setGoalIdx] = useState(-1); // -1：URL のトイレ（なければ一番近いトイレ）
   const [mode, setMode] = useState(0);
+  // 見方：上から（駅の全体）か、歩く目線か
+  const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   // 駅を替えたときだけ、駅の全体が入るようにカメラを置き直す（経路を替えたたびには動かさない）
   const framedFor = useRef<Network | null>(null);
@@ -356,7 +359,23 @@ export default function Station3D() {
           </button>
         ))}
       </div>
-      <div ref={box} style={{ height: 420, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 8, touchAction: "none" }} />
+      <div className="chips" style={{ marginTop: 8 }}>
+        <button aria-pressed={view === "above"} onClick={() => setView("above")}>
+          上から見る
+        </button>
+        <button aria-pressed={view === "walk"} onClick={() => setView("walk")} disabled={!route}>
+          歩く目線で見る
+        </button>
+      </div>
+      {view === "walk" && route && net && indoor && goals[goalAt] && (
+        <div style={{ marginTop: 8 }}>
+          <Walk key={routeKey} net={net} indoor={indoor} route={route} center={center} goal={goals[goalAt].label} />
+        </div>
+      )}
+      <div
+        ref={box}
+        style={{ height: 420, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", marginTop: 8, touchAction: "none", display: view === "above" ? "block" : "none" }}
+      />
       <div className="chips muted" style={{ fontSize: "0.8rem", marginTop: 6 }}>
         <span style={{ color: "#d93025" }}>━ 経路</span>
         <span style={{ color: "#1f5fbf" }}>● トイレ</span>
