@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { SwRegister } from "./SwRegister";
 
 export const metadata: Metadata = {
   title: "トイレ外出サポート",
@@ -22,7 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SwRegister />
+      </body>
     </html>
   );
 }

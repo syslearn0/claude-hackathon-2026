@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Answer } from "@/lib/agent/answer";
 import { bearingDeg, directionJa, distanceM, walkMinutes, type LatLon } from "@/lib/geo";
 import { loadJson, saveJson } from "@/lib/local";
@@ -10,6 +10,7 @@ import { Item } from "./PlaceInfo";
 // ② 緊急時の見直し：画面の一番の候補はプログラムがすぐに出し、AI は並行して状況を判断し直す。
 // AI の答えで一番の候補を黙って差し替えない。違うときだけ、理由つきで別の候補として出す。
 
+// 最初からオン。「オフにする」を押した人だけ止める
 const ENABLED_KEY = "ai.review.enabled";
 
 type Review = { answer: Answer; places: Place[]; ms: number };
@@ -23,41 +24,57 @@ export function EmergencyReview({
   situationText: string;
   programFirstId?: string;
 }) {
-  const [enabled, setEnabled] = useState(() => loadJson<boolean>(ENABLED_KEY, false));
+  const [enabled, setEnabled] = useState(() => loadJson<boolean>(ENABLED_KEY, true));
   const [review, setReview] = useState<Review | null>(null);
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
 
-  // 位置が決まったら（または有効にしたら）1回だけ聞く。プログラムの表示はその間もそのまま
+  // 聞き直すのは、画面の一番の候補が変わったとき（電車と分かって次の駅に切り替わったなど）と、約300m 動いたときだけ。
+  // GPS は毎秒届くので、そのたびには聞かない。前に聞いてから、候補が変わったときは10秒、動いただけなら1分あける（費用と回数制限のため）
+  const area = `${Math.round(pos.lat / 0.003)},${Math.round(pos.lon / 0.003)}`;
+  const lastAsked = useRef(0);
+  const lastFirst = useRef<string | undefined>(undefined);
+  // 一番新しい問い合わせの番号。場所が変わっても、届いた返事は捨てない（古い返事だけ捨てる）
+  const seq = useRef(0);
+
+  // 問い合わせには、その時点の一番新しい状況と位置を使う
+  const latest = useRef({ situationText, pos });
+  useEffect(() => {
+    latest.current = { situationText, pos };
+  });
+
+  // 位置が決まったら（または有効にしたら）聞く。間を空ける時間の中なら、あけ終わってから聞く。プログラムの表示はその間もそのまま
   useEffect(() => {
     if (!enabled) return;
-    let alive = true;
-    const started = Date.now();
-    const run = async () => {
+    const firstChanged = programFirstId !== lastFirst.current;
+    const wait = Math.max(0, lastAsked.current + (firstChanged ? 10_000 : 60_000) - Date.now());
+    const ask = async () => {
+      lastAsked.current = Date.now();
+      lastFirst.current = programFirstId;
+      const id = ++seq.current;
+      const alive = () => id === seq.current;
+      const started = Date.now();
       setState("busy");
       try {
         const res = await fetch("/api/agent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "emergency", message: situationText, position: pos }),
+          body: JSON.stringify({ mode: "emergency", message: latest.current.situationText, position: latest.current.pos }),
           signal: AbortSignal.timeout(45000),
         });
         const json = await res.json().catch(() => ({}));
-        if (!alive) return;
+        if (!alive()) return;
         if (res.ok && json.answer) {
           setReview({ answer: json.answer, places: json.places ?? [], ms: Date.now() - started });
           setState("idle");
         } else setState("error");
       } catch {
-        if (alive) setState("error");
+        if (alive()) setState("error");
       }
     };
-    run();
-    return () => {
-      alive = false;
-    };
-    // 位置が変わったときだけ聞き直す（推定の文が少し変わるたびには聞かない）
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, pos.lat, pos.lon]);
+    // 待っているあいだにまた変われば、待ち直す（聞くのは最後の1回）。送った問い合わせの返事は捨てない
+    const timer = setTimeout(ask, wait);
+    return () => clearTimeout(timer);
+  }, [enabled, area, programFirstId]);
 
   if (!enabled) {
     return (
@@ -68,7 +85,7 @@ export function EmergencyReview({
             setEnabled(true);
           }}
         >
-          AI にも見直してもらう
+          AI の見直しをオンにする
         </button>
         <div className="muted">
           オンにすると、この画面を開くたびに現在地とプログラムの推定を AI に送り、状況を判断し直します（保存はしません）。画面の候補はそのまま出ます。
@@ -89,7 +106,12 @@ export function EmergencyReview({
   return (
     <div className="card" style={{ borderStyle: "dashed" }}>
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <strong>AI の見直し</strong>
+        <div>
+          <strong>AI の見直し</strong>
+          <div className="muted" style={{ fontSize: "0.8rem" }}>
+            現在地とプログラムの推定を AI に送っています（保存はしません）
+          </div>
+        </div>
         <button
           onClick={() => {
             saveJson(ENABLED_KEY, false);

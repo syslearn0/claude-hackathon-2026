@@ -77,8 +77,12 @@ function alongRoute(at: LatLon, heading: number, route: RouteStation[], stations
   const ahead = stations
     .map((s) => ({ s, d: distanceM(at, s), ang: angleDiff(bearingDeg(at, s), heading) }))
     .filter((x) => x.d >= 80 && x.d <= distanceM(at, to) + 200 && x.ang <= 50 && toSegmentM(x.s, from, to) <= ON_LINE_M)
-    .sort((x, y) => x.d - y.d)[0];
-  const next = ahead ? ahead.s : { name: to.name, lat: to.lat, lon: to.lon };
+    .sort((x, y) => x.d - y.d);
+  // 並行する別の路線の駅（京阪の伏見稲荷に対する JR の稲荷など）が少しだけ近いときは、経路の駅を選ぶ。
+  // 貼られた経路は乗り換え駅だけのことが多いので、ずっと先の経路の駅を選んで途中の駅を飛ばすことはしない
+  const nearest = ahead[0];
+  const onRoute = ahead.find((x) => route.some((r) => r.name === x.s.name) && x.d - (nearest?.d ?? 0) <= 300) ?? nearest;
+  const next = onRoute ? onRoute.s : { name: to.name, lat: to.lat, lon: to.lon };
   return { next, segment: { from: from.name, to: to.name, line: forward ? a.line : b.line } };
 }
 

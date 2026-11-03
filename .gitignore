@@ -49,3 +49,7 @@ next-env.d.ts
 
 # 見本の設定（キーは入っていない）は公開する
 !.env.example
+
+# デモ動画の録画（大きいので共有しない）
+/demo/recordings/
+/demo/.pw/

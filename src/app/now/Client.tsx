@@ -12,8 +12,10 @@ import { describeSituation, estimateSituation, type Fix, type RouteStation, type
 import { distanceM } from "@/lib/geo";
 import { describeTrainCars } from "@/lib/train-cars";
 import { headline, isInStation, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
+import { indoorAt, INDOOR_STATIONS } from "@/lib/indoor";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
+import { IndoorMap } from "./IndoorMap";
 import { MapView, type MapPoint } from "./MapView";
 import { Badges, Details, Item, MapLink, NumberBadge } from "./PlaceInfo";
 
@@ -55,6 +57,23 @@ export default function NowPage() {
   const [live, setLive] = useState<LatLon | null>(null);
   // 「電車の中なので次の駅」を利用者が「違う」と言ったら、自動の切り替えをやめる
   const [trainOff, setTrainOff] = useState(false);
+  // 駅の中の地図（屋内データのある駅だけ）。通知から開いたとき（?indoor=）は最初から開く
+  const [indoorFromUrl] = useState(() => {
+    const key = new URLSearchParams(location.search).get("indoor");
+    return Object.entries(INDOOR_STATIONS).find(([, v]) => v.key === key)?.[0];
+  });
+  const [indoorOpen, setIndoorOpen] = useState(() => !!indoorFromUrl);
+  const indoorBox = useRef<HTMLElement>(null);
+  const [notifyState, setNotifyState] = useState(() => ("Notification" in window ? Notification.permission : "unsupported"));
+  // 範囲に入ったお知らせを閉じた駅
+  const [noticeClosed, setNoticeClosed] = useState(false);
+  // 地下などで位置が途切れたことを出すため、5秒ごとに今の時刻を持つ
+  const [clock, setClock] = useState(() => Date.now());
+  const [lastFixAt, setLastFixAt] = useState<number | null>(null);
+  useEffect(() => {
+    const id = setInterval(() => setClock(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   const choose = (at: LatLon, how: string) => {
     chosen.current = true;
@@ -88,6 +107,43 @@ export default function NowPage() {
     locate();
   }, [locate]);
 
+  const openIndoor = useCallback(() => {
+    setIndoorOpen(true);
+    setTimeout(() => indoorBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+  }, []);
+
+  // 通知を押したとき、すでに開いていたこの画面にサービスワーカーから届く
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === "open-indoor") openIndoor();
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [openIndoor]);
+
+  // トイレを探しているあいだ（この画面を開いているあいだ）に、屋内地図のある駅の範囲へ入ったら知らせる。
+  // 画面を見ているときは画面の中で、ほかのアプリ（Google マップなど）を見ているときは通知で
+  const inside = live ? indoorAt(live) : undefined;
+  const lastInside = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const was = lastInside.current;
+    lastInside.current = inside;
+    // 画面を見ているときは、下の「範囲に入りました」の枠で知らせる
+    if (!inside || inside === was || document.visibilityState === "visible") return;
+    if (!("Notification" in window) || Notification.permission !== "granted" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.ready
+      .then((reg) =>
+        reg.showNotification(`${inside}駅の範囲に入りました`, {
+          body: "押すと、駅の中の地図とトイレの候補を開きます",
+          tag: `indoor-${INDOOR_STATIONS[inside].key}`,
+          icon: "/icon-192.png",
+          data: { url: `/now?indoor=${INDOOR_STATIONS[inside].key}` },
+        }),
+      )
+      .catch(() => {});
+  }, [inside]);
+
   // 保存した経路の駅に位置を付ける（データのある駅だけ）
   const route: RouteStation[] = useMemo(
     () =>
@@ -110,6 +166,7 @@ export default function NowPage() {
           ...fixes.current.filter((f) => now - f.t < 240_000),
           { t: now, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, speed: p.coords.speed },
         ];
+        setLastFixAt(now);
         if (p.coords.accuracy <= 200) setLive({ lat: p.coords.latitude, lon: p.coords.longitude });
         setSituation(estimateSituation(fixes.current, all.stations ?? [], now, route));
       },
@@ -183,6 +240,14 @@ export default function NowPage() {
   const numberOf = useMemo(() => new Map(points.map((p) => [p.place.id, p.n])), [points]);
 
   const first = data?.toilets[0];
+  // 地図を出す駅：基準の位置が駅のそばなら、その駅。GPS で範囲の中にいれば、その駅
+  // 通知から開いたときは、位置がまだ取れていなくてもその駅の地図を出す
+  const indoorStation = station && INDOOR_STATIONS[station] ? station : (inside ?? indoorFromUrl);
+  useEffect(() => {
+    if (indoorOpen && indoorStation) indoorBox.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // 通知から開いたときに一度だけ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [indoorStation]);
 
   return (
     <main>
@@ -208,6 +273,11 @@ export default function NowPage() {
             {train.nextStation!.name}駅のトイレを出しています
           </strong>
           <div className="muted">{train.reason}</div>
+          {lastFixAt !== null && clock - lastFixAt > 30_000 && (
+            <div style={{ marginTop: 4 }}>
+              位置が {Math.round((clock - lastFixAt) / 1000)} 秒取れていません（地下かもしれません）。最後の推定のまま出しています。
+            </div>
+          )}
           {trainCars && <div style={{ marginTop: 4 }}>{trainCars}</div>}
           <button style={{ marginTop: 6 }} onClick={() => setTrainOff(true)}>
             違う（いる場所の近くを出す）
@@ -217,6 +287,22 @@ export default function NowPage() {
         pos && <p className="muted">基準：{baseAt && pos.at !== baseAt ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how}</p>
       )}
       {status && <p className="card">{status}</p>}
+
+      {inside && !indoorOpen && !noticeClosed && (
+        <section className="card" style={{ borderColor: "var(--accent)" }}>
+          <strong>{inside}駅の範囲に入りました</strong>
+          <div className="muted">駅の中の地図（試作）に、トイレの候補を階ごとに重ねて出せます。</div>
+          <button
+            style={{ marginTop: 6 }}
+            onClick={() => {
+              setNoticeClosed(true);
+              openIndoor();
+            }}
+          >
+            駅の中の地図を開く
+          </button>
+        </section>
+      )}
 
       {first && (
         <section className="card" style={{ borderWidth: 2, borderColor: "var(--accent)" }}>
@@ -278,6 +364,16 @@ export default function NowPage() {
         </section>
       )}
 
+      {indoorStation && (
+        <section className="card" ref={indoorBox} style={{ scrollMarginTop: 8 }}>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <strong>{indoorStation}駅の中の地図（試作）</strong>
+            <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
+          </div>
+          {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}
+        </section>
+      )}
+
       {pos && all && (
         <>
           {!after ? (
@@ -322,8 +418,25 @@ export default function NowPage() {
           <p className="muted">
             © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成
           </p>
-          <p className="muted">現在地はこの端末の中だけで使い、サーバーには送りません。</p>
+          <p className="muted">近くの場所はこの端末の中で探しています。現在地をサーバーに送るのは、AI の見直しがオンのときだけです（保存はしません）。</p>
         </>
+      )}
+
+      {notifyState === "default" && (
+        <p className="card">
+          <button
+            onClick={() =>
+              Notification.requestPermission()
+                .then(setNotifyState)
+                .catch(() => {})
+            }
+          >
+            駅の中の地図がある駅に入ったら、通知で知らせる
+          </button>
+          <span className="muted" style={{ display: "block", marginTop: 4 }}>
+            この画面を開いたまま、Google マップなどで道順を見ているときに使います。いまは新宿駅だけです。
+          </span>
+        </p>
       )}
 
       <h2>今いる場所を選ぶ</h2>

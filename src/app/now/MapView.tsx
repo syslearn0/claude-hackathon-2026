@@ -22,7 +22,7 @@ export const TIER_COLOR: Record<Tier, string> = {
 const GSI_PALE = "https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png";
 const GSI_ATTRIBUTION = '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer">地理院タイル</a>';
 
-function pin(n: number, tier: Tier): L.DivIcon {
+export function pin(n: number, tier: Tier): L.DivIcon {
   return L.divIcon({
     className: "",
     html: `<div style="background:${TIER_COLOR[tier]};color:#fff;border:2px solid #fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font:700 13px system-ui;box-shadow:0 1px 3px rgba(0,0,0,.4)">${n}</div>`,
