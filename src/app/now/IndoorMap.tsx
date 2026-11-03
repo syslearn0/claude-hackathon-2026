@@ -317,9 +317,9 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
         </span>
       </div>
       <p className="muted" style={{ fontSize: "0.8rem", margin: "4px 0 0" }}>
-        試作：OpenStreetMap の屋内データ（有志が描いたもの）と、
-        <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2" target="_blank" rel="noreferrer">
-          「新宿駅周辺屋内地図データ」（国土交通省）
+        試作：OpenStreetMap の屋内データ（有志が描いたもの。ある駅だけ）と、
+        <a href={`https://www.geospatial.jp/ckan/dataset/${INDOOR_STATIONS[station].mlit?.dataset}`} target="_blank" rel="noreferrer">
+          「{INDOOR_STATIONS[station].mlit?.title}」（国土交通省）
         </a>
         を加工して重ねています（国の案内ではありません）。国交省のデータは2020年8月時点で、改札の外が中心です。抜けや古いところがあります。階が分からない候補は薄く出しています。
       </p>

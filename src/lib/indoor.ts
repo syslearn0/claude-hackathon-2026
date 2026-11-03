@@ -17,8 +17,25 @@ export type Indoor = { station: string; bbox: [number, number, number, number]; 
 
 // 屋内データのある駅（駅名 → ファイル名と、データの範囲）。
 // 「駅に入った」は、データの範囲（広め）ではなく、駅の中心から radiusM 以内で決める（範囲の端は屋内データが少ないため）
-export const INDOOR_STATIONS: Record<string, { key: string; bbox: [number, number, number, number]; center: { lat: number; lon: number }; radiusM: number }> = {
-  新宿: { key: "shinjuku", bbox: [35.6855, 139.696, 35.6935, 139.704], center: { lat: 35.6898, lon: 139.7004 }, radiusM: 250 },
+// mlit：国交省の屋内地図（G空間情報センターのデータセット名と題名）。出典の表示に使う
+export const INDOOR_STATIONS: Record<
+  string,
+  { key: string; bbox: [number, number, number, number]; center: { lat: number; lon: number }; radiusM: number; mlit?: { dataset: string; title: string } }
+> = {
+  新宿: {
+    key: "shinjuku",
+    bbox: [35.6855, 139.696, 35.6935, 139.704],
+    center: { lat: 35.6898, lon: 139.7004 },
+    radiusM: 250,
+    mlit: { dataset: "mlit-indoor-shinjuku-r2", title: "新宿駅周辺屋内地図データ" },
+  },
+  東京: {
+    key: "tokyo",
+    bbox: [35.6765, 139.7615, 35.6855, 139.7725],
+    center: { lat: 35.6812, lon: 139.7671 },
+    radiusM: 300,
+    mlit: { dataset: "mlit-indoor-tokyo-r2", title: "東京駅周辺屋内地図データ" },
+  },
 };
 
 export function indoorAt(at: { lat: number; lon: number }): string | undefined {

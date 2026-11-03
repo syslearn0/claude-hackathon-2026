@@ -1,0 +1,1802 @@
+{
+ "fetchedFrom": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2",
+ "attribution": "出典：国土交通省 高精度測位社会プロジェクト／「東京駅周辺屋内地図データ」（国土交通省）（https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2）を加工して作成",
+ "places": [
+  {
+   "id": "mlit-tokyo-toilet-1",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.682381,
+   "lon": 139.766824,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-2",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.682366,
+   "lon": 139.766783,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-3",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.678519,
+   "lon": 139.767334,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-4",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.682627,
+   "lon": 139.76792,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "inside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-5",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.680291,
+   "lon": 139.765819,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-6",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.68033,
+   "lon": 139.765834,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-7",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.682657,
+   "lon": 139.767923,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "inside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-8",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.680357,
+   "lon": 139.765643,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-9",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.682335,
+   "lon": 139.766437,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-10",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.682301,
+   "lon": 139.766426,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-11",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.679683,
+   "lon": 139.767992,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-12",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.679691,
+   "lon": 139.768027,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-13",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.680449,
+   "lon": 139.768182,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-14",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.680483,
+   "lon": 139.768193,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-15",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.680401,
+   "lon": 139.76844,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-16",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.680418,
+   "lon": 139.768395,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-17",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.679197,
+   "lon": 139.768008,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-18",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.67825,
+   "lon": 139.767279,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-19",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.678305,
+   "lon": 139.767274,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-20",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.678147,
+   "lon": 139.766978,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-21",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.678163,
+   "lon": 139.766921,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-22",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.680685,
+   "lon": 139.765758,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-23",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.682654,
+   "lon": 139.767913,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-24",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.682613,
+   "lon": 139.767938,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-25",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.679899,
+   "lon": 139.767599,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-26",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.679933,
+   "lon": 139.767602,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-27",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.682585,
+   "lon": 139.768443,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-28",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.682623,
+   "lon": 139.768425,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-29",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（女性）",
+   "lat": 35.682379,
+   "lon": 139.768449,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-30",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.680868,
+   "lon": 139.762751,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-31",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.68086,
+   "lon": 139.762791,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-32",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.679727,
+   "lon": 139.764677,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-33",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.67971,
+   "lon": 139.764733,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-34",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.674675,
+   "lon": 139.764304,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-35",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.674998,
+   "lon": 139.764792,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-36",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.675022,
+   "lon": 139.764825,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-37",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.674243,
+   "lon": 139.764027,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-38",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.674199,
+   "lon": 139.764028,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-39",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.673639,
+   "lon": 139.763677,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-40",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.673379,
+   "lon": 139.76284,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-41",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.673776,
+   "lon": 139.762591,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-42",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.685725,
+   "lon": 139.76498,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-43",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.68571,
+   "lon": 139.765023,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-44",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F 多機能トイレ",
+   "lat": 35.685175,
+   "lon": 139.765043,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-45",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.685156,
+   "lon": 139.764983,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-46",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.682687,
+   "lon": 139.770027,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-47",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.682703,
+   "lon": 139.770036,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-48",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.682436,
+   "lon": 139.769734,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-49",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.68246,
+   "lon": 139.769747,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-50",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.674792,
+   "lon": 139.759474,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-51",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.674821,
+   "lon": 139.759415,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-52",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.668784,
+   "lon": 139.768,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-53",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.668777,
+   "lon": 139.767948,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-54",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.670049,
+   "lon": 139.766767,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-55",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.670046,
+   "lon": 139.766714,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-56",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.673197,
+   "lon": 139.764216,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-57",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.673207,
+   "lon": 139.764178,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-58",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.682948,
+   "lon": 139.765157,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-59",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.683001,
+   "lon": 139.765137,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-60",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.675958,
+   "lon": 139.76217,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-61",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.675939,
+   "lon": 139.762253,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "outside",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-62",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.674644,
+   "lon": 139.759975,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-63",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F 多機能トイレ",
+   "lat": 35.674685,
+   "lon": 139.759944,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-64",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F 多機能トイレ",
+   "lat": 35.68425,
+   "lon": 139.76777,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true,
+    "ostomate": true,
+    "changingTable": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-65",
+   "kind": "toilet",
+   "name": "東京駅周辺 B2F トイレ（男性・女性）",
+   "lat": 35.684238,
+   "lon": 139.767819,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B2F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-66",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.681335,
+   "lon": 139.763573,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-67",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.681347,
+   "lon": 139.763522,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-68",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.682754,
+   "lon": 139.763931,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-69",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.682644,
+   "lon": 139.763875,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-70",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.678435,
+   "lon": 139.764667,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-71",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.67882,
+   "lon": 139.764818,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-72",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.678808,
+   "lon": 139.764855,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-73",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.679024,
+   "lon": 139.765236,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-74",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.679034,
+   "lon": 139.765203,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-75",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.678266,
+   "lon": 139.764995,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-76",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.678803,
+   "lon": 139.763035,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-77",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性）",
+   "lat": 35.678486,
+   "lon": 139.763109,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-78",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（女性）",
+   "lat": 35.678526,
+   "lon": 139.762945,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-79",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.678501,
+   "lon": 139.763058,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-80",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.684222,
+   "lon": 139.764692,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-81",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.68459,
+   "lon": 139.765363,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-82",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.684545,
+   "lon": 139.765291,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-83",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.684001,
+   "lon": 139.764379,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-84",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.683997,
+   "lon": 139.764339,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-85",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F トイレ（男性・女性）",
+   "lat": 35.683416,
+   "lon": 139.766102,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-86",
+   "kind": "toilet",
+   "name": "東京駅周辺 1F 多機能トイレ",
+   "lat": 35.683451,
+   "lon": 139.766113,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  },
+  {
+   "id": "mlit-tokyo-toilet-87",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F トイレ（男性・女性）",
+   "lat": 35.683785,
+   "lon": 139.766279,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {}
+  },
+  {
+   "id": "mlit-tokyo-toilet-88",
+   "kind": "toilet",
+   "name": "東京駅周辺 B1F 多機能トイレ",
+   "lat": 35.683763,
+   "lon": 139.766376,
+   "tier": "official",
+   "source": {
+    "name": "国土交通省 東京駅周辺屋内地図オープンデータ（令和2年度更新版）",
+    "license": "政府標準利用規約 第2.0版（CC BY 4.0 互換）",
+    "url": "https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2"
+   },
+   "checkedAt": "202008",
+   "station": "東京",
+   "floor": "B1F",
+   "gate": "unknown",
+   "note": "国交省の屋内地図にあるトイレ（2020年8月時点）。改札の内外は地図からは分からない",
+   "toilet": {
+    "accessible": true
+   }
+  }
+ ]
+}

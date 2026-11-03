@@ -6,9 +6,9 @@
 // 開発中（?dev=1）は通知だけ扱い、何も持たない（作り直した画面が古いまま出ないように）
 
 const DEV = new URL(self.location.href).searchParams.has("dev");
-const CACHE = "toilet-v1";
+const CACHE = "toilet-v2"; // 持つものを変えたら上げる（古い入れ物は消える）
 const PAGES = ["/", "/now", "/me", "/plan", "/about"];
-const DATA = ["/api/places", "/api/indoor?station=shinjuku"];
+const DATA = ["/api/places", "/api/indoor?station=shinjuku", "/api/indoor?station=tokyo"];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();

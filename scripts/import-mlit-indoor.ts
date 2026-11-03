@@ -11,7 +11,7 @@
 import { readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import * as shp from "shapefile";
-import type { Place } from "../src/lib/places";
+import type { Gate, Place } from "../src/lib/places";
 
 const STATIONS: Record<string, { name: string; dataset: string; title: string }> = {
   shinjuku: { name: "新宿", dataset: "mlit-indoor-shinjuku-r2", title: "新宿駅周辺屋内地図" },
@@ -96,13 +96,31 @@ function lines(g: Geo): [number, number][][] {
   if (g.type === "MultiLineString") return (g.coordinates as number[][][]).map((l) => l.map(ll));
   return [];
 }
+// 点が多角形の中か（[緯度, 経度] のまま）
+function inside(p: [number, number], poly: [number, number][]): boolean {
+  let hit = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [ai, bi] = poly[i];
+    const [aj, bj] = poly[j];
+    if (bi > p[1] !== bj > p[1] && p[0] < ((aj - ai) * (p[1] - bi)) / (bj - bi) + ai) hit = !hit;
+  }
+  return hit;
+}
+// 駅（JR・地下鉄・新宿ターミナル）の区画か。ビルの「有料」は改札ではないので、駅の区画でだけ「改札内」とする
+const isStation = (pre: string) => /JRTokyoSta|ShinjukuTerminal|地下鉄/.test(pre);
+function gateAt(at: [number, number], tolls: { toll: string; ring: [number, number][] }[], station: boolean): Gate {
+  const hits = tolls.filter((t) => inside(at, t.ring)).map((t) => t.toll);
+  if (station && hits.includes("2")) return "inside";
+  if (hits.includes("3") && !hits.includes("2")) return "outside";
+  return "unknown";
+}
 const meters = (a: [number, number], b: [number, number]) => Math.hypot((a[0] - b[0]) * 111_000, (a[1] - b[1]) * 91_000);
 const center = (cs: [number, number][]): [number, number] => [cs.reduce((s, c) => s + c[0], 0) / cs.length, cs.reduce((s, c) => s + c[1], 0) / cs.length];
 
 async function main() {
   const prefixes = await floorPrefixes(DIR);
   const features: Feature[] = [];
-  const toilets: { floor: number; at: [number, number]; t: (typeof TOILET)[string] }[] = [];
+  const toilets: { floor: number; at: [number, number]; t: (typeof TOILET)[string]; gate: Gate }[] = [];
   const count: Record<string, number> = {};
   const add = (f: Feature) => {
     features.push(f);
@@ -116,8 +134,11 @@ async function main() {
     for (const r of await read(`${pre}_Floor`)) {
       rings(r.geometry).forEach((coords, i) => add({ id: `mlit-${r.properties.id}-${i}`, kind: "area", ...base, coords, closed: true, tags: { source: "mlit", category: "floor" } }));
     }
+    // 有料施設（toll）：2 = 有料（駅では改札の中）、3 = 無料（改札の外）、1 = 不明。トイレの点がどの空間の中かで改札の内外を決める
+    const tolls: { toll: string; ring: [number, number][] }[] = [];
     for (const r of await read(`${pre}_Space`)) {
       const cat = String(r.properties.category ?? "");
+      for (const ring of rings(r.geometry)) tolls.push({ toll: String(r.properties.toll ?? ""), ring });
       const kind = SPACE[cat];
       if (!kind || r.properties.nonpublic === "1") continue;
       rings(r.geometry).forEach((coords, i) =>
@@ -128,7 +149,7 @@ async function main() {
       const cat = String(r.properties.category ?? "");
       if (r.geometry.type !== "Point") continue;
       const at = ll(r.geometry.coordinates as number[]);
-      if (TOILET[cat]) toilets.push({ floor, at, t: TOILET[cat] });
+      if (TOILET[cat]) toilets.push({ floor, at, t: TOILET[cat], gate: gateAt(at, tolls, isStation(pre)) });
       const kind = TOILET[cat] ? "toilet" : cat === "F106" ? "gate" : cat === "F108" || cat === "F017" ? "entrance" : undefined;
       if (kind) add({ id: `mlit-${r.properties.id}`, kind, ...base, name: (r.properties.name as string) || undefined, coords: [at], closed: false, tags: { source: "mlit", category: cat } });
     }
@@ -150,11 +171,12 @@ async function main() {
   );
 
   // トイレの場所：同じ階で 15m 以内の男性・女性の点は1か所にまとめる。多機能トイレは別の場所にする
-  const groups: { floor: number; at: [number, number]; ts: (typeof TOILET)[string][] }[] = [];
+  // 改札の内と外にまたがってはまとめない
+  const groups: { floor: number; at: [number, number]; ts: (typeof TOILET)[string][]; gate: Gate }[] = [];
   for (const x of toilets) {
-    const g = groups.find((g) => g.floor === x.floor && !!g.ts[0].accessible === !!x.t.accessible && meters(g.at, x.at) < 15);
+    const g = groups.find((g) => g.floor === x.floor && g.gate === x.gate && !!g.ts[0].accessible === !!x.t.accessible && meters(g.at, x.at) < 15);
     if (g) g.ts.push(x.t);
-    else groups.push({ floor: x.floor, at: x.at, ts: [x.t] });
+    else groups.push({ floor: x.floor, at: x.at, ts: [x.t], gate: x.gate });
   }
   const fl = (n: number) => (n < 0 ? `B${-n}F` : `${n}F`);
   const places: Place[] = groups.map((g, i) => {
@@ -171,7 +193,8 @@ async function main() {
       checkedAt: "202008", // データの作成（年月）。画面では「2020年8月」
       station: ST.name,
       floor: fl(g.floor),
-      note: "改札の外の公共の通路・地下街の地図にあるトイレ（2020年8月時点）",
+      gate: g.gate,
+      note: `国交省の屋内地図にあるトイレ（2020年8月時点）${g.gate === "unknown" ? "。改札の内外は地図からは分からない" : ""}`,
       toilet: {
         accessible: accessible || undefined,
         ostomate: g.ts.some((t) => t.ostomate) || undefined,
@@ -187,6 +210,9 @@ async function main() {
   const byFloor: Record<string, number> = {};
   for (const p of places) byFloor[p.floor!] = (byFloor[p.floor!] ?? 0) + 1;
   console.log("階ごと", byFloor);
+  const byGate: Record<string, number> = {};
+  for (const p of places) byGate[p.gate!] = (byGate[p.gate!] ?? 0) + 1;
+  console.log("改札の内外", byGate);
 }
 
 main().catch((e) => {

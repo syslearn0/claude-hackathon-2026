@@ -31,6 +31,8 @@ type PlacesResponse = { places: Place[]; stations: Station[] };
 // 地下などで位置が取れないときに選ぶ場所（駅の中心のだいたいの位置）
 const PRESETS: { label: string; pos: LatLon }[] = [
   { label: "新宿駅", pos: { lat: 35.6896, lon: 139.7006 } },
+  { label: "東京駅", pos: { lat: 35.6812, lon: 139.7671 } },
+  { label: "京都駅", pos: { lat: 34.9858, lon: 135.7588 } },
   { label: "丹波橋駅", pos: { lat: 34.937, lon: 135.7737 } },
   { label: "祇園四条駅", pos: { lat: 35.0037, lon: 135.7722 } },
   { label: "三条駅", pos: { lat: 35.0089, lon: 135.7723 } },
@@ -444,7 +446,7 @@ export default function NowPage() {
             <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
           ))}
           <p className="muted">
-            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成／出典：国土交通省 高精度測位社会プロジェクト、「新宿駅周辺屋内地図データ」（国土交通省）を加工して作成
+            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成／出典：国土交通省 高精度測位社会プロジェクト、「新宿駅周辺屋内地図データ」「東京駅周辺屋内地図データ」（国土交通省）を加工して作成
           </p>
           <p className="muted">近くの場所はこの端末の中で探しています。現在地をサーバーに送るのは、AI の見直しがオンのときだけです（保存はしません）。</p>
         </>

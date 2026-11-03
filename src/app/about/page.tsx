@@ -64,8 +64,9 @@ export default function About() {
         </li>
         <li>
           出典：国土交通省 高精度測位社会プロジェクト。
-          <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2">「新宿駅周辺屋内地図データ」（国土交通省）</a>
-          を加工して作成（新宿駅の中の地図と、新宿駅周辺のトイレ。2020年8月時点。政府標準利用規約）。加工した情報は、国が作ったものではありません
+          <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-shinjuku-r2">「新宿駅周辺屋内地図データ」（国土交通省）</a>、
+          <a href="https://www.geospatial.jp/ckan/dataset/mlit-indoor-tokyo-r2">「東京駅周辺屋内地図データ」（国土交通省）</a>
+          を加工して作成（新宿駅・東京駅の中の地図と、周辺のトイレ。2020年8月時点。政府標準利用規約）。加工した情報は、国が作ったものではありません
         </li>
         <li>
           <a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（国土地理院）
