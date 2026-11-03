@@ -399,6 +399,15 @@ export default function NowPage() {
             <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
           </div>
           {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}
+          {indoorOpen && (
+            <Link
+              href={`/lab/3d?station=${encodeURIComponent(indoorStation)}${first ? `&goal=${encodeURIComponent(first.place.id)}` : ""}`}
+              className="button"
+              style={{ marginTop: 8, display: "block", textAlign: "center" }}
+            >
+              ホーム・改札からトイレまでの道順を 3D で見る（試作）
+            </Link>
+          )}
         </section>
       )}
 

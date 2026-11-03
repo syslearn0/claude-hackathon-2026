@@ -8,7 +8,9 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
-import { describeSteps, findRoute, KIND, nearestNode, type Network, type Route, type RouteOptions } from "@/lib/route";
+import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
+import { findRoute, guideSteps, KIND, nearestNode, type Network, type Route, type RouteOptions } from "@/lib/route";
+import type { Station } from "@/lib/station-mode";
 
 // 試作：駅の中を 3D で見る。階を積み重ね、階段・エスカレーター・エレベーターを縦の線で、経路を太い線で描く。
 // 階の高さは見やすさのために実際より広げている（floorHeightFor）。
@@ -19,7 +21,7 @@ const floorHeightFor = (net: Network | null, kx: number) => {
   const xs = net.nodes.map((n) => n[1] * kx);
   const zs = net.nodes.map((n) => n[0] * 110_540);
   const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs));
-  return Math.max(9, extent / 8);
+  return Math.min(30, Math.max(9, extent / 8));
 };
 const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, walk: 0xb9c7dd, route: 0xd93025, toilet: 0x1f5fbf };
 
@@ -49,14 +51,20 @@ function label(text: string) {
   return s;
 }
 
+// /now から開くとき：?station=大門&goal=<トイレの id>
+const query = () => new URLSearchParams(typeof location === "undefined" ? "" : location.search);
+
 export default function Station3D() {
-  const [station, setStation] = useState("大門");
+  const [station, setStation] = useState(() => (INDOOR_STATIONS[query().get("station") ?? ""] ? query().get("station")! : "大門"));
+  const [goalFromUrl] = useState(() => query().get("goal"));
+  const [car, setCar] = useState(4);
+  const [stations, setStations] = useState<Station[]>([]);
   const key = INDOOR_STATIONS[station].key;
   const [indoor, setIndoor] = useState<Indoor | null>(null);
   const [net, setNet] = useState<Network | null>(null);
   const [places, setPlaces] = useState<Place[]>([]);
   const [startIdx, setStartIdx] = useState(0);
-  const [goalIdx, setGoalIdx] = useState(0);
+  const [goalIdx, setGoalIdx] = useState(-1); // -1：URL のトイレ（なければ一番近いトイレ）
   const [mode, setMode] = useState(0);
   const box = useRef<HTMLDivElement>(null);
   // 駅を替えたときだけ、駅の全体が入るようにカメラを置き直す（経路を替えたたびには動かさない）
@@ -66,7 +74,10 @@ export default function Station3D() {
   useEffect(() => {
     fetch("/api/places")
       .then((r) => r.json())
-      .then((d: { places: Place[] }) => setPlaces(d.places));
+      .then((d: { places: Place[]; stations: Station[] }) => {
+        setPlaces(d.places);
+        setStations(d.stations);
+      });
   }, []);
   useEffect(() => {
     let alive = true;
@@ -75,7 +86,6 @@ export default function Station3D() {
       setIndoor(i);
       setNet(n);
       setStartIdx(0);
-      setGoalIdx(0);
     });
     return () => {
       alive = false;
@@ -97,10 +107,16 @@ export default function Station3D() {
     const minFloor = Math.min(...net.nodes.map((n) => n[2]));
     const low = net.nodes.map((n, i) => ({ n, i })).filter(({ n }) => n[2] === minFloor);
     const lowCenter = { lat: low.reduce((a, x) => a + x.n[0], 0) / low.length, lon: low.reduce((a, x) => a + x.n[1], 0) / low.length };
-    const list: Start[] = [
+    const list: Start[] = [];
+    // 大江戸線の駅なら、乗っていた号車からホームのどのあたりかを出す
+    const byCar = carEnds(station)
+      ? carStartNode(net, station, car, (name) => stations.find((x) => x.name === name && /交通局/.test(x.operator ?? "")) ?? stations.find((x) => x.name === name), LINE_CARS.大江戸線.cars)
+      : undefined;
+    if (byCar !== undefined) list.push({ label: `ホーム（大江戸線 ${car}号車のあたり）`, node: byCar });
+    list.push(
       { label: `ホーム（${floorLabel(Math.round(minFloor))}、いちばん下の階）`, node: nearestNode(net, lowCenter, minFloor) },
       { label: "地上（1F）", node: nearestNode(net, center, 1) },
-    ];
+    );
     const seen = new Set<string>();
     for (const g of indoor.features.filter((f) => f.kind === "gate" && f.name && f.floors.length)) {
       const name = `${g.name}（${floorLabel(g.floors[0])}）`;
@@ -110,7 +126,7 @@ export default function Station3D() {
       list.push({ label: `改札：${name}`, node: nearestNode(net, c, g.floors[0]) });
     }
     return list;
-  }, [net, indoor, center]);
+  }, [net, indoor, center, station, car, stations]);
 
   // 行き先：駅のまわりの、階が分かるトイレ（出発から近い順）
   const goals: Goal[] = useMemo(() => {
@@ -125,10 +141,18 @@ export default function Station3D() {
       .slice(0, 15);
   }, [net, indoor, places, starts, startIdx, center]);
 
+  const goalAt = goalIdx >= 0 ? goalIdx : Math.max(0, goals.findIndex((g) => g.place.id === goalFromUrl));
   const route: Route | undefined = useMemo(() => {
-    if (!net || !starts[startIdx] || !goals[goalIdx]) return undefined;
-    return findRoute(net, starts[startIdx].node, goals[goalIdx].node, MODES[mode].opts);
-  }, [net, starts, startIdx, goals, goalIdx, mode]);
+    if (!net || !starts[startIdx] || !goals[goalAt]) return undefined;
+    return findRoute(net, starts[startIdx].node, goals[goalAt].node, MODES[mode].opts);
+  }, [net, starts, startIdx, goals, goalAt, mode]);
+  const guide = useMemo(() => (route ? guideSteps(route) : []), [route]);
+  // 案内の手順（いま何番目か）。経路が変わったら最初から
+  const routeKey = route?.nodes.join(",") ?? "";
+  const [stepState, setStepState] = useState({ key: "", idx: 0 });
+  const stepIdx = stepState.key === routeKey ? Math.min(stepState.idx, Math.max(0, guide.length - 1)) : 0;
+  const setStep = (idx: number) => setStepState({ key: routeKey, idx });
+  const current = guide[stepIdx];
 
   // 3D の舞台を用意する
   useEffect(() => {
@@ -235,16 +259,22 @@ export default function Station3D() {
     // トイレ（行き先の候補）
     for (const g of goals) {
       const n = net.nodes[g.node];
-      const m = new THREE.Mesh(new THREE.SphereGeometry((g === goals[goalIdx] ? 0.35 : 0.22) * floorH, 16, 12), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
+      const m = new THREE.Mesh(new THREE.SphereGeometry((g === goals[goalAt] ? 0.35 : 0.22) * floorH, 16, 12), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
       m.position.copy(toXYZ(n[0], n[1], n[2]).add(new THREE.Vector3(0, 2, 0)));
       s.layer.add(m);
     }
 
-    // 経路（太い赤の線）と、出発の印
+    // 経路（太い赤の線）と、いまの手順（黄色でもっと太く）と、出発の印
     if (route && route.nodes.length > 1) {
       const pts = route.nodes.map((i) => toXYZ(net.nodes[i][0], net.nodes[i][1], net.nodes[i][2]).add(new THREE.Vector3(0, 1.2, 0)));
-      const curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0);
-      s.layer.add(new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(32, pts.length * 4), floorH / 9, 6, false), new THREE.MeshBasicMaterial({ color: COLOR.route })));
+      const tube = (ps: THREE.Vector3[], r: number, color: number) =>
+        new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ps, false, "catmullrom", 0), Math.max(16, ps.length * 4), r, 6, false), new THREE.MeshBasicMaterial({ color }));
+      s.layer.add(tube(pts, floorH / 9, COLOR.route));
+      if (current && current.to > current.from) {
+        const seg = pts.slice(current.from, current.to + 1);
+        s.layer.add(tube(seg, floorH / 5, 0xf2b705));
+        if (framedFor.current === net) s.controls.target.copy(new THREE.Box3().setFromPoints(seg).getCenter(new THREE.Vector3()));
+      }
       const start = new THREE.Mesh(new THREE.SphereGeometry(floorH / 3, 16, 12), new THREE.MeshBasicMaterial({ color: 0x222222 }));
       start.position.copy(pts[0]);
       s.layer.add(start);
@@ -262,7 +292,7 @@ export default function Station3D() {
       s.camera.far = size * 10;
       s.camera.updateProjectionMatrix();
     }
-  }, [indoor, net, goals, goalIdx, route, toXYZ, floorH]);
+  }, [indoor, net, goals, goalAt, route, toXYZ, floorH, current]);
 
   return (
     <main style={{ maxWidth: 900 }}>
@@ -277,6 +307,25 @@ export default function Station3D() {
           </button>
         ))}
       </div>
+      {carEnds(station) && (
+        <div className="field">
+          <span>乗っていた号車（大江戸線は8両。{LINE_CARS.大江戸線.note}）</span>
+          <div className="chips">
+            {Array.from({ length: LINE_CARS.大江戸線.cars }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                aria-pressed={car === n}
+                onClick={() => {
+                  setCar(n);
+                  setStartIdx(0);
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <label className="field">
         <span>どこから</span>
         <select value={startIdx} onChange={(e) => setStartIdx(Number(e.target.value))}>
@@ -289,7 +338,7 @@ export default function Station3D() {
       </label>
       <label className="field">
         <span>どのトイレへ（近い順）</span>
-        <select value={goalIdx} onChange={(e) => setGoalIdx(Number(e.target.value))}>
+        <select value={goalAt} onChange={(e) => setGoalIdx(Number(e.target.value))}>
           {goals.map((g, i) => (
             <option key={g.place.id} value={i}>
               {g.label}
@@ -318,11 +367,29 @@ export default function Station3D() {
           <strong>
             約{Math.max(1, Math.round(route.seconds / 60))}分・{route.meters}m（{MODES[mode].label}）
           </strong>
+          {current && (
+            <div style={{ fontSize: "1.3rem", fontWeight: 800, margin: "6px 0" }}>
+              {stepIdx + 1}. {current.text}
+            </div>
+          )}
+          <div className="row">
+            <button onClick={() => setStep(Math.max(0, stepIdx - 1))} disabled={stepIdx === 0}>
+              ← 前へ
+            </button>
+            <button className="primary" onClick={() => setStep(Math.min(guide.length - 1, stepIdx + 1))} disabled={stepIdx >= guide.length - 1}>
+              次へ →
+            </button>
+          </div>
           <ol style={{ paddingLeft: 20, margin: "6px 0 0" }}>
-            {describeSteps(route).map((s, i) => (
-              <li key={i}>{s}</li>
+            {guide.map((g, i) => (
+              <li key={i} onClick={() => setStep(i)} style={{ fontWeight: i === stepIdx ? 800 : 400, cursor: "pointer" }}>
+                {g.text}
+              </li>
             ))}
           </ol>
+          <p className="muted" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+            通り過ぎたら「次へ」。地図の黄色が、いまの手順です。
+          </p>
         </section>
       ) : (
         net && <p className="card">この条件では経路が見つかりませんでした（データのつながりがない、または階段しかない）。</p>

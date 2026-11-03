@@ -21,7 +21,8 @@ export type RouteOptions = {
   stepFree?: boolean; // 階段・エスカレーター・2cm より大きい段差を使わない（車いす・ベビーカー）
 };
 
-export type RouteStep = { kind: KindName; meters: number; seconds: number; fromFloor: number; toFloor: number };
+// from・to は route.nodes の中の位置（手順ごとに地図の上で光らせるため）
+export type RouteStep = { kind: KindName; meters: number; seconds: number; fromFloor: number; toFloor: number; from: number; to: number };
 export type Route = { seconds: number; meters: number; nodes: number[]; steps: RouteStep[] };
 
 type Edge = { to: number; len: number; kind: number; step: boolean };
@@ -149,7 +150,8 @@ export function findRoute(g: Network, from: number, to: number, o: RouteOptions 
       last.meters += len;
       last.seconds += kind === "elevator" ? 5 * Math.abs(b - a) : sec;
       last.toFloor = b;
-    } else steps.push({ kind, meters: len, seconds: sec, fromFloor: a, toFloor: b });
+      last.to = i;
+    } else steps.push({ kind, meters: len, seconds: sec, fromFloor: a, toFloor: b, from: i - 1, to: i });
   }
   for (const s of steps) {
     s.meters = Math.round(s.meters);
@@ -161,21 +163,35 @@ export function findRoute(g: Network, from: number, to: number, o: RouteOptions 
 const fl = (f: number) => (Number.isInteger(f) ? (f < 0 ? `B${-f}` : `${f}F`) : `${f < 0 ? `B${Math.ceil(-f)}` : `${Math.floor(f)}F`}と${f < 0 ? (Math.floor(-f) === 0 ? "1F" : `B${Math.floor(-f)}`) : `${Math.ceil(f)}F`}の間`);
 const KIND_JA: Record<KindName, string> = { walk: "歩く", stairs: "階段", escalator: "エスカレーター", elevator: "エレベーター", slope: "スロープ", movingWalk: "動く歩道", crossing: "横断" };
 
-// 人が読む手順（例：「歩く 約80m」「エスカレーターで B1 → 1F」）。
-// 短い歩き（10m 未満。踊り場など）は出さず、そのせいで並んだ同じ種類（階段・階段）は1つにまとめる
-export function describeSteps(r: Route): string[] {
+export type GuideStep = RouteStep & { text: string };
+
+// 案内の手順（例：「歩く 約80m」「エスカレーターで B1 → 1F」）。
+// 短い歩き（10m 未満。踊り場など）は手順にせず、次の手順に含める。そのせいで並んだ同じ種類（階段・階段）は1つにまとめる
+export function guideSteps(r: Route): GuideStep[] {
   const merged: RouteStep[] = [];
-  for (const s of r.steps.filter((s) => !(s.kind === "walk" && s.meters < 10))) {
+  let carry: number | undefined; // 飛ばした短い歩きの始まり
+  for (const s of r.steps) {
+    if (s.kind === "walk" && s.meters < 10) {
+      carry ??= s.from;
+      const last = merged.at(-1);
+      if (last) last.to = s.to;
+      continue;
+    }
     const last = merged.at(-1);
     if (last && last.kind === s.kind) {
       last.meters += s.meters;
       last.toFloor = s.toFloor;
-    } else merged.push({ ...s });
+      last.to = s.to;
+    } else merged.push({ ...s, from: merged.length ? s.from : (carry ?? s.from) });
+    carry = undefined;
   }
-  return merged
-    .map((s) =>
+  return merged.map((s) => ({
+    ...s,
+    text:
       s.fromFloor !== s.toFloor
         ? `${KIND_JA[s.kind]}で ${fl(s.fromFloor)} → ${fl(s.toFloor)}`
         : `${KIND_JA[s.kind]} 約${Math.max(10, Math.round(s.meters / 10) * 10)}m`,
-    );
+  }));
 }
+
+export const describeSteps = (r: Route): string[] => guideSteps(r).map((s) => s.text);
