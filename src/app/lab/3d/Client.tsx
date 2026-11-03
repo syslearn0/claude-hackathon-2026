@@ -73,7 +73,7 @@ export default function Station3D() {
   const [startIdx, setStartIdx] = useState(0);
   const [goalIdx, setGoalIdx] = useState(-1); // -1：URL のトイレ（なければ一番近いトイレ）
   const [mode, setMode] = useState(0);
-  const [picked, setPicked] = useState<{ key: string; start: Start } | null>(null); // 「いまどこ？」で決めた出発地点
+  const [picked, setPicked] = useState<{ key: string; start: Start } | null>(null); // 「いまどこ？」・地図のタップで決めた出発地点
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
@@ -207,19 +207,39 @@ export default function Station3D() {
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [track, setTrack] = useState(false); // センサーで追う
   const [trackNote, setTrackNote] = useState("");
-  const live = useRef({ pos, cps, picking, path, pick: (d: number) => setPos(d) });
+  const [pickNote, setPickNote] = useState("");
+  // 地図のタップ（qs：タップの線が当たった床の点、手前から順。floorH：その 3D の1階ぶんの高さ）。
+  // 上から見ると上の階の床が手前に重なるので、今いる階の床に当たっていればそれを使う。
+  // 道順の近く（同じ階で 6m 以内）なら道順の上に合わせ、
+  // 離れていれば、そこのいちばん近い通路を新しい出発地点にして道順を引き直す
+  const pickAt = (qs: { x: number; y: number; z: number }[], floorH: number) => {
+    if (!net || !qs.length) return;
+    const q = qs.find((x) => Math.round(x.y / floorH) === floorNow) ?? qs[0];
+    const floor = Math.round(q.y / floorH);
+    const d = nearestOnPath(path.pts, path.cum, { x: q.x, y: floor * FLOOR_M, z: q.z });
+    const onRoute = pointAt(path.pts, path.cum, d);
+    setPicking(false);
+    setPlaying(false);
+    if (Math.abs(onRoute.y - floor * FLOOR_M) < 0.1 && Math.hypot(onRoute.x - q.x, onRoute.z - q.z) <= 6) {
+      setPos(d);
+      setPickNote("");
+      return;
+    }
+    const at = { lat: center.lat - q.z / 110_540, lon: center.lon + q.x / kx };
+    const node = nearestNode(net, at, floor);
+    const n = net.nodes[node];
+    if (n[2] !== floor || distanceM(at, { lat: n[0], lon: n[1] }) > 30) {
+      setPickNote("そこには通路のデータがありません。通路（青い床）の上をタップしてください。");
+      return;
+    }
+    setPicked({ key, start: { label: `地図で選んだ場所（${floorLabel(floor)}）`, node } });
+    setStartIdx(0);
+    setPickNote(`${floorLabel(floor)}のタップしたところから、道順を出し直しました。`);
+  };
+  const floorNow = path.pts.length ? Math.round(pointAt(path.pts, path.cum, pos).floor) : 0;
+  const live = useRef({ pos, cps, picking, path, floorNow, pick: pickAt });
   useLayoutEffect(() => {
-    live.current = {
-      pos,
-      cps,
-      picking,
-      path,
-      pick: (d: number) => {
-        setPos(d);
-        setPicking(false);
-        setPlaying(false);
-      },
-    };
+    live.current = { pos, cps, picking, path, floorNow, pick: pickAt };
   });
 
   // 確認ポイントの呼び方と、そこで押すボタン
@@ -355,12 +375,24 @@ export default function Station3D() {
     let down: { x: number; y: number } | null = null;
     const onDown = (e: PointerEvent) => (down = { x: e.clientX, y: e.clientY });
     const onUp = (e: PointerEvent) => {
-      const { picking, path, pick } = live.current;
+      const { picking, pick, floorNow } = live.current;
       if (!picking || !down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return;
       const r = el.getBoundingClientRect();
+      controls.update(); // まだ描いていない（画面が隠れている）ときも、いまのカメラの向きで
+      camera.updateMatrixWorld();
       ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObjects(layer.children, false).find((h) => !(h.object instanceof THREE.Sprite));
-      if (hit) pick(nearestOnPath(path.pts, path.cum, hit.point, FLOOR_H / FLOOR_M));
+      // 床の形に当たらなかったとき（データのない所）は、今の階の高さの平面で受ける
+      const flat = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -floorNow * FLOOR_H), new THREE.Vector3());
+      pick(
+        [
+          ...ray
+            .intersectObjects(layer.children, false)
+            .filter((h) => h.object instanceof THREE.Mesh)
+            .map((h) => h.point),
+          ...(flat ? [flat] : []),
+        ],
+        FLOOR_H,
+      );
     };
     renderer.domElement.addEventListener("pointerdown", onDown);
     renderer.domElement.addEventListener("pointerup", onUp);
@@ -718,7 +750,7 @@ export default function Station3D() {
             playing={playing}
             onStop={() => setPlaying(false)}
             picking={picking}
-            onPick={(d) => live.current.pick(d)}
+            onPick={(q) => live.current.pick([q], FLOOR_M)}
           />
         )}
         <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }} />
@@ -741,7 +773,7 @@ export default function Station3D() {
         {route && goal && (
           <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
             {picking ? (
-              <div style={{ fontWeight: 800 }}>📍 道順の上の、いまいるところをタップしてください</div>
+              <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
             ) : next ? (
               <div style={{ fontWeight: 800 }}>
                 次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
@@ -797,6 +829,11 @@ export default function Station3D() {
           📍 地図で位置を直す
         </button>
       </div>
+      {pickNote && (
+        <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
+          {pickNote}
+        </p>
+      )}
       {trackNote && (
         <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
           {trackNote}

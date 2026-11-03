@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
-import { FLOOR_M, nearestOnPath, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
+import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・「着いたら押す」・タップで変わる）。
@@ -63,7 +63,7 @@ export function Walk({
   playing: boolean;
   onStop: () => void;
   picking: boolean; // 「地図で位置を直す」：次のタップで、そこを今の位置にする
-  onPick: (d: number) => void;
+  onPick: (q: { x: number; y: number; z: number }) => void; // タップした床の点（この 3D の座標）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -338,7 +338,7 @@ export function Walk({
       renderer.setSize(el.clientWidth, el.clientHeight);
     };
     window.addEventListener("resize", onResize);
-    // 位置を直す：タップしたところ（見えている床か矢印の帯）にいちばん近い、道順の上の位置へ
+    // 位置を直す：タップしたところ（見えている床か矢印の帯）を呼ぶ側に渡す（道順の上に合わせるか、出発地点にするかは呼ぶ側）
     const ray = new THREE.Raycaster();
     let drag: { x: number; y: number; moved: number } | null = null;
     const onDown = (e: PointerEvent) => {
@@ -362,10 +362,11 @@ export function Walk({
     const onTap = (e: PointerEvent) => {
       if (!pick.current) return;
       const r = el.getBoundingClientRect();
+      camera.updateMatrixWorld();
       ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
       const targets = [carpetMesh, ...[...byFloor.values()].filter((g) => g.visible)];
       const hit = ray.intersectObjects(targets, true)[0];
-      if (hit) cb.current.onPick(nearestOnPath(way, wayAt, hit.point));
+      if (hit) cb.current.onPick(hit.point);
     };
     renderer.domElement.addEventListener("pointerdown", onDown);
     renderer.domElement.addEventListener("pointermove", onMove);
