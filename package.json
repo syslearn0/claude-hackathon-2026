@@ -16,6 +16,7 @@
     "replay": "tsx scripts/replay-gps.ts",
     "import:mlit": "tsx scripts/import-mlit-indoor.ts",
     "import:network": "tsx scripts/import-network.ts",
+    "fetch:osm-network": "tsx scripts/fetch-osm-network.ts",
     "eval": "tsx scripts/eval.ts",
     "record:demo": "tsx scripts/record-demo.ts"
   },

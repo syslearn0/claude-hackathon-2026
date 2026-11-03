@@ -1,5 +1,5 @@
 // 駅の屋内データ（OpenStreetMap の indoor / level）を取り込む。試作：まず新宿駅。
-// 使い方：npx tsx scripts/fetch-indoor.ts
+// 使い方：npx tsx scripts/fetch-indoor.ts [駅]（省略すると全部）
 // 取り込んだあとは npm run normalize:indoor で階（floors）をそろえる
 // 出力：data/indoor/<駅>.json（ODbL 1.0。表示時は「© OpenStreetMap contributors」）
 
@@ -7,6 +7,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 
 const AREAS: Record<string, { label: string; bbox: [number, number, number, number] }> = {
   shinjuku: { label: "新宿駅", bbox: [35.6855, 139.696, 35.6935, 139.704] },
+  kyoto: { label: "京都駅", bbox: [34.9835, 135.754, 34.9895, 135.763] },
+  ochanomizu: { label: "御茶ノ水駅", bbox: [35.6955, 139.76, 35.7035, 139.77] },
 };
 
 const ENDPOINTS = [
@@ -152,7 +154,8 @@ async function fetchJson(q: string): Promise<{ elements: El[] }> {
 
 async function main() {
   await mkdir("data/indoor", { recursive: true });
-  for (const [key, area] of Object.entries(AREAS)) {
+  const only = process.argv[2];
+  for (const [key, area] of Object.entries(AREAS).filter(([k]) => !only || k === only)) {
     // 小分けの結果をまとめる（タイルの境目で同じ要素が2回入るので、id で重ねない）
     const byId = new Map<string, IndoorFeature>();
     const qs = queries(area.bbox);

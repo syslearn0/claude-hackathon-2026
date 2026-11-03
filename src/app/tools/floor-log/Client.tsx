@@ -196,8 +196,8 @@ export default function FloorLogPage() {
             {[...log.marks]
               .reverse()
               .slice(0, 12)
-              .map((m) => (
-                <li key={m.t}>
+              .map((m, i) => (
+                <li key={`${m.t}-${i}`}>
                   {hms(m.t)} {m.kind}
                   {m.floor ? `：${m.floor}` : ""}
                   {m.note ? `：${m.note}` : ""}

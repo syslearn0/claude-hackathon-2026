@@ -81,7 +81,9 @@ export default function Station3D() {
   }, []);
   useEffect(() => {
     let alive = true;
-    Promise.all([fetch(`/api/indoor?station=${key}`).then((r) => r.json()), fetch(`/api/network?station=${key}`).then((r) => r.json())]).then(([i, n]) => {
+    // 屋内の地図がない駅もある（ネットワークだけで描く）
+    const indoorOrEmpty = fetch(`/api/indoor?station=${key}`).then((r) => (r.ok ? r.json() : { station: key, bbox: [0, 0, 0, 0], features: [], attribution: "" }));
+    Promise.all([indoorOrEmpty, fetch(`/api/network?station=${key}`).then((r) => r.json())]).then(([i, n]) => {
       if (!alive) return;
       setIndoor(i);
       setNet(n);
@@ -134,6 +136,7 @@ export default function Station3D() {
     const s = net.nodes[starts[startIdx]?.node ?? 0];
     return places
       .filter((p) => p.kind === "toilet" && distanceM(p, center) < 450)
+      .filter((p, i, near) => near.findIndex((q) => q.id === p.id) === i)
       .map((p) => ({ p, f: placeFloor(p, indoor.features) }))
       .filter((x) => x.f !== undefined && !x.p.approxLocation)
       .map(({ p, f }) => ({ place: p, node: nearestNode(net, p, f!.floor), label: `${p.name ?? "トイレ"}（${floorLabel(f!.floor)}${p.gate === "inside" ? "・改札内" : p.gate === "outside" ? "・改札外" : ""}）` }))
@@ -340,7 +343,7 @@ export default function Station3D() {
         <span>どのトイレへ（近い順）</span>
         <select value={goalAt} onChange={(e) => setGoalIdx(Number(e.target.value))}>
           {goals.map((g, i) => (
-            <option key={g.place.id} value={i}>
+            <option key={`${g.place.id}-${i}`} value={i}>
               {g.label}
             </option>
           ))}

@@ -111,6 +111,21 @@ export const INDOOR_STATIONS: Record<
     radiusM: 150,
     sources: [oedo("大門", "https://ckan.hokonavi.go.jp/dataset/a00afe74-d687-42d0-9ca3-65b111249063")],
   },
+  // OSM だけの駅（国交省の屋内地図がない）。屋内の地図もネットワークも OSM の有志が描いた分だけ
+  京都: {
+    key: "kyoto",
+    bbox: [34.9835, 135.754, 34.9895, 135.763],
+    center: { lat: 34.9855, lon: 135.7588 },
+    radiusM: 250,
+    sources: [],
+  },
+  御茶ノ水: {
+    key: "ochanomizu",
+    bbox: [35.6955, 139.76, 35.7035, 139.77],
+    center: { lat: 35.6996, lon: 139.765 },
+    radiusM: 200,
+    sources: [],
+  },
   新宿西口: {
     key: "shinjuku-nishiguchi",
     bbox: [35.6911, 139.6967, 35.6951, 139.7017],
