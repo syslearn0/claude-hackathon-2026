@@ -73,13 +73,16 @@ export function Walk({
   const play = useRef(playing);
   const pick = useRef(picking);
   const cb = useRef({ onPos, onStop, onPick });
+  const lst = useRef(list);
+  const veil = useRef<HTMLDivElement>(null); // エレベーターに乗っている間の暗幕
   // 外で位置が変わったら合わせる（自分で歩いている途中の小さな差は、自分の位置のまま）
   useLayoutEffect(() => {
     if (!playing || Math.abs(pos - dist.current) > 2) dist.current = pos;
     play.current = playing;
     pick.current = picking;
     cb.current = { onPos, onStop, onPick };
-  }, [pos, playing, picking, onPos, onStop, onPick]);
+    lst.current = list;
+  }, [pos, playing, picking, onPos, onStop, onPick, list]);
 
   useEffect(() => {
     const el = box.current;
@@ -131,7 +134,7 @@ export function Walk({
     }
     for (const [fl, gs] of floors) {
       const m = mergeGeometries(gs);
-      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xdfe6ee, side: THREE.DoubleSide })));
+      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xdfe6ee })));
     }
     for (const [fl, gs] of walls) {
       const m = mergeGeometries(gs);
@@ -279,7 +282,6 @@ export function Walk({
       const gap = dist.current - shown;
       shown = play.current || Math.abs(gap) > 80 ? dist.current : shown + gap * (1 - Math.exp(-dt * 4));
       const p = pointAt(way, wayAt, shown);
-      const ahead = pointAt(way, wayAt, Math.min(total, shown + 6));
       camera.position.set(p.x, p.y + EYE, p.z);
       // 向きは水平に。少し先（3〜10m）の何点かの平均の方へ、ゆっくり回る（曲がり角で一気に回らない）。
       // エレベーターの中など前が真上・真下のときは、その先の歩く向きを探し、なければ今の向きのまま
@@ -311,8 +313,21 @@ export function Walk({
       const f = (facing ?? Math.PI) + look.yaw;
       camera.lookAt(p.x + Math.sin(f), p.y + EYE - 0.05 + Math.tan(look.pitch), p.z + Math.cos(f));
       // いまの階と、上り下りの途中なら行き先の階も見せる
-      const fNow = p.y / FLOOR_M;
-      for (const [f, g] of byFloor) g.visible = Math.abs(f - fNow) < 0.9 || Math.abs(f - ahead.y / FLOOR_M) < 0.5;
+      // 見せる階：ふだんは今の階（と、6m 以内に上り下りがあればその行き先）。上り下りの途中は、出発と行き先の階だけ
+      // （途中の階を次々に出し入れすると、ちかちかする）
+      const floorAt = (d: number) => pointAt(way, wayAt, d).y / FLOOR_M;
+      const moving = lst.current.find((m) => m.kind === "floor" && shown > m.at + 0.01 && shown < (m.end ?? m.at) - 0.01);
+      const soon = lst.current.find((m) => m.kind === "floor" && m.at >= shown - 0.01 && m.at - shown <= 6);
+      const show = moving ? [floorAt(moving.at), floorAt(moving.end ?? moving.at)] : [floorAt(shown), ...(soon ? [floorAt(soon.end ?? soon.at)] : [])];
+      for (const [f, g] of byFloor) g.visible = show.some((x) => Math.abs(f - x) < 0.01);
+      // エレベーターに乗っている間は、画面を暗くして行き先を出す（中の景色は箱の壁だけで、ちかちかするので）
+      const lift = moving && moving.via === "elevator";
+      if (veil.current) {
+        const t = lift ? (shown - moving.at) / Math.max(0.01, (moving.end ?? moving.at) - moving.at) : 0;
+        veil.current.style.opacity = lift ? String(Math.max(0, Math.min(1, t / 0.15, (1 - t) / 0.15))) : "0";
+        const text = lift ? `${moving.text}\n（乗っています）` : "";
+        if (veil.current.textContent !== text) veil.current.textContent = text;
+      }
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     };
@@ -375,6 +390,27 @@ export function Walk({
   return (
     <>
       <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
+      <div
+        ref={veil}
+        style={{
+          position: "absolute",
+          inset: 0,
+          height: 520,
+          borderRadius: 10,
+          background: "rgba(20,20,19,.92)",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          whiteSpace: "pre-line",
+          fontSize: "1.3rem",
+          fontWeight: 800,
+          padding: 24,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
+      />
       {/* 上：次の曲がり角 */}
       <div style={{ position: "absolute", left: 8, right: 8, top: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" }}>
         {arrived ? (
