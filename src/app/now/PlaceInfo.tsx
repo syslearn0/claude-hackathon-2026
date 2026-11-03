@@ -123,11 +123,12 @@ export function MapLink({ item, inStation = false, big = false }: { item: Nearby
   const href = inStation
     ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
     : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}&travelmode=walking`;
-  const label = inStation ? "地図で場所を見る" : "地図で道順を見る";
+  // 押すと別のアプリ（Google マップ）が開くことを、ボタンの名前で分かるように
+  const label = inStation ? "Google マップで場所を見る" : "Google マップで道順を見る";
   if (big) {
     return (
       <a href={href} target="_blank" rel="noreferrer" className="button primary big" style={{ marginTop: 10 }}>
-        {inStation ? label : `${label}（Google マップ）`}
+        {label}
       </a>
     );
   }
