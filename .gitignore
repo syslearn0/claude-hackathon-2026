@@ -58,3 +58,5 @@ next-env.d.ts
 /data/raw/mlit-*/
 /data/raw/hokonavi-*/
 /data/raw/hokonavi-oedo-nw/
+*.floorlog.json
+floorlog-*.json
