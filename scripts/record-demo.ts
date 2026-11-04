@@ -2,7 +2,7 @@
 // 使い方：npx tsx scripts/record-demo.ts <train|train-shinjuku|train-oedo|shinjuku-enter|route3d|route3d-roppongi|after|plan|all> [--base http://localhost:3000] [--headed]
 // 先に dev サーバー（npm run dev）を起動しておく。ブラウザは入れず、入っている Edge（なければ Chrome）を使う。
 import { execFileSync } from "node:child_process";
-import { copyFile, mkdir, rename, rm, stat } from "node:fs/promises";
+import { copyFile, mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Browser, BrowserContext, Page } from "playwright";
 import { loadStations } from "../src/lib/data";
@@ -112,10 +112,17 @@ async function tap(page: Page, locator: ReturnType<Page["getByRole"]>) {
 const TAP_MARK = `addEventListener("DOMContentLoaded",()=>{const s=document.createElement("style");s.textContent="@keyframes tapmark{from{opacity:.55;transform:translate(-50%,-50%) scale(.4)}to{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}";document.head.append(s);
 addEventListener("pointerdown",e=>{const d=document.createElement("div");d.style.cssText="position:fixed;z-index:99999;pointer-events:none;width:44px;height:44px;border-radius:50%;background:#888;left:"+e.clientX+"px;top:"+e.clientY+"px;animation:tapmark .5s ease-out forwards";document.body.append(d);setTimeout(()=>d.remove(),600)},true)});`;
 
+// 窓は 780 幅なので、ページを 2 倍に拡大して 390 幅のスマホの並びにする
+const ZOOM2 = `addEventListener("DOMContentLoaded",()=>{document.documentElement.style.zoom="2"});`;
+
 // ---------- シーン ----------
 
 type Check = Record<string, boolean>;
 type Ctx = { ctx: BrowserContext; page: Page; base: string };
+// 場面の中の目印の時刻（動画の頭からの秒）。<シーン>.marks.json に書き、動画を切る場所に使う
+let marks: Record<string, number> = {};
+let t0 = Date.now();
+const mark = (k: string) => (marks[k] = Math.round((Date.now() - t0) / 100) / 10);
 type Scene = { init?: (c: BrowserContext) => Promise<void>; run: (c: Ctx) => Promise<Check> };
 
 // 今日の計画をあらかじめ入れる（createdAt は画面側の「今日」で作る）
@@ -248,13 +255,16 @@ scenes.after = {
     await page.goto(`${base}/now`);
     const check: Check = {};
     check["最初の候補が出た"] = await seen(page, /トイレ/, 30_000);
+    mark("start");
     await sleep(3000); // 見直しは通す（位置は動かないので 1 件）
     await tap(page, page.getByRole("button", { name: "トイレに入った（次どうする？）" }));
     await sleep(1500);
     await tap(page, page.getByRole("button", { name: "下着を汚した" }));
     await sleep(1200);
     await tap(page, page.getByRole("button", { name: "次の手順を出す" }));
+    mark("asked");
     check["AI の手順が届いた"] = await seen(page, "AI が作った手順", 60_000);
+    mark("result");
     check["（簡易版にはならなかった）"] = (await page.getByText("AI を使わない簡易版").count()) === 0;
     await sleep(2500);
     await scrollThrough(page, 1800);
@@ -273,6 +283,7 @@ scenes.plan = {
         ? "明日、京都から新宿に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n昼すぎに新宿駅の南口の近くで用事があります。"
         : "明日、京都から六本木に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n新宿 11:20発 → 六本木 11:30着（都営大江戸線）\n昼すぎに六本木で用事があります。";
     await page.goto(`${base}/plan`);
+    mark("start");
     const check: Check = {};
     const area = page.locator("textarea");
     await area.click();
@@ -283,7 +294,9 @@ scenes.plan = {
     await tap(page, page.getByRole("button", { name: "替えを持っていない" }));
     await sleep(1200);
     await tap(page, page.getByRole("button", { name: "計画を作る" }));
+    mark("asked");
     check["経路と車内の設備"] = await seen(page, "経路と車内の設備", 90_000);
+    mark("result");
     await sleep(2500);
     await page.evaluate(() => [...document.querySelectorAll("h2")].find((h) => h.textContent === "経路と車内の設備")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     await sleep(3500);
@@ -375,6 +388,7 @@ scenes["train-oedo"] = {
     await page.goto(`${base}/now`);
     const check: Check = {};
     check["予定の時刻から推定"] = await seen(page, /予定の時刻から推定しました/, 30_000);
+    mark("shown");
     check["次の駅（推定）が六本木"] = await seen(page, /次の駅（推定）六本木駅/, 5_000);
     // 位置がないので AI の見直しは走らない（予定の時刻からの推定と、次の駅のトイレを見せる）
     await sleep(6000);
@@ -396,14 +410,28 @@ scenes["route3d-roppongi"] = {
     await page.goto(`${base}/now`);
     const check: Check = {};
     check["道順のボタン"] = await seen(page, /六本木駅の中の道順を出す/, 30_000);
+    mark("card");
     await sleep(2000);
     await tap(page, page.getByRole("button", { name: /駅の中の道順を出す/ }));
     check["いまどこ？"] = await seen(page, "いまどこ？", 30_000);
+    mark("question");
     await sleep(2000);
     await tap(page, page.getByRole("button", { name: "1号車" }));
     check["道順が出た"] = await seen(page, /トイレまで 約/, 10_000);
+    mark("route");
     await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
-    await sleep(2500);
+    await sleep(1500);
+    // 上から見る画面を少し近づける（あなたと道順が大きく見えるように）
+    const cv = await page.locator("canvas").first().boundingBox();
+    if (cv) {
+      await page.mouse.move(cv.x + cv.width / 2, cv.y + cv.height / 2);
+      for (let i = 0; i < 6; i++) {
+        await page.mouse.wheel(0, -120);
+        await sleep(90);
+      }
+    }
+    await sleep(1000);
+    mark("zoomed");
     const face = (deg: number) =>
       page.evaluate((d) => {
         const e = new Event("deviceorientationabsolute");
@@ -419,14 +447,19 @@ scenes["route3d-roppongi"] = {
       await sleep(60);
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
+    mark("facing");
     await sleep(2500);
     await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    mark("walk");
     check["押す階が出た"] = await seen(page, /乗ったら右を押す/, 60_000);
+    mark("lift");
     await sleep(5000);
     await page.getByRole("button", { name: /もっと見る/ }).click();
     await page.getByRole("button", { name: "歩く目線" }).click();
+    mark("walkview");
     await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     check["トイレに着いた"] = await seen(page, "トイレに着きました", 120_000);
+    mark("arrived");
     await sleep(3000);
     return check;
   },
@@ -451,18 +484,23 @@ async function record(browser: Browser, name: string, base: string): Promise<{ o
   await rm(dir, { recursive: true, force: true });
   await mkdir(dir, { recursive: true });
   const ctx = await browser.newContext({
-    viewport: VIEWPORT,
+    // 録画は窓の大きさで撮られる（390x844 だと粗い）。窓は 2 倍（780x1688）にして、ページを CSS で 2 倍に拡大する
+    // （並びは 390 幅のスマホのまま、文字も 3D も 2 倍の細かさで描かれる。ZOOM2 を見よ）
+    viewport: { width: VIEWPORT.width * 2, height: VIEWPORT.height * 2 },
     deviceScaleFactor: 2,
     isMobile: true,
     hasTouch: true,
     locale: "ja-JP",
     timezoneId: "Asia/Tokyo",
     permissions: ["geolocation"],
-    recordVideo: { dir, size: VIEWPORT },
+    recordVideo: { dir, size: { width: VIEWPORT.width * 2, height: VIEWPORT.height * 2 } }, // 2 倍の大きさで（文字や 3D がつぶれないように）
   });
   await ctx.addInitScript(TAP_MARK);
+  await ctx.addInitScript(ZOOM2);
   await scene.init?.(ctx);
   const page = await ctx.newPage();
+  marks = {};
+  t0 = Date.now();
   const video = page.video();
   let check: Check = {};
   let error = "";
@@ -477,6 +515,7 @@ async function record(browser: Browser, name: string, base: string): Promise<{ o
     await rename(await video.path(), file).catch(() => {});
     await rm(dir, { recursive: true, force: true });
   }
+  await writeFile(path.join(OUT, `${name}.marks.json`), JSON.stringify(marks, null, 2));
   const ok = !error && Object.values(check).every(Boolean);
   console.log(`\n[${name}] ${ok ? "OK" : "NG"}`);
   for (const [k, v] of Object.entries(check)) console.log(`  ${v ? "o" : "x"} ${k}`);
