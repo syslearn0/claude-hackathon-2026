@@ -742,7 +742,14 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const lms = useMemo(() => (indoor ? landmarks(indoor.features) : []), [indoor]);
 
   // 歩き出す最初の向き：出発したところと、上り下りを降りたところから 3m のあいだだけ出す
-  const hintMarks: HintMark[] = useMemo(() => lms.map((m) => ({ x: (m.lon - center.lon) * kx, z: -(m.lat - center.lat) * 110_540, floor: m.floor, name: m.name, kind: m.kind })), [lms, center, kx]);
+  // 目印の名前は、日本語のものと出口番号（A15 など）だけ（「Odakyu West Gate」のような英語の重複は使わない）
+  const hintMarks: HintMark[] = useMemo(
+    () =>
+      lms
+        .filter((m) => /[぀-ヿ一-鿿]/.test(m.name) || /^[A-Za-z]?\d{1,3}[a-z]?$/.test(m.name))
+        .map((m) => ({ x: (m.lon - center.lon) * kx, z: -(m.lat - center.lat) * 110_540, floor: m.floor, name: m.name, kind: m.kind })),
+    [lms, center, kx],
+  );
   const platformInfo: PlatformInfo | undefined = useMemo(() => {
     const ends = carEnds(station);
     if (!ends) return undefined;
