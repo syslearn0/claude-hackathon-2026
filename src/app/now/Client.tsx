@@ -340,7 +340,7 @@ export default function NowPage() {
       {inside && !indoorOpen && !noticeClosed && (
         <section className="card" style={{ borderColor: "var(--accent)" }}>
           <strong>{inside}駅の範囲に入りました</strong>
-          <div className="muted">駅の中の地図（試作）に、トイレの候補を階ごとに重ねて出せます。</div>
+          <div className="muted">駅の中の地図に、トイレの候補を階ごとに重ねて出せます。</div>
           <button
             style={{ marginTop: 6 }}
             onClick={() => {
@@ -372,7 +372,7 @@ export default function NowPage() {
           <MapLink item={first} inStation={isInStation(first, station)} big />
           {indoorStation && (
             <button className={routeOpen ? "" : "primary"} style={{ marginTop: 8, width: "100%" }} onClick={() => setRouteOpen(!routeOpen)}>
-              {routeOpen ? "駅の中の道順を閉じる" : `${indoorStation}駅の中の道順を出す（3D・試作）`}
+              {routeOpen ? "駅の中の道順を閉じる" : `${indoorStation}駅の中の道順を出す（3D）`}
             </button>
           )}
           {indoorStation && routeOpen && <StationRoute key={indoorStation} station={indoorStation} goalId={first.place.id} embedded />}
@@ -422,7 +422,7 @@ export default function NowPage() {
       {indoorStation && (
         <section className="card" ref={indoorBox} style={{ scrollMarginTop: 8 }}>
           <div className="row" style={{ justifyContent: "space-between" }}>
-            <strong>{indoorStation}駅の中の地図（試作）</strong>
+            <strong>{indoorStation}駅の中の地図</strong>
             <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
           </div>
           {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}

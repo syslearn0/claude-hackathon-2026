@@ -292,25 +292,15 @@ scenes.route3d = {
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
     await sleep(3000);
-    // 確認ポイントで合わせながら進む（エレベーターの手前と中では少し止まる）
-    const next = page.locator("button.primary").filter({ hasText: /にいる|降りた|着いた/ });
-    for (let i = 0; i < 8 && (await next.count()); i++) {
-      const label = (await next.first().textContent()) ?? "";
-      await tap(page, next.first());
-      await sleep(/エレベーター|降りた/.test(label) ? 4000 : 2500);
-      if (await page.getByText(/乗ったら右を押す/).count()) {
-        check["B3 を押す"] = true;
-        await sleep(2500);
-      }
-      // 降りたら、歩く目線に切り替えて最後まで歩く
-      if (/降りた/.test(label)) break;
-    }
-    await tap(page, page.getByRole("button", { name: /もっと見る/ }));
-    await sleep(800);
-    await tap(page, page.getByRole("button", { name: "歩く目線" }));
-    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
-    await sleep(2000);
+    // 上から見る画面で「▶ 歩く」：あなたが道順の上を歩いて進む（とびとびにしない）。エレベーターの手前で「B3 を押す」
     await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    check["B3 を押す"] = await seen(page, /乗ったら右を押す/, 60_000);
+    // 降りたら、歩く目線に切り替えて（歩いたまま）トイレまで
+    check["エレベーターを降りた"] = await seen(page, /降りたら/, 60_000);
+    await sleep(1500);
+    await page.getByRole("button", { name: /もっと見る/ }).click();
+    await page.getByRole("button", { name: "歩く目線" }).click();
+    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     check["トイレに着いた"] = await seen(page, "トイレに着きました", 90_000);
     await sleep(3000);
     return check;

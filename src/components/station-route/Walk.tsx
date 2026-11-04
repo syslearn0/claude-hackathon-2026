@@ -14,7 +14,7 @@ import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/l
 // いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
 
 const EYE = 1.6;
-const SPEED = 1.3; // m/秒（少し速めに歩く）
+export const WALK_SPEED = 1.3; // 「▶ 歩く」の速さ（m/秒。少し速めに歩く）
 
 // 矢印の帯の模様（進む向きが上）
 function chevronTexture() {
@@ -320,7 +320,7 @@ export function Walk({
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       if (play.current) {
-        dist.current = Math.min(total, dist.current + dt * SPEED);
+        dist.current = Math.min(total, dist.current + dt * WALK_SPEED);
         if (now - lastHud > 120 || dist.current >= total) {
           lastHud = now;
           cb.current.onPos(dist.current);

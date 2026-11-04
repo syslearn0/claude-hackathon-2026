@@ -15,7 +15,7 @@ import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
 import { advanceBySteps, checkpoints, HeadingCheck, nextCheckpoint, prevCheckpoint, snapFloor, snapTurn, STEP_M, StepCounter, TurnWatcher, yawRate, type Checkpoint, type Drift } from "@/lib/tracking";
-import { Walk } from "./Walk";
+import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
 //   ① トイレまで何分・何m、② いまの一手（「エスカレーターで B5（ホーム）→ B3（改札の階）」）、③ 自分のまわりだけを切り出した 3D、④ 条件を変える
@@ -81,6 +81,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [view, setView] = useState<"above" | "walk">("above");
   const box = useRef<HTMLDivElement>(null);
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
+  const youGoal = useRef<THREE.Vector3 | null>(null); // 「あなた」の行き先。描くたびに少しずつ近づける（位置が飛んでも、滑って動く）
+  const framed = useRef(""); // カメラの距離を決めた道順（同じ道順のあいだは、本人が決めた角度と距離のまま）
   const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group; cpSign: THREE.Sprite } | null>(null);
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
   const compass = useRef<number | null>(null);
@@ -485,7 +487,23 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     sc.add(layer);
     scene.current = { camera, controls, layer };
     let raf = 0;
+    let last = performance.now();
     const loop = () => {
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - last) / 1000);
+      last = now;
+      // 「あなた」を行き先へ滑らせる（40m より離れたら飛ぶ）。回す・拡大の中心も一緒に動かす（角度と距離はそのまま）
+      const m = youMark.current;
+      const g = youGoal.current;
+      if (m && g) {
+        const at = m.you.userData.placed && m.you.position.distanceTo(g) < 40 ? m.you.position.clone().lerp(g, 1 - Math.exp(-dt * 6)) : g.clone();
+        m.you.userData.placed = true;
+        m.you.position.copy(at);
+        m.sign.position.copy(at).add(new THREE.Vector3(0, 6, 0));
+        m.beam.position.copy(at).add(new THREE.Vector3(0, 0.3, 0));
+        camera.position.add(at.clone().sub(controls.target));
+        controls.target.copy(at);
+      }
       controls.update();
       renderer.render(sc, camera);
       raf = requestAnimationFrame(loop);
@@ -662,26 +680,22 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const seg = new THREE.Box3().setFromPoints(arrived ? [youAt] : pts.slice(current.from, current.to + 1));
     const c = seg.getCenter(new THREE.Vector3());
     const size = seg.getSize(new THREE.Vector3()).length();
-    s.controls.target.copy(c);
-    s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85))));
-    s.camera.updateProjectionMatrix();
+    // 歩いているあいだに手順が変わっても、カメラは飛ばさない（あなたについて滑る）
+    if (framed.current !== routeKey) {
+      framed.current = routeKey;
+      s.controls.target.copy(c);
+      s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85))));
+      s.camera.updateProjectionMatrix();
+    }
     // floorName は描くたびに作り直しているので、依存に入れない（階の役割が変わるのは駅を替えたときだけ）
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indoor, net, route, current, arrived, toXYZ]);
+  }, [indoor, net, route, current, arrived, toXYZ, routeKey]);
   useEffect(() => {
     const m = youMark.current;
     if (!m || !path.pts.length) return;
     const p = pointAt(path.pts, path.cum, pos);
-    const v = new THREE.Vector3(p.x, (p.y / FLOOR_M) * FLOOR_H + 0.6, p.z);
-    m.you.position.copy(v);
-    m.sign.position.copy(v).add(new THREE.Vector3(0, 6, 0));
-    m.beam.position.copy(v).add(new THREE.Vector3(0, 0.3, 0));
-    // 回す・拡大の中心を「あなた」に。いまの見る角度と距離はそのままで、カメラごと平行に動かす
-    const sc = scene.current;
-    if (sc) {
-      sc.camera.position.add(v.clone().sub(sc.controls.target));
-      sc.controls.target.copy(v);
-    }
+    // 「あなた」と回す中心は、描くたびにここへ滑らせる（上の舞台の毎フレームの処理）
+    youGoal.current = new THREE.Vector3(p.x, (p.y / FLOOR_M) * FLOOR_H + 0.6, p.z);
     // 次の確認ポイント（トイレは青い柱があるので出さない）
     m.cp.visible = !!next && next.kind !== "arrive";
     if (next) {
@@ -699,6 +713,28 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       m.cpSign.visible = next.at - pos > 12;
     }
   }, [pos, path, current, arrived, next]);
+
+  // 上から見る画面の「▶ 歩く」（試しに自動で進める。歩く目線では Walk が自分で進める）
+  useEffect(() => {
+    if (!playing || view !== "above") return;
+    let last = performance.now();
+    let sent = 0;
+    let d = live.current.pos;
+    let raf = 0;
+    const tick = (now: number) => {
+      if (Math.abs(live.current.pos - d) > 2) d = live.current.pos; // ボタンや地図で位置を直したら、そこから
+      d = Math.min(total, d + Math.min(0.1, (now - last) / 1000) * WALK_SPEED);
+      last = now;
+      if (now - sent > 100 || d >= total) {
+        sent = now;
+        setPos(d);
+      }
+      if (d >= total) setPlaying(false);
+      else raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing, view, total, setPos]);
 
   const startLabel = starts[startIdx]?.label;
 
@@ -1125,7 +1161,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             </div>
             <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
               <button
-                style={view === "walk" ? { ...BIG, flex: 0.6 } : BIG}
+                style={{ ...BIG, flex: 0.6 }}
                 aria-label="ひとつ前の確認ポイントへ"
                 onClick={() => {
                   setPlaying(false);
@@ -1133,13 +1169,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                 }}
                 disabled={pos < 0.5}
               >
-                {view === "walk" ? "←" : "← 前へ"}
+                ←
               </button>
-              {view === "walk" && (
-                <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))} disabled={track}>
-                  {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
-                </button>
-              )}
+              <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))} disabled={track}>
+                {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+              </button>
               {next ? (
                 <button
                   className="primary"
@@ -1171,7 +1205,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           {askCompass && !hasCompass && <button onClick={allowCompass}>🧭 スマホの向きを出す</button>}
           {more ? (
             <button aria-pressed={track} onClick={toggleTrack}>
-              📡 センサーで位置を追う（試作）
+              📡 センサーで位置を追う
             </button>
           ) : (
             <button onClick={() => setMore(true)}>もっと見る（歩く目線・センサー）</button>
