@@ -717,7 +717,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     return { floor: minFloor, toCar1: { x: (b.lon - a.lon) * kx, z: -(b.lat - a.lat) * 110_540 }, cars: LINE_CARS.大江戸線.cars, car1Side: ends.car1Side, otherSide: ends.otherSide };
   }, [station, stations, minFloor, kx]);
   const starting = !arrived && path.pts.length > 0 && (pos < 3 || cps.some((c) => c.kind === "alight" && pos >= c.at - 0.01 && pos - c.at < 3));
-  const hint = starting ? startHint(path.pts, path.cum, pos, hintMarks, platformInfo) : undefined;
+  // すぐそこがエレベーター（乗り口まで 3m 未満か、乗っている）なら、押す階の案内を先に
+  const liftFirst = !!lift && (lift.kind === "alight" || lift.at - pos < 3);
+  const hint = starting && !liftFirst ? startHint(path.pts, path.cum, pos, hintMarks, platformInfo) : undefined;
   const advice = hint && phoneDeg !== null ? turnAdvice(hint.bearing, phoneDeg) : undefined;
   const [loc, setLoc] = useState<{ busy?: string; error?: string; read?: string[]; cands?: Candidate[]; choice?: string; facing?: string; confidence?: string; reason?: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);

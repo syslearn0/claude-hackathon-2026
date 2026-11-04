@@ -393,6 +393,8 @@ export function Walk({
         cpMark.visible = Math.abs(q.y - p.y) < 1;
         glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 1.5;
       }
+      // トイレの青い柱は、目の前まで来たら消す（柱に入ると画面が青一色になる）
+      pin.visible = Math.hypot(end.x - p.x, end.z - p.z) > 2.5 || Math.abs(end.y - p.y) > 1;
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     };

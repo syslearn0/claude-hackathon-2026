@@ -1,5 +1,5 @@
 // デモ動画用に、スマホの大きさの画面を GPS を動かしながら録画する。同時に画面の状態を確かめる（end-to-end の簡易チェック）。
-// 使い方：npx tsx scripts/record-demo.ts <train|shinjuku-enter|after|plan|all> [--base http://localhost:3000] [--headed]
+// 使い方：npx tsx scripts/record-demo.ts <train|shinjuku-enter|route3d|after|plan|all> [--base http://localhost:3000] [--headed]
 // 先に dev サーバー（npm run dev）を起動しておく。ブラウザは入れず、入っている Edge（なければ Chrome）を使う。
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, rename, rm, stat } from "node:fs/promises";
@@ -253,6 +253,70 @@ scenes.plan = {
   },
 };
 
+// 駅の中の道順（3D）：新宿駅で一番近いトイレのカードから開く → いまどこ？ ホーム・号車 → 最初の向き（コンパスを回して合わせる）
+// → 確認ポイントで位置を合わせながら進む → エレベーターの「B3 を押す」 → 歩く目線でトイレまで
+scenes.route3d = {
+  async init(c) {
+    await c.addInitScript(seedProfile);
+  },
+  async run({ ctx, page, base }) {
+    const [shinjuku] = await stationPos("新宿");
+    // 誤差を大きくして、地上の GPS から出発地点を決めないようにする（ホームから始める）
+    await ctx.setGeolocation({ latitude: shinjuku.lat, longitude: shinjuku.lon, accuracy: 80 });
+    await page.goto(`${base}/now`);
+    const check: Check = {};
+    check["道順のボタン"] = await seen(page, /駅の中の道順を出す/, 30_000);
+    await sleep(2000);
+    await tap(page, page.getByRole("button", { name: /駅の中の道順を出す/ }));
+    check["いまどこ？"] = await seen(page, "いまどこ？", 30_000);
+    await sleep(2000);
+    await tap(page, page.getByRole("button", { name: "7号車" })); // ホームを30m歩いてエレベーター → B3 を40m（短くて、最初の向き・エレベーター・歩く目線が全部入る）
+    check["道順が出た"] = await seen(page, /トイレまで 約/, 10_000);
+    // 3D と下の案内が画面に入るように
+    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    await sleep(2500);
+    // コンパス：最初はずれた向き → 少しずつ回して「この向きでOK」に
+    const face = (deg: number) =>
+      page.evaluate((d) => {
+        const e = new Event("deviceorientationabsolute");
+        Object.defineProperty(e, "alpha", { value: (360 - d) % 360 });
+        window.dispatchEvent(e);
+      }, deg);
+    let deg = 0;
+    await face(deg);
+    await sleep(2500);
+    for (let i = 0; i < 72 && !(await page.getByText(/この向きでOK/).count()); i++) {
+      deg = (deg + 5) % 360;
+      await face(deg);
+      await sleep(60);
+    }
+    check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
+    await sleep(3000);
+    // 確認ポイントで合わせながら進む（エレベーターの手前と中では少し止まる）
+    const next = page.locator("button.primary").filter({ hasText: /にいる|降りた|着いた/ });
+    for (let i = 0; i < 8 && (await next.count()); i++) {
+      const label = (await next.first().textContent()) ?? "";
+      await tap(page, next.first());
+      await sleep(/エレベーター|降りた/.test(label) ? 4000 : 2500);
+      if (await page.getByText(/乗ったら右を押す/).count()) {
+        check["B3 を押す"] = true;
+        await sleep(2500);
+      }
+      // 降りたら、歩く目線に切り替えて最後まで歩く
+      if (/降りた/.test(label)) break;
+    }
+    await tap(page, page.getByRole("button", { name: /もっと見る/ }));
+    await sleep(800);
+    await tap(page, page.getByRole("button", { name: "歩く目線" }));
+    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    await sleep(2000);
+    await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    check["トイレに着いた"] = await seen(page, "トイレに着きました", 90_000);
+    await sleep(3000);
+    return check;
+  },
+};
+
 // ---------- 実行 ----------
 
 async function launch(headed: boolean): Promise<Browser> {
@@ -312,7 +376,7 @@ async function main() {
   const opt = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined);
   const base = (opt("--base") ?? "http://localhost:3000").replace(/\/$/, "");
   const target = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--base");
-  const order = ["train", "shinjuku-enter", "after", "plan"];
+  const order = ["train", "shinjuku-enter", "route3d", "after", "plan"];
   const names = target === "all" ? order : target && scenes[target] ? [target] : [];
   if (!names.length) {
     console.error(`使い方：npx tsx scripts/record-demo.ts <${order.join("|")}|all> [--base URL] [--headed]`);
