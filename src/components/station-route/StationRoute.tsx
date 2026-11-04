@@ -9,6 +9,7 @@ import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
+import { startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
@@ -84,6 +85,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
   const compass = useRef<number | null>(null);
   const [hasCompass, setHasCompass] = useState(false);
+  const [phoneDeg, setPhoneDeg] = useState<number | null>(null); // 画面に出す用（4 度以上、0.15 秒以上あけて更新）
+  const shownHeading = useRef({ h: -999, t: 0 });
   const [askCompass, setAskCompass] = useState(false); // iPhone：許可を聞くボタンを出す
   useEffect(() => {
     const set = (h: number) => {
@@ -94,6 +97,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         b.visible = true;
       }
       setHasCompass(true);
+      const now = performance.now();
+      const last = shownHeading.current;
+      if (now - last.t > 150 && Math.abs(((h - last.h + 540) % 360) - 180) > 4) {
+        shownHeading.current = { h, t: now };
+        setPhoneDeg(h);
+      }
     };
     const onAbs = (e: DeviceOrientationEvent) => {
       if (e.alpha !== null) set((360 - e.alpha) % 360);
@@ -695,6 +704,21 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
 
   // 「いまどこ？」：看板を撮る → AI が看板と配置を読む → 地図のデータで候補を作る（GPS も）→ AI が写真と候補を比べる → 本人が選ぶ
   const lms = useMemo(() => (indoor ? landmarks(indoor.features) : []), [indoor]);
+
+  // 歩き出す最初の向き：出発したところと、上り下りを降りたところから 3m のあいだだけ出す
+  const hintMarks: HintMark[] = useMemo(() => lms.map((m) => ({ x: (m.lon - center.lon) * kx, z: -(m.lat - center.lat) * 110_540, floor: m.floor, name: m.name, kind: m.kind })), [lms, center, kx]);
+  const platformInfo: PlatformInfo | undefined = useMemo(() => {
+    const ends = carEnds(station);
+    if (!ends) return undefined;
+    const at = (name: string) => stations.find((x) => x.name === name && /交通局/.test(x.operator ?? "")) ?? stations.find((x) => x.name === name);
+    const a = at(ends.otherSide);
+    const b = at(ends.car1Side);
+    if (!a || !b) return undefined;
+    return { floor: minFloor, toCar1: { x: (b.lon - a.lon) * kx, z: -(b.lat - a.lat) * 110_540 }, cars: LINE_CARS.大江戸線.cars, car1Side: ends.car1Side, otherSide: ends.otherSide };
+  }, [station, stations, minFloor, kx]);
+  const starting = !arrived && path.pts.length > 0 && (pos < 3 || cps.some((c) => c.kind === "alight" && pos >= c.at - 0.01 && pos - c.at < 3));
+  const hint = starting ? startHint(path.pts, path.cum, pos, hintMarks, platformInfo) : undefined;
+  const advice = hint && phoneDeg !== null ? turnAdvice(hint.bearing, phoneDeg) : undefined;
   const [loc, setLoc] = useState<{ busy?: string; error?: string; read?: string[]; cands?: Candidate[]; choice?: string; facing?: string; confidence?: string; reason?: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const heading = useRef<number | null>(null);
@@ -1022,7 +1046,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                 ) : (
                   <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
                 )}
-                <div style={{ fontSize: "0.8rem", opacity: lift && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: "0.8rem", opacity: (lift || hint) && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {drift && !picking ? (
                     <button
                       onClick={() => {
@@ -1033,6 +1057,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                     >
                       ⚠ {drift === "back" ? "逆に歩いていませんか" : "道順からそれていませんか"}（合っていれば押す）
                     </button>
+                  ) : hint && (hint.text || advice) && !picking ? (
+                    <span style={{ color: "#9fe3ff", fontWeight: 800 }}>
+                      {pos < 3 ? "最初は" : "降りたら"}
+                      {hint.text ?? "矢印の向き"}
+                      {advice && `・${advice.text}`}
+                    </span>
                   ) : lift && !picking ? (
                     <span style={{ color: "#ffe27a", fontWeight: 800 }}>
                       {lift.kind === "board" ? "乗ったら右を押す：" : "行き先："}
@@ -1045,27 +1075,50 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                   )}
                 </div>
               </div>
-              {lift && !picking && (
+              {advice && !picking ? (
                 <div
-                  aria-label={`エレベーターで押すボタン：${liftButton(lift.toFloor!)}`}
+                  aria-label={`進む向き：${advice.text}`}
                   style={{
                     flexShrink: 0,
-                    minWidth: 44,
+                    width: 44,
                     height: 44,
                     borderRadius: 22,
-                    border: "3px solid #ffe27a",
-                    background: "#fff4c2",
-                    color: "#3a2f00",
+                    border: `3px solid ${Math.abs(advice.diff) <= 30 ? "#7ee2a0" : "#9fe3ff"}`,
+                    background: "#0f2a36",
+                    color: "#fff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "1.25rem",
+                    fontSize: "1.5rem",
                     fontWeight: 800,
-                    padding: "0 6px",
                   }}
                 >
-                  {liftButton(lift.toFloor!)}
+                  <span style={{ display: "inline-block", transform: `rotate(${advice.diff}deg)`, transition: "transform .2s" }}>↑</span>
                 </div>
+              ) : (
+                lift &&
+                !picking && (
+                  <div
+                    aria-label={`エレベーターで押すボタン：${liftButton(lift.toFloor!)}`}
+                    style={{
+                      flexShrink: 0,
+                      minWidth: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      border: "3px solid #ffe27a",
+                      background: "#fff4c2",
+                      color: "#3a2f00",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.25rem",
+                      fontWeight: 800,
+                      padding: "0 6px",
+                    }}
+                  >
+                    {liftButton(lift.toFloor!)}
+                  </div>
+                )
               )}
             </div>
             <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
