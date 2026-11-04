@@ -156,3 +156,16 @@ test("GPS で乗り物と分かれば、GPS の位置から前後の駅を出す
   assert.equal(s.where, "七条〜祇園四条の間");
   assert.match(s.plan ?? "", /出町柳着 08:30/);
 });
+
+test("予定の時刻から出すとき、直線のそばの別の会社の駅（乃木坂）を次の駅にしない", () => {
+  const route = [
+    { name: "青山一丁目", lat: 35.6727, lon: 139.724, line: "都営大江戸線", dep: "08:10" },
+    { name: "六本木", lat: 35.6629, lon: 139.7315, arr: "08:14" },
+  ];
+  const stations = [
+    { name: "青山一丁目", operator: "東京都交通局", lat: 35.6727, lon: 139.724 },
+    { name: "乃木坂", operator: "東京地下鉄", lat: 35.6666, lon: 139.7263 },
+    { name: "六本木", operator: "東京都交通局", lat: 35.6629, lon: 139.7315 },
+  ];
+  assert.equal(estimateSituation([], stations, at(8, 12), route).nextStation?.name, "六本木");
+});

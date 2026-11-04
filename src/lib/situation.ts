@@ -66,6 +66,23 @@ function speedOf(fs: Fix[]): number {
 }
 
 // 保存した経路から、いまの区間と進む向きの先の駅を求める
+// 路線の名前から、その会社の駅だけに絞る（予定の時刻からの推定は線路を直線で見積もるので、
+// 青山一丁目〜六本木の直線のそばにある乃木坂（東京メトロ）を「次の駅」にしてしまわないように）。会社の分からない駅は残す
+const OPERATOR_OF: [RegExp, RegExp][] = [
+  [/都営/, /交通局/],
+  [/JR|新幹線/, /旅客鉄道|JR/],
+  [/メトロ/, /東京地下鉄/],
+  [/京阪/, /京阪/],
+  [/阪急/, /阪急/],
+  [/近鉄/, /近畿日本鉄道/],
+  [/小田急/, /小田急/],
+  [/京王/, /京王/],
+];
+export function sameOperator(stations: Station[], line?: string): Station[] {
+  const op = line ? OPERATOR_OF.find(([l]) => l.test(line))?.[1] : undefined;
+  return op ? stations.filter((s) => !s.operator || op.test(s.operator)) : stations;
+}
+
 function alongRoute(at: LatLon, heading: number, route: RouteStation[], stations: Station[]) {
   let best: { i: number; d: number } | undefined;
   for (let i = 0; i + 1 < route.length; i++) {
@@ -139,7 +156,7 @@ export function estimateSituation(fixes: Fix[], stations: Station[], now = Date.
       // 予定どおり走っているとして、区間の上の位置を時刻の割合で置き、前後の駅を出す（線路は直線とみなす）
       const k = (now - planned.leave) / (planned.arrive - planned.leave);
       const p = { lat: planned.from.lat + (planned.to.lat - planned.from.lat) * k, lon: planned.from.lon + (planned.to.lon - planned.from.lon) * k };
-      const along = alongRoute(p, bearingDeg(planned.from, planned.to), route, stations);
+      const along = alongRoute(p, bearingDeg(planned.from, planned.to), route, sameOperator(stations, planned.from.line));
       const next = along?.next ?? planned.to;
       const prev = along?.prev.name ?? planned.from.name;
       const left = Math.max(0, Math.round((planned.arrive - now) / 60_000));

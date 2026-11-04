@@ -384,14 +384,14 @@ export function Walk({
         const text = lift ? `${moving.text}\n（乗っています）` : "";
         if (veil.current.textContent !== text) veil.current.textContent = text;
       }
-      // 確認ポイントの印：同じ階にあるときだけ（目の前 1.5m より近いと柱が画面をふさぐので、輪だけ）
+      // 確認ポイントの印：同じ階にあるときだけ（4m より近いと筒が画面をふさぐので、輪だけ）
       const mk = markAt.current;
       if (mk === undefined) cpMark.visible = false;
       else {
         const q = pointAt(way, wayAt, mk);
         cpMark.position.set(q.x, q.y, q.z);
         cpMark.visible = Math.abs(q.y - p.y) < 1;
-        glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 1.5;
+        glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 4;
       }
       // トイレの青い柱は、目の前まで来たら消す（柱に入ると画面が青一色になる）
       pin.visible = Math.hypot(end.x - p.x, end.z - p.z) > 2.5 || Math.abs(end.y - p.y) > 1;

@@ -1,5 +1,5 @@
 // デモ動画用に、スマホの大きさの画面を GPS を動かしながら録画する。同時に画面の状態を確かめる（end-to-end の簡易チェック）。
-// 使い方：npx tsx scripts/record-demo.ts <train|train-shinjuku|shinjuku-enter|route3d|after|plan|all> [--base http://localhost:3000] [--headed]
+// 使い方：npx tsx scripts/record-demo.ts <train|train-shinjuku|train-oedo|shinjuku-enter|route3d|route3d-roppongi|after|plan|all> [--base http://localhost:3000] [--headed]
 // 先に dev サーバー（npm run dev）を起動しておく。ブラウザは入れず、入っている Edge（なければ Chrome）を使う。
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, rename, rm, stat } from "node:fs/promises";
@@ -241,9 +241,10 @@ scenes.after = {
     await c.addInitScript(seedProfile);
   },
   async run({ ctx, page, base }) {
-    const [shinjuku] = await stationPos("新宿");
-    const mover = new Mover(ctx, [shinjuku], 0);
-    await mover.set(shinjuku);
+    // 動画の話（京都から初めて六本木へ）に合わせて六本木。AFTER_STATION=新宿 などで変えられる
+    const [here] = await stationPos(process.env.AFTER_STATION ?? "六本木");
+    const mover = new Mover(ctx, [here], 0);
+    await mover.set(here);
     await page.goto(`${base}/now`);
     const check: Check = {};
     check["最初の候補が出た"] = await seen(page, /トイレ/, 30_000);
@@ -268,7 +269,9 @@ scenes.plan = {
   },
   async run({ page, base }) {
     const note =
-      "明日、京都から新宿に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n昼すぎに新宿駅の南口の近くで用事があります。";
+      process.env.PLAN_TRIP === "shinjuku"
+        ? "明日、京都から新宿に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n昼すぎに新宿駅の南口の近くで用事があります。"
+        : "明日、京都から六本木に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n新宿 11:20発 → 六本木 11:30着（都営大江戸線）\n昼すぎに六本木で用事があります。";
     await page.goto(`${base}/plan`);
     const check: Check = {};
     const area = page.locator("textarea");
@@ -350,6 +353,85 @@ scenes.route3d = {
   },
 };
 
+// 大江戸線（地下）：青山一丁目 → 六本木を走っている途中。GPS は届かないので、計画の時刻から「いま」と次の駅を出す
+const hm = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+scenes["train-oedo"] = {
+  async init(c) {
+    const now = Date.now();
+    const at = (min: number) => hm(new Date(now + min * 60_000));
+    const route = [
+      { station: "京都", line: "東海道新幹線", dep: at(-180) },
+      { station: "東京", line: "JR中央線快速", arr: at(-35), dep: at(-25) },
+      { station: "新宿", line: "都営大江戸線", arr: at(-12), dep: at(-8) },
+      { station: "国立競技場", line: "都営大江戸線" },
+      { station: "青山一丁目", line: "都営大江戸線", dep: at(-1) },
+      { station: "六本木", arr: at(2) },
+    ];
+    await c.addInitScript(seedProfile + seedPlan(route, "京都から新幹線・JR・大江戸線で六本木へ（初めて）"));
+  },
+  async run({ ctx, page, base }) {
+    // 地下：位置を渡さない（届かない）
+    await ctx.clearPermissions();
+    await page.goto(`${base}/now`);
+    const check: Check = {};
+    check["予定の時刻から推定"] = await seen(page, /予定の時刻から推定しました/, 30_000);
+    check["次の駅（推定）が六本木"] = await seen(page, /次の駅（推定）六本木駅/, 5_000);
+    // 位置がないので AI の見直しは走らない（予定の時刻からの推定と、次の駅のトイレを見せる）
+    await sleep(6000);
+    await scrollBy(page, 420);
+    await sleep(5000);
+    return check;
+  },
+};
+
+// 六本木駅（大江戸線、ホームは地下7階）：1号車から。エレベーターを2回乗り継いで B1 の改札内のトイレへ
+scenes["route3d-roppongi"] = {
+  async init(c) {
+    await c.addInitScript(seedProfile);
+  },
+  async run({ ctx, page, base }) {
+    const st = (await loadStations()).find((x) => x.name === "六本木" && /交通局/.test(x.operator ?? ""))!;
+    // 誤差を大きくして、地上の GPS から出発地点を決めないようにする（ホームから始める）
+    await ctx.setGeolocation({ latitude: st.lat, longitude: st.lon, accuracy: 80 });
+    await page.goto(`${base}/now`);
+    const check: Check = {};
+    check["道順のボタン"] = await seen(page, /六本木駅の中の道順を出す/, 30_000);
+    await sleep(2000);
+    await tap(page, page.getByRole("button", { name: /駅の中の道順を出す/ }));
+    check["いまどこ？"] = await seen(page, "いまどこ？", 30_000);
+    await sleep(2000);
+    await tap(page, page.getByRole("button", { name: "1号車" }));
+    check["道順が出た"] = await seen(page, /トイレまで 約/, 10_000);
+    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    await sleep(2500);
+    const face = (deg: number) =>
+      page.evaluate((d) => {
+        const e = new Event("deviceorientationabsolute");
+        Object.defineProperty(e, "alpha", { value: (360 - d) % 360 });
+        window.dispatchEvent(e);
+      }, deg);
+    let deg = 0;
+    await face(deg);
+    await sleep(2500);
+    for (let i = 0; i < 72 && !(await page.getByText(/この向きでOK/).count()); i++) {
+      deg = (deg + 5) % 360;
+      await face(deg);
+      await sleep(60);
+    }
+    check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
+    await sleep(2500);
+    await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    check["押す階が出た"] = await seen(page, /乗ったら右を押す/, 60_000);
+    await sleep(5000);
+    await page.getByRole("button", { name: /もっと見る/ }).click();
+    await page.getByRole("button", { name: "歩く目線" }).click();
+    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    check["トイレに着いた"] = await seen(page, "トイレに着きました", 120_000);
+    await sleep(3000);
+    return check;
+  },
+};
+
 // ---------- 実行 ----------
 
 async function launch(headed: boolean): Promise<Browser> {
@@ -409,7 +491,7 @@ async function main() {
   const opt = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined);
   const base = (opt("--base") ?? "http://localhost:3000").replace(/\/$/, "");
   const target = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--base");
-  const order = ["train", "train-shinjuku", "shinjuku-enter", "route3d", "after", "plan"];
+  const order = ["train", "train-shinjuku", "train-oedo", "shinjuku-enter", "route3d", "route3d-roppongi", "after", "plan"];
   const names = target === "all" ? order : target && scenes[target] ? [target] : [];
   if (!names.length) {
     console.error(`使い方：npx tsx scripts/record-demo.ts <${order.join("|")}|all> [--base URL] [--headed]`);

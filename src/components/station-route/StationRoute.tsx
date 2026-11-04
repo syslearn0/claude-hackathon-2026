@@ -253,13 +253,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       .slice(0, 15);
   }, [net, indoor, places, starts, startIdx, center, mode]);
 
-  const goalAt =
-    goalIdx >= 0
-      ? goalIdx
-      : Math.max(
-          0,
-          goals.findIndex((g) => g.place.id === goalFromUrl),
-        );
+  // 行き先：選んだもの。/now の中（embedded）では、経路でいちばん早く着くトイレ（直線で近いカードのトイレより、
+  // エレベーターで 1 分のトイレが早いことがある。深い駅ほど差が大きい）。試作の画面では、URL のトイレ
+  const urlGoal = goals.findIndex((g) => g.place.id === goalFromUrl);
+  const goalAt = goalIdx >= 0 ? goalIdx : embedded ? 0 : Math.max(0, urlGoal);
   const goal = goals[goalAt];
   const route: Route | undefined = useMemo(() => {
     if (!net || !starts[startIdx] || !goal) return undefined;
@@ -917,7 +914,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             </div>
             <div>{goal.short}</div>
             {embedded && goalFromUrl && goalIdx < 0 && goal.place.id !== goalFromUrl && (
-              <div style={{ fontSize: "0.85rem", marginTop: 4 }}>上のトイレへの道は駅の中の地図のデータにないので、地図でたどれるトイレのうち、いちばん早く着くものを出しています。</div>
+              <div style={{ fontSize: "0.85rem", marginTop: 4 }}>
+                {urlGoal >= 0
+                  ? `上のトイレ（約${Math.max(1, Math.round(goals[urlGoal].seconds / 60))}分）より早く着くトイレへの道順です。`
+                  : "上のトイレへの道は駅の中の地図のデータにないので、地図でたどれるトイレのうち、いちばん早く着くものを出しています。"}
+              </div>
             )}
             <div className="row" style={{ marginTop: 4, justifyContent: "space-between", alignItems: "center", flexWrap: "nowrap" }}>
               <div className="muted">出発：{startLabel}</div>
