@@ -1,5 +1,5 @@
 // デモ動画用に、スマホの大きさの画面を GPS を動かしながら録画する。同時に画面の状態を確かめる（end-to-end の簡易チェック）。
-// 使い方：npx tsx scripts/record-demo.ts <train|train-shinjuku|train-oedo|shinjuku-enter|route3d|route3d-roppongi|after|plan|all> [--base http://localhost:3000] [--headed]
+// 使い方：npx tsx scripts/record-demo.ts <train|train-shinjuku|train-oedo|shinjuku-enter|route3d|route3d-oedo|after|plan|all> [--base http://localhost:3000] [--headed]
 // 先に dev サーバー（npm run dev）を起動しておく。ブラウザは入れず、入っている Edge（なければ Chrome）を使う。
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
@@ -248,8 +248,8 @@ scenes.after = {
     await c.addInitScript(seedProfile);
   },
   async run({ ctx, page, base }) {
-    // 動画の話（京都から初めて六本木へ）に合わせて六本木。AFTER_STATION=新宿 などで変えられる
-    const [here] = await stationPos(process.env.AFTER_STATION ?? "六本木");
+    // 動画の話（京都から初めて行く大江戸線の駅）に合わせる。AFTER_STATION=新宿 などで変えられる
+    const [here] = await stationPos(process.env.AFTER_STATION ?? DEMO_STATION);
     const mover = new Mover(ctx, [here], 0);
     await mover.set(here);
     await page.goto(`${base}/now`);
@@ -281,7 +281,7 @@ scenes.plan = {
     const note =
       process.env.PLAN_TRIP === "shinjuku"
         ? "明日、京都から新宿に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n昼すぎに新宿駅の南口の近くで用事があります。"
-        : "明日、京都から六本木に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n新宿 11:20発 → 六本木 11:30着（都営大江戸線）\n昼すぎに六本木で用事があります。";
+        : `明日、京都から${DEMO_STATION}に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n新宿 11:20発 → ${DEMO_STATION} 11:35着（都営大江戸線）\n昼すぎに${DEMO_STATION}で用事があります。`;
     await page.goto(`${base}/plan`);
     mark("start");
     const check: Check = {};
@@ -366,7 +366,14 @@ scenes.route3d = {
   },
 };
 
-// 大江戸線（地下）：青山一丁目 → 六本木を走っている途中。GPS は届かないので、計画の時刻から「いま」と次の駅を出す
+// 動画の話の行き先：京都から初めて行く大江戸線の駅と、降りる号車（DEMO_STATION・DEMO_CAR で変えられる）。
+// 麻布十番の7号車は、ホームからエスカレーターで改札の階へ上がって、歩いてトイレへ（エレベーターで真上に上がる絵にならない）
+const DEMO_STATION = process.env.DEMO_STATION ?? "麻布十番";
+const DEMO_CAR = process.env.DEMO_CAR ?? "7";
+// 新宿から来るとき、行き先のひとつ手前の駅
+const PREV_ON_OEDO: Record<string, string> = { 六本木: "青山一丁目", 麻布十番: "六本木", 赤羽橋: "麻布十番", 大門: "赤羽橋" };
+
+// 大江戸線（地下）：行き先のひとつ手前の駅を出て、行き先へ走っている途中。GPS は届かないので、計画の時刻から「いま」と次の駅を出す
 const hm = (d: Date) => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 scenes["train-oedo"] = {
   async init(c) {
@@ -377,10 +384,10 @@ scenes["train-oedo"] = {
       { station: "東京", line: "JR中央線快速", arr: at(-35), dep: at(-25) },
       { station: "新宿", line: "都営大江戸線", arr: at(-12), dep: at(-8) },
       { station: "国立競技場", line: "都営大江戸線" },
-      { station: "青山一丁目", line: "都営大江戸線", dep: at(-1) },
-      { station: "六本木", arr: at(2) },
+      { station: PREV_ON_OEDO[DEMO_STATION] ?? "青山一丁目", line: "都営大江戸線", dep: at(-1) },
+      { station: DEMO_STATION, arr: at(2) },
     ];
-    await c.addInitScript(seedProfile + seedPlan(route, "京都から新幹線・JR・大江戸線で六本木へ（初めて）"));
+    await c.addInitScript(seedProfile + seedPlan(route, `京都から新幹線・JR・大江戸線で${DEMO_STATION}へ（初めて）`));
   },
   async run({ ctx, page, base }) {
     // 地下：位置を渡さない（届かない）
@@ -389,7 +396,7 @@ scenes["train-oedo"] = {
     const check: Check = {};
     check["予定の時刻から推定"] = await seen(page, /予定の時刻から推定しました/, 30_000);
     mark("shown");
-    check["次の駅（推定）が六本木"] = await seen(page, /次の駅（推定）六本木駅/, 5_000);
+    check[`次の駅（推定）が${DEMO_STATION}`] = await seen(page, `次の駅（推定）${DEMO_STATION}駅`, 5_000);
     // 位置がないので AI の見直しは走らない（予定の時刻からの推定と、次の駅のトイレを見せる）
     await sleep(6000);
     await scrollBy(page, 420);
@@ -398,25 +405,25 @@ scenes["train-oedo"] = {
   },
 };
 
-// 六本木駅（大江戸線、ホームは地下7階）：1号車から。エレベーターを2回乗り継いで B1 の改札内のトイレへ
-scenes["route3d-roppongi"] = {
+// 大江戸線の駅（DEMO_STATION）のホームで、DEMO_CAR 号車から。上から見る画面で歩き、乗り口の手前で歩く目線に切り替えてトイレまで
+scenes["route3d-oedo"] = {
   async init(c) {
     await c.addInitScript(seedProfile);
   },
   async run({ ctx, page, base }) {
-    const st = (await loadStations()).find((x) => x.name === "六本木" && /交通局/.test(x.operator ?? ""))!;
+    const st = (await loadStations()).find((x) => x.name === DEMO_STATION && /交通局/.test(x.operator ?? ""))!;
     // 誤差を大きくして、地上の GPS から出発地点を決めないようにする（ホームから始める）
     await ctx.setGeolocation({ latitude: st.lat, longitude: st.lon, accuracy: 80 });
     await page.goto(`${base}/now`);
     const check: Check = {};
-    check["道順のボタン"] = await seen(page, /六本木駅の中の道順を出す/, 30_000);
+    check["道順のボタン"] = await seen(page, `${DEMO_STATION}駅の中の道順を出す`, 30_000);
     mark("card");
     await sleep(2000);
     await tap(page, page.getByRole("button", { name: /駅の中の道順を出す/ }));
     check["いまどこ？"] = await seen(page, "いまどこ？", 30_000);
     mark("question");
     await sleep(2000);
-    await tap(page, page.getByRole("button", { name: "1号車" }));
+    await tap(page, page.getByRole("button", { name: `${DEMO_CAR}号車` }));
     check["道順が出た"] = await seen(page, /トイレまで 約/, 10_000);
     mark("route");
     await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
@@ -451,9 +458,10 @@ scenes["route3d-roppongi"] = {
     await sleep(2500);
     await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
     mark("walk");
-    check["押す階が出た"] = await seen(page, /乗ったら右を押す/, 60_000);
+    // 上り下りの乗り口（エスカレーター・エレベーター）の 10m 手前で、歩く目線に切り替える
+    check["乗り口の手前"] = await seen(page, /の乗り口（あと\dm）/, 60_000);
     mark("lift");
-    await sleep(5000);
+    await sleep(800);
     await page.getByRole("button", { name: /もっと見る/ }).click();
     await page.getByRole("button", { name: "歩く目線" }).click();
     mark("walkview");
@@ -530,7 +538,7 @@ async function main() {
   const opt = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined);
   const base = (opt("--base") ?? "http://localhost:3000").replace(/\/$/, "");
   const target = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--base");
-  const order = ["train", "train-shinjuku", "train-oedo", "shinjuku-enter", "route3d", "route3d-roppongi", "after", "plan"];
+  const order = ["train", "train-shinjuku", "train-oedo", "shinjuku-enter", "route3d", "route3d-oedo", "after", "plan"];
   const names = target === "all" ? order : target && scenes[target] ? [target] : [];
   if (!names.length) {
     console.error(`使い方：npx tsx scripts/record-demo.ts <${order.join("|")}|all> [--base URL] [--headed]`);
