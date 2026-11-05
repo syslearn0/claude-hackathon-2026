@@ -437,6 +437,18 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [aligning, setAligning] = useState<null | "start" | "fix">(null);
   const [full, setFull] = useState(false); // 全画面（3D と案内だけを画面いっぱいに）
   const fullBox = useRef<HTMLDivElement>(null);
+  // 全画面は、ページの上いっぱいに広げるだけにする（ブラウザの全画面機能は、Android で「全画面表示を終了するには…」の
+  // 知らせが下に出たまま消えないことがあり、案内のボタンが隠れる）。スマホの「戻る」で閉じられるよう、履歴を1つ積む
+  const openFull = () => {
+    if (full) return;
+    setFull(true);
+    history.pushState({ srFull: true }, "");
+  };
+  const closeFull = () => {
+    if ((history.state as { srFull?: boolean } | null)?.srFull) history.back();
+    else setFull(false);
+  };
+  const toggleFull = () => (full ? closeFull() : openFull());
   const [voice, setVoice] = useState(false); // 音声ガイド（読み上げ）。人前で急に鳴らないよう、選んだときだけ // 向きを合わせる画面（スタートのときと、途中で直すとき）
   const followAsked = useRef(false); // 自分でオンにしたか（センサーが届かないときの知らせは、そのときだけ出す）
   const [trackNote, setTrackNote] = useState("");
@@ -1080,6 +1092,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     setDrift(null);
     setPlaying(false);
     setStarted(true);
+    openFull();
     setCalibNote(
       ok ? `${fix ? "向きを直しました" : "向きを合わせました"}。ずれてきたら「🧭 向きを直す」で、いつでも合わせ直せます。` : "スマホの向きが取れません（パソコンなど）。向きなしで案内します。",
     );
@@ -1089,6 +1102,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     followAsked.current = true;
     await askSensors();
     setStarted(true);
+    openFull();
     setCalibNote("磁石の向きで始めました（地下ではずれることがあります）。「🧭 向きを直す」で合わせられます。");
   };
   // 確認ポイントで位置を合わせたとき：そこで向いているのは、来た向きか進む向きのはず。近い方にスマホの向きを半分寄せる
@@ -1096,32 +1110,16 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (!gyro.current.pull(routeBearing(path.pts, path.cum, d + 0.5), 0.5, 30)) gyro.current.pull(routeBearing(path.pts, path.cum, Math.max(0, d - 4)), 0.5, 30);
     showHeading();
   };
-  // 全画面：使えるブラウザでは画面いっぱい（Fullscreen API）。iPhone の Safari のように使えないときも、ページの上いっぱいに広げる
-  const toggleFull = async () => {
-    if (full) {
-      setFull(false);
-      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
-      return;
-    }
-    setFull(true);
-    try {
-      await fullBox.current?.requestFullscreen?.();
-    } catch {
-      // 使えない：ページの上いっぱいに広げるだけ
-    }
-  };
   useEffect(() => {
     if (!full) return;
-    // 全画面のあいだは、後ろのページをスクロールさせない。Esc などで全画面が終わったら、こちらも戻す
+    // 全画面のあいだは、後ろのページをスクロールさせない。スマホの「戻る」は、全画面をやめるだけにする
     const was = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onChange = () => {
-      if (!document.fullscreenElement) setFull(false);
-    };
-    document.addEventListener("fullscreenchange", onChange);
+    const onPop = () => setFull(false);
+    window.addEventListener("popstate", onPop);
     return () => {
       document.body.style.overflow = was;
-      document.removeEventListener("fullscreenchange", onChange);
+      window.removeEventListener("popstate", onPop);
     };
   }, [full]);
 
