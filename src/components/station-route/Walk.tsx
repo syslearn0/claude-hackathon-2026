@@ -452,7 +452,7 @@ export function Walk({
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));
   const arrived = pos >= total - 0.5;
-  const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : "◎";
+  const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : next.kind === "gate" ? "🎫" : "◎";
   const here = pointAt(pts, cum, pos);
 
   return (
@@ -485,7 +485,7 @@ export function Walk({
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
         ) : (
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>
-            {icon} {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
+            {icon} {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" || next.kind === "gate" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
           </div>
         )}
         <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>いま：{floorName(Math.round(here.floor * 2) / 2)}</div>

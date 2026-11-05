@@ -6,8 +6,8 @@ import type { KindName } from "./route";
 
 export const STEP_M = 0.7; // 1歩（m）
 
-// 確認ポイント：曲がる角・上り下りの乗り口と降り口・トイレ
-export type Checkpoint = { at: number; kind: "turn" | "board" | "alight" | "arrive"; dir?: "left" | "right"; via?: KindName; toFloor?: number; up?: boolean; boardAt?: number };
+// 確認ポイント：曲がる角・上り下りの乗り口と降り口・改札（出る・入る）・トイレ
+export type Checkpoint = { at: number; kind: "turn" | "board" | "alight" | "gate" | "arrive"; dir?: "left" | "right"; via?: KindName; toFloor?: number; up?: boolean; boardAt?: number; out?: boolean; name?: string };
 
 export function checkpoints(list: Maneuver[]): Checkpoint[] {
   const out: Checkpoint[] = [];
@@ -16,7 +16,8 @@ export function checkpoints(list: Maneuver[]): Checkpoint[] {
     else if (m.kind === "floor") {
       out.push({ at: m.at, kind: "board", via: m.via, toFloor: m.toFloor, up: m.up });
       out.push({ at: m.end ?? m.at, kind: "alight", via: m.via, toFloor: m.toFloor, up: m.up, boardAt: m.at });
-    } else out.push({ at: m.at, kind: "arrive" });
+    } else if (m.kind === "gate") out.push({ at: m.at, kind: "gate", out: m.out, name: m.name });
+    else out.push({ at: m.at, kind: "arrive" });
   }
   return out.sort((a, b) => a.at - b.at);
 }

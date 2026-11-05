@@ -9,6 +9,7 @@ import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
+import { gatePasses, type GateShape } from "@/lib/gates";
 import { startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
@@ -59,6 +60,9 @@ function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
   s.renderOrder = 10;
   return s;
 }
+
+// 改札を通るところの言い方（「改札を出る」「中央東改札から入る」）
+const gateText = (p: { out?: boolean; name?: string }) => `${p.name ?? "改札"}${p.out === undefined ? "を通る" : p.out ? "を出る" : "から入る"}`;
 
 type Props = { station: string; goalId?: string | null; embedded?: boolean };
 
@@ -266,8 +270,39 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const routeKey = route?.nodes.join(",") ?? "";
   const path = useMemo(() => (route && net ? routePath(net, route, center) : { pts: [], cum: [0] }), [net, route, center]);
   const total = path.cum.at(-1) ?? 0;
-  const list = useMemo(() => (path.pts.length ? maneuvers(path.pts, path.cum, guide) : []), [path, guide]);
+  // 道順が通る改札（出発がホームなら改札の中から。通るたびに出る・入るが入れ替わる）
+  const gateShapes: GateShape[] = useMemo(
+    () =>
+      (indoor?.features ?? [])
+        .filter((f) => f.kind === "gate" && f.coords.length)
+        .flatMap((f) =>
+          f.floors.map((floor) => ({
+            name: f.name && /[ぁ-ヿ一-鿿]/.test(f.name) ? f.name : undefined,
+            floor,
+            pts: f.coords.map(([lat, lon]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540 })),
+          })),
+        ),
+    [indoor, center, kx],
+  );
+  // 出るか入るか：行き先のトイレの改札の内外が分かればそれから。分からなければ出発から（ホームは中、地上は外）。
+  // 改札から出発するときは、その改札は数えない（内か外かも分からない）
+  const startKind = starts[startIdx]?.kind;
+  const startFloor = route && net ? net.nodes[route.nodes[0]][2] : undefined;
+  const startInside = startKind === "gate" ? undefined : startKind === "ground" ? false : startFloor === minFloor ? true : undefined;
+  const endInside = goal?.place.gate === "inside" ? true : goal?.place.gate === "outside" ? false : undefined;
+  const skipStartM = startKind === "gate" ? 10 : 0;
+  const passes = useMemo(() => (path.pts.length ? gatePasses(path.pts, path.cum, gateShapes, { startInside, endInside, skipStartM }) : []), [path, gateShapes, startInside, endInside, skipStartM]);
+  const list = useMemo(() => {
+    if (!path.pts.length) return [];
+    const gates: Maneuver[] = passes.map((p) => ({ at: p.at, kind: "gate", text: gateText(p), out: p.out, name: p.name }));
+    return [...maneuvers(path.pts, path.cum, guide), ...gates].sort((a, b) => a.at - b.at || (a.kind === "arrive" ? 1 : b.kind === "arrive" ? -1 : 0));
+  }, [path, guide, passes]);
   const cps = useMemo(() => checkpoints(list), [list]);
+  // 手順の文。歩くあいだに改札を通るなら、それも言う（出るか入るかは大事な分かれ目）
+  const stepLine = (g: GuideStep, next?: GuideStep) => {
+    const gate = passes.find((p) => p.at >= path.cum[g.from] - 0.5 && p.at <= path.cum[g.to] + 0.5);
+    return gate ? `${stepText(g, next)}（途中で${gateText(gate)}）` : stepText(g, next);
+  };
   const [posState, setPosState] = useState({ key: "", d: 0 });
   const pos = posState.key === routeKey ? Math.min(posState.d, total) : 0;
   const setPos = useCallback((d: number) => setPosState({ key: routeKey, d }), [routeKey]);
@@ -328,13 +363,26 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         ? `${KIND_JA[c.via!]}の乗り口`
         : c.kind === "alight"
           ? `${KIND_JA[c.via!]}を降りたところ・${floorName(c.toFloor!)}`
-          : "トイレ";
+          : c.kind === "gate"
+            ? `${gateText(c)}ところ`
+            : "トイレ";
   // エレベーターのボタンの書き方（B3・1・2。中二階はボタンの名前が駅ごとに違うので、階の名前で）
   const liftButton = (f: number) => (!Number.isInteger(f) ? floorName(f) : f < 0 ? `B${-f}` : `${f}`);
   // エレベーターの手前 25m から降りるまで、押す階を大きく出す
   const lift = cps.find((c) => c.via === "elevator" && ((c.kind === "board" && c.at > pos - 0.5 && c.at - pos <= 25) || (c.kind === "alight" && pos >= c.boardAt! - 0.5 && pos < c.at - 0.01)));
   // ボタン：「いまここにいる」と押して、位置をピンクの印に合わせる
-  const cpButton = (c: Checkpoint) => (c.kind === "alight" ? `${KIND_JA[c.via!]}を降りた` : c.kind === "arrive" ? "トイレに着いた" : `いま${cpLabel(c)}にいる`);
+  const cpButton = (c: Checkpoint) =>
+    c.kind === "alight"
+      ? `${KIND_JA[c.via!]}を降りた`
+      : c.kind === "arrive"
+        ? "トイレに着いた"
+        : c.kind === "gate"
+          ? c.out === undefined
+            ? "改札を通った"
+            : c.out
+              ? "改札を出た"
+              : "改札に入った"
+          : `いま${cpLabel(c)}にいる`;
   const [drift, setDrift] = useState<Drift | null>(null); // センサーで追っているとき、逆向き・横向きに歩いている
   const recal = useRef(false); // 「向きは合っている」：次の1歩で、いまの向きを道順の向きに合わせ直す
   // 歩く目線の上の案内の文（上り下りは手順の文と同じ言い方に）
@@ -1070,8 +1118,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                 <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
                   いまの手順（{stepIdx + 1} / {guide.length}）
                 </div>
-                <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepText(current, guide[stepIdx + 1])}</div>
-                {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepText(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
+                <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepLine(current, guide[stepIdx + 1])}</div>
+                {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepLine(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
               </>
             )}
           </div>
@@ -1287,7 +1335,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           <ol style={{ paddingLeft: 20, margin: "6px 0 0" }}>
             {guide.map((g, i) => (
               <li key={i} onClick={() => setPos(path.cum[g.from])} style={{ fontWeight: i === stepIdx ? 800 : 400, cursor: "pointer" }}>
-                {stepText(g, guide[i + 1])}
+                {stepLine(g, guide[i + 1])}
               </li>
             ))}
           </ol>

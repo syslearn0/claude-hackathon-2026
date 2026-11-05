@@ -6,7 +6,7 @@ export const FLOOR_M = 5; // 1階ぶんの高さ（m）。歩く目線では実�
 
 export type PathPoint = { x: number; y: number; z: number; floor: number }; // x：東、z：南、y：上（m）
 // 階が変わるところは、乗り口（at）と降り口（end）、手段（via）、行き先の階も持つ
-export type Maneuver = { at: number; kind: "left" | "right" | "floor" | "arrive"; text: string; end?: number; via?: KindName; toFloor?: number; up?: boolean };
+export type Maneuver = { at: number; kind: "left" | "right" | "floor" | "gate" | "arrive"; text: string; end?: number; via?: KindName; toFloor?: number; up?: boolean; out?: boolean; name?: string };
 
 // 経路の点を、駅の中心からの m の座標に
 export function routePath(net: Network, route: Route, center: { lat: number; lon: number }): { pts: PathPoint[]; cum: number[] } {
