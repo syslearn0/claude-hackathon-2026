@@ -174,7 +174,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const scene = useRef<{ camera: THREE.PerspectiveCamera; controls: OrbitControls; layer: THREE.Group } | null>(null);
   const youGoal = useRef<THREE.Vector3 | null>(null); // 「あなた」の行き先。描くたびに少しずつ近づける（位置が飛んでも、滑って動く）
   const framed = useRef(""); // カメラの距離を決めた道順（同じ道順のあいだは、本人が決めた角度と距離のまま）
-  const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group; cpSign: THREE.Sprite } | null>(null);
+  const youMark = useRef<{ you: THREE.Mesh; beam: THREE.Mesh; cp: THREE.Group; cpSign: THREE.Sprite } | null>(null);
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出し、歩く目線もこの向きに回す。速く変わるので state にせず、扇を直接回す。
   // 基準は磁石を使わない相対の向き（ジャイロ）。ホームで線路の向きに合わせたあとは、地下で磁石が狂っても向きがずれない
   const compass = useRef<number | null>(null);
@@ -676,7 +676,6 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         const at = m.you.userData.placed && m.you.position.distanceTo(g) < 40 ? m.you.position.clone().lerp(g, 1 - Math.exp(-dt * 6)) : g.clone();
         m.you.userData.placed = true;
         m.you.position.copy(at);
-        m.sign.position.copy(at).add(new THREE.Vector3(0, 6, 0));
         m.beam.position.copy(at).add(new THREE.Vector3(0, 0.3, 0));
         camera.position.add(at.clone().sub(controls.target));
         controls.target.copy(at);
@@ -883,13 +882,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (!arrived && current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now, 5));
     s.layer.add(tube(pts, 0.8, DIAGRAM.route, 6));
 
-    // あなた（位置は下の効果で動かす）・トイレ
+    // あなた（赤い丸。札は付けない。位置は下の効果で動かす）・トイレ
     const you = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: COLOR.you, depthTest: false }));
     you.renderOrder = 8;
     const youAt = arrived ? pts.at(-1)! : pts[current.from];
     s.layer.add(you);
-    const youSign = sign("あなた", "rgba(217,48,37,.92)", 180);
-    s.layer.add(youSign);
     // スマホの向き：あなたから前へ広がる扇（北から時計回りの度で回す。向きが取れないときは出さない）
     const fan = new THREE.Shape();
     fan.moveTo(0, 0);
@@ -903,7 +900,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (compass.current !== null) beam.rotation.y = (-compass.current * Math.PI) / 180;
     s.layer.add(beam);
     // 次の確認ポイント：道順をまたぐピンクの門（丸い「あなた」と形で見分け、近くても両脇の柱が見える）。位置と向きは下の効果で。
-    // 札は、離れているときだけ（近いと「あなた」の札にかぶる）
+    // 札は、離れているときだけ（近いと赤い丸にかぶる）
     const cp = new THREE.Group();
     const cpMat = new THREE.MeshBasicMaterial({ color: COLOR.checkpoint });
     cp.add(new THREE.Mesh(new THREE.BoxGeometry(11, 0.4, 1.4), cpMat).translateY(0.7)); // 床の線
@@ -915,7 +912,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     cp.add(cpSign);
     cp.visible = false;
     s.layer.add(cp);
-    youMark.current = { you, sign: youSign, beam, cp, cpSign };
+    youMark.current = { you, beam, cp, cpSign };
     const end = pts.at(-1)!;
     const wcSign = sign("トイレ", "rgba(31,95,191,.92)", 180);
     wcSign.position.copy(end).add(new THREE.Vector3(0, 8, 0));
