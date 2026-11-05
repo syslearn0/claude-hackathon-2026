@@ -490,10 +490,9 @@ scenes["route3d-oedo"] = {
     check["乗り口の手前"] = await seen(page, /の乗り口（あと\dm）/, 60_000);
     mark("lift");
     await sleep(800);
-    await page.getByRole("button", { name: /もっと見る/ }).click();
-    await page.getByRole("button", { name: "歩く目線" }).click();
+    // 案内を始めると全画面になるので、右上の丸いボタンで歩く目線に切り替える
+    await tap(page, page.getByRole("button", { name: "歩く目線で見る" }));
     mark("walkview");
-    await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     await sleep(1200);
     await box3d("walk");
     check["トイレに着いた"] = await seen(page, "トイレに着きました", 120_000);
