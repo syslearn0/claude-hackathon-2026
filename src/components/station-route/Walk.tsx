@@ -15,6 +15,131 @@ import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/l
 // いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
 
 const EYE = 1.6;
+
+// 絵（canvas）を貼る模様
+function canvasTex(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void) {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  draw(c.getContext("2d")!);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+
+// 自動改札機の部品（形と色。どの改札でも同じなので、一度だけ作る）
+let gateParts: ReturnType<typeof makeGateParts> | null = null;
+function makeGateParts() {
+  const L = 1.7;
+  const CW = 0.24;
+  const geo = {
+    base: new THREE.BoxGeometry(CW + 0.02, 0.08, L + 0.02),
+    body: new THREE.BoxGeometry(CW, 0.84, L - 0.08),
+    top: new THREE.BoxGeometry(CW + 0.04, 0.05, L + 0.04),
+    cap: new THREE.BoxGeometry(CW + 0.03, 0.88, 0.07),
+    slot: new THREE.BoxGeometry(0.12, 0.012, 0.03),
+    reader: new THREE.PlaneGeometry(0.2, 0.2),
+    screen: new THREE.PlaneGeometry(0.18, 0.11),
+    sign: new THREE.PlaneGeometry(0.13, 0.13),
+    flap: new THREE.BoxGeometry(0.1, 0.42, 0.035),
+    rod: new THREE.CylinderGeometry(0.025, 0.025, 0.9, 8),
+  };
+  const ok = canvasTex(64, 64, (g) => {
+    g.fillStyle = "#111";
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle = "#33d860";
+    g.beginPath();
+    for (const [x, y] of [
+      [32, 8],
+      [55, 33],
+      [41, 33],
+      [41, 56],
+      [23, 56],
+      [23, 33],
+      [9, 33],
+    ])
+      g.lineTo(x, y);
+    g.fill();
+  });
+  const no = canvasTex(64, 64, (g) => {
+    g.fillStyle = "#111";
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle = "#e8392f";
+    g.beginPath();
+    g.arc(32, 32, 23, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "#fff";
+    g.fillRect(15, 27, 34, 10);
+  });
+  const ic = canvasTex(128, 128, (g) => {
+    g.fillStyle = "#1a78dc";
+    g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = "#cfe8ff";
+    g.lineWidth = 6;
+    g.strokeRect(9, 9, 110, 110);
+    g.fillStyle = "#fff";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.font = "bold 52px system-ui";
+    g.fillText("IC", 64, 56);
+    g.font = "bold 20px system-ui";
+    g.fillText("タッチ", 64, 98);
+  });
+  const screen = canvasTex(96, 64, (g) => {
+    g.fillStyle = "#14243a";
+    g.fillRect(0, 0, 96, 64);
+    g.fillStyle = "#7fd0ff";
+    g.font = "bold 16px system-ui";
+    g.textAlign = "center";
+    g.fillText("残額", 48, 26);
+    g.fillText("¥ ----", 48, 48);
+  });
+  const mat = {
+    base: new THREE.MeshLambertMaterial({ color: 0x4a4d54 }),
+    body: new THREE.MeshLambertMaterial({ color: 0xe6e4dd }),
+    side: new THREE.MeshLambertMaterial({ color: 0x2f5f9e }),
+    top: new THREE.MeshLambertMaterial({ color: 0xc3c9d1 }),
+    slot: new THREE.MeshBasicMaterial({ color: 0x0b0b0b }),
+    ic: new THREE.MeshBasicMaterial({ map: ic }),
+    screen: new THREE.MeshBasicMaterial({ map: screen }),
+    ok: new THREE.MeshBasicMaterial({ map: ok }),
+    no: new THREE.MeshBasicMaterial({ map: no }),
+    flap: new THREE.MeshLambertMaterial({ color: 0xf0a81c }),
+    glass: new THREE.MeshLambertMaterial({ color: 0xc4dfea, transparent: true, opacity: 0.4, depthWrite: false, side: THREE.DoubleSide }),
+    rail: new THREE.MeshLambertMaterial({ color: 0x9a9ea6 }),
+    board: new THREE.MeshLambertMaterial({ color: 0x1c2b55 }),
+  };
+  return { geo, mat };
+}
+
+// 改札の上の案内板：紺に白で改札の名前。出るときは右に黄色の「出口」
+function gateBoard(name: string, out: boolean, aspect: number) {
+  const H = 96;
+  const W = Math.round(H * aspect);
+  return canvasTex(W, H, (g) => {
+    g.fillStyle = "#1c2b55";
+    g.fillRect(0, 0, W, H);
+    const split = out ? Math.round(W * 0.62) : W;
+    g.fillStyle = "#fff";
+    g.textBaseline = "middle";
+    g.textAlign = "center";
+    g.font = "bold 46px system-ui";
+    g.fillText(name, split / 2, 40);
+    g.font = "600 18px system-ui";
+    g.fillText("Ticket Gate", split / 2, 77);
+    if (out) {
+      g.fillStyle = "#f7c600";
+      g.fillRect(split, 0, W - split, H);
+      g.fillStyle = "#111";
+      g.font = "bold 44px system-ui";
+      g.fillText("出口", (split + W) / 2, 40);
+      g.font = "600 18px system-ui";
+      g.fillText("Exit", (split + W) / 2, 77);
+    }
+  });
+}
+
 export const WALK_SPEED = 1.3; // 「▶ 歩く」の速さ（m/秒。少し速めに歩く）
 
 // 矢印の帯の模様（進む向きが上）
@@ -195,6 +320,7 @@ export function Walk({
       }
       return false;
     };
+    const wallSegs: { y: number; ax: number; az: number; bx: number; bz: number }[] = []; // 壁の線（改札の柵を壁までのばすため）
     const ribbon = (key: string, fl: number, coords: [number, number][], closed: boolean, h: number, color: number, opacity: number, openForRoute: boolean) => {
       const r = ribbons.get(key) ?? { fl, color, opacity, pos: [] };
       ribbons.set(key, r);
@@ -204,6 +330,7 @@ export function Walk({
         const a = v[i - 1];
         const b = v[i % v.length];
         if (openForRoute && (crossesRoute(fl, a.x, -a.y, b.x, -b.y) || tooClose(fl, a.x, -a.y, b.x, -b.y))) continue;
+        if (key.startsWith("wall")) wallSegs.push({ y, ax: a.x, az: -a.y, bx: b.x, bz: -b.y });
         r.pos.push(a.x, y, -a.y, b.x, y, -b.y, a.x, y + h, -a.y, b.x, y, -b.y, b.x, y + h, -b.y, a.x, y + h, -a.y);
       }
     };
@@ -229,6 +356,8 @@ export function Walk({
       t.colorSpace = THREE.SRGBColorSpace;
       return new THREE.SpriteMaterial({ map: t });
     })();
+    // 道順が通る改札（そこには改札機の列を立てるので、名札は要らない）
+    const routeGates = lst.current.filter((m) => m.kind === "gate").map((m) => pointAt(way, wayAt, m.at));
     const gateTags: { fl: number; x: number; z: number }[] = [];
     for (const f of indoor.features) {
       if (f.kind !== "gate" || !f.coords.length) continue;
@@ -236,6 +365,7 @@ export function Walk({
       const x = v.reduce((s, p) => s + p.x, 0) / v.length;
       const z = -v.reduce((s, p) => s + p.y, 0) / v.length;
       for (const fl of f.floors) {
+        if (routeGates.some((p) => Math.abs(p.y - fl * FLOOR_M) < 0.1 && Math.hypot(p.x - x, p.z - z) < 15)) continue;
         if (gateTags.some((t) => t.fl === fl && Math.hypot(t.x - x, t.z - z) < 6)) continue;
         gateTags.push({ fl, x, z });
         const s = new THREE.Sprite(gateTag);
@@ -249,7 +379,7 @@ export function Walk({
       for (const fl of f.floors) {
         if (f.tags?.category === "floor" && f.closed) ribbon(`wall${fl}`, fl, f.coords, true, 2.8, 0xcfcfca, 0.55, true);
         else if (f.tags?.indoor === "wall") ribbon(`wall${fl}`, fl, f.coords, f.closed, 2.8, 0xcfcfca, 0.55, true);
-        else if (f.kind === "gate") ribbon(`gate${fl}`, fl, f.coords, f.closed, 1.0, 0x4a5a6a, 0.45, false);
+        else if (f.kind === "gate") ribbon(`gate${fl}`, fl, f.coords, f.closed, 1.0, 0x4a5a6a, 0.45, true);
         else if (f.closed && f.coords.length >= 3 && f.kind in PAD) {
           const shape = new THREE.Shape(f.coords.map(([lat, lon]) => xz(lat, lon)));
           const g = f.kind === "elevator" ? new THREE.ExtrudeGeometry(shape, { depth: 2.6, bevelEnabled: false }) : new THREE.ShapeGeometry(shape);
@@ -285,6 +415,94 @@ export function Walk({
       g.rotateX(-Math.PI / 2);
       g.translate(0, f * FLOOR_M - 0.02, 0);
       floorGroup(f).add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0xe9e8e2 })));
+    }
+
+    // 改札：道順が改札を通るところに、自動改札機の列を立てる（通路をまたぐ向き。両脇は壁までガラスの柵）
+    for (const m of lst.current) if (m.kind === "gate") buildGates(m);
+    function buildGates(m: Maneuver) {
+      const GATE = (gateParts ??= makeGateParts());
+      const p = pointAt(way, wayAt, m.at);
+      const a = pointAt(way, wayAt, Math.max(0, m.at - 1.5));
+      const b = pointAt(way, wayAt, Math.min(total, m.at + 1.5));
+      const h = Math.hypot(b.x - a.x, b.z - a.z);
+      if (h < 0.3) return;
+      const [dx, dz] = [(b.x - a.x) / h, (b.z - a.z) / h];
+      // 横（列の向き）に、壁までの距離をはかる
+      const reach = (ux: number, uz: number) => {
+        let best = 7;
+        for (const s of wallSegs) {
+          if (Math.abs(s.y - p.floor * FLOOR_M) > 0.1) continue;
+          const ex = s.bx - s.ax;
+          const ez = s.bz - s.az;
+          const den = ux * ez - uz * ex;
+          if (Math.abs(den) < 1e-6) continue;
+          const t = ((s.ax - p.x) * ez - (s.az - p.z) * ex) / den;
+          const u = ((s.ax - p.x) * uz - (s.az - p.z) * ux) / den;
+          if (t > 0.3 && u >= 0 && u <= 1) best = Math.min(best, t);
+        }
+        return best;
+      };
+      const right = reach(dz, -dx);
+      const left = reach(-dz, dx);
+      const g = new THREE.Group();
+      g.position.set(p.x, p.y, p.z);
+      g.rotation.y = Math.atan2(dx, dz); // 中では +z が進む向き、+x が左（right・left は、この中の +x・-x の側）
+      const L = 1.7; // 改札機の長さ（進む向き）
+      const CW = 0.24; // 改札機の幅
+      const PITCH = CW + 0.62; // 通路 0.62m
+      const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number, rx = 0, ry = 0) => {
+        const o = new THREE.Mesh(geo, mat);
+        o.position.set(x, y, z);
+        o.rotation.set(rx, ry, 0);
+        g.add(o);
+      };
+      // 改札機を置く位置：道順の通路をまんなかに、壁に当たらないだけ（多くても 6 台・5 通路）
+      const xs: number[] = [];
+      for (let k = -3; k <= 2; k++) {
+        const x = (k + 0.5) * PITCH;
+        const fits = x < 0 ? -x + CW / 2 <= left - 0.05 : x + CW / 2 <= right - 0.05;
+        if (fits || k === -1 || k === 0) xs.push(x);
+      }
+      xs.forEach((x, i) => {
+        const k = Math.round(x / PITCH - 0.5);
+        add(GATE.geo.base, GATE.mat.base, x, 0.04, 0);
+        add(GATE.geo.body, GATE.mat.body, x, 0.5, 0);
+        add(GATE.geo.top, GATE.mat.top, x, 0.955, 0);
+        add(GATE.geo.cap, GATE.mat.side, x, 0.5, -L / 2);
+        add(GATE.geo.cap, GATE.mat.side, x, 0.5, L / 2);
+        add(GATE.geo.slot, GATE.mat.slot, x, 0.985, -L / 2 + 0.14); // きっぷを入れる口
+        add(GATE.geo.reader, GATE.mat.ic, x, 0.99, -L / 2 + 0.4, -Math.PI / 2 + 0.25); // IC のタッチ面（手前に少し傾ける）
+        add(GATE.geo.screen, GATE.mat.screen, x, 0.99, -L / 2 + 0.66, -Math.PI / 2 + 0.25);
+        add(GATE.geo.slot, GATE.mat.slot, x, 0.985, L / 2 - 0.14); // 出てくる口
+        // 入る側の表示：通れる（緑の矢印）・通れない（赤）。道順の通路の両側は緑
+        add(GATE.geo.sign, Math.abs(k + 0.5) <= 1 || k % 2 === 0 ? GATE.mat.ok : GATE.mat.no, x, 0.74, -L / 2 - 0.035, 0, Math.PI);
+        // 扉（開いている：改札機から少しだけ出ている）
+        if (i > 0) add(GATE.geo.flap, GATE.mat.flap, x - CW / 2 - 0.05, 0.62, 0.15);
+        if (i < xs.length - 1) add(GATE.geo.flap, GATE.mat.flap, x + CW / 2 + 0.05, 0.62, 0.15);
+      });
+      // 両脇：壁までガラスの柵
+      const fence = (from: number, to: number) => {
+        const w = Math.abs(to - from);
+        if (w < 0.1) return;
+        const cx = (from + to) / 2;
+        add(new THREE.BoxGeometry(w, 0.9, 0.03), GATE.mat.glass, cx, 0.6, 0);
+        add(new THREE.BoxGeometry(w, 0.05, 0.06), GATE.mat.rail, cx, 1.07, 0);
+      };
+      const xl = Math.min(...xs) - CW / 2;
+      const xr = Math.max(...xs) + CW / 2;
+      if (left < 7) fence(-left, xl);
+      if (right < 7) fence(xr, right);
+      // 上につるした案内板（紺に白で「改札」。出るときは右に黄色の「出口」）。通る通路の真上に（列のまんなかだと、壁に隠れることがある）
+      const bw = 2.6;
+      const board = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.5, 0.08), GATE.mat.board);
+      board.position.set(0, 2.55, -L / 2 - 0.4);
+      g.add(board);
+      const face = new THREE.Mesh(new THREE.PlaneGeometry(bw - 0.04, 0.46), new THREE.MeshBasicMaterial({ map: gateBoard(m.name ?? "改札", m.out === true, bw / 0.46) }));
+      face.position.set(0, 2.55, -L / 2 - 0.445);
+      face.rotation.y = Math.PI;
+      g.add(face);
+      for (const sx of [-1, 1]) add(GATE.geo.rod, GATE.mat.rail, sx * (bw / 2 - 0.2), 3.0, -L / 2 - 0.4);
+      floorGroup(p.floor).add(g);
     }
 
     // 矢印の帯（幅 1.4m）。上り下りの線（エレベーター）は帯にしない
@@ -436,7 +654,8 @@ export function Walk({
         const q = pointAt(way, wayAt, mk);
         cpMark.position.set(q.x, q.y, q.z);
         cpMark.visible = Math.abs(q.y - p.y) < 1;
-        glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 4;
+        // 改札のところは柱を立てない（改札機が隠れる）。足元の輪だけ
+        glow.visible = Math.hypot(q.x - p.x, q.z - p.z) > 4 && !lst.current.some((m) => m.kind === "gate" && Math.abs(m.at - mk) < 0.5);
       }
       // トイレの青い柱は、目の前まで来たら消す（柱に入ると画面が青一色になる）
       pin.visible = Math.hypot(end.x - p.x, end.z - p.z) > 2.5 || Math.abs(end.y - p.y) > 1;
