@@ -5,7 +5,8 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
 import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
-import { GATE_HALF_W, GATE_L, gateRow } from "./gate-model";
+import type { GateFrame } from "@/lib/gates";
+import { GATE_L, gateRow } from "./gate-model";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
@@ -63,6 +64,7 @@ export function Walk({
   height = 520,
   hudRight = 8,
   speed = WALK_SPEED,
+  gates = [],
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -84,6 +86,7 @@ export function Walk({
   height?: number | string; // 画面の高さ（全画面のときは "100%"）
   hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
   speed?: number; // 「歩く」の速さ（m/秒）
+  gates?: GateFrame[]; // 改札機の列を立てる位置（道順が通る改札と、ほかの改札）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -137,21 +140,19 @@ export function Walk({
       }
       return g;
     };
-    // 道順が通る改札の位置と向き。そこの壁は抜く（データの部屋の線が、改札機のあいだに立たないように）
-    const gateFrames = lst.current.flatMap((m) => {
-      if (m.kind !== "gate") return [];
-      const p = pointAt(way, wayAt, m.at);
-      const a = pointAt(way, wayAt, Math.max(0, m.at - 1.5));
-      const b = pointAt(way, wayAt, Math.min(total, m.at + 1.5));
-      const h = Math.hypot(b.x - a.x, b.z - a.z);
-      return h < 0.3 ? [] : [{ m, p, dx: (b.x - a.x) / h, dz: (b.z - a.z) / h }];
-    });
+    // 改札機の列（道順から 80m 以内のもの）。そこの壁と部屋の箱は抜く（データの線が、改札機のあいだに立たないように）
+    const gateFrames = gates
+      .filter((f) => way.some((q) => Math.abs(q.y - f.floor * FLOOR_M) < 0.1 && Math.hypot(q.x - f.x, q.z - f.z) < 80))
+      .map((f) => ({ f, p: { x: f.x, y: f.floor * FLOOR_M, z: f.z, floor: f.floor }, dx: f.dx, dz: f.dz }));
+    // 列の範囲：横は並べる幅（点の改札は柵の分も）、前後は点の改札なら 2m（改札の前後に立つ壁も抜く）、線なら 0.6m
+    const rowBox = (f: GateFrame) => ({ al: GATE_L / 2 + (f.fence ? 2 : 0.6), lo: -f.left - 0.2, hi: f.right + 0.2 });
     const inGateRow = (y: number, x: number, z: number) =>
-      gateFrames.some(({ p, dx, dz }) => {
+      gateFrames.some(({ f, p, dx, dz }) => {
         if (Math.abs(p.y - y) > 0.1) return false;
         const along = (x - p.x) * dx + (z - p.z) * dz;
         const across = (x - p.x) * dz - (z - p.z) * dx;
-        return Math.abs(along) <= GATE_L / 2 + 2 && Math.abs(across) <= GATE_HALF_W + 0.2; // 列の前後 2m まで（改札の前後に立つ壁も抜く）
+        const r = rowBox(f);
+        return Math.abs(along) <= r.al && across >= r.lo && across <= r.hi;
       });
     // 部屋・店の形が改札の列にかかるか（角が列の中にある、または列の角・まんなかが形の中にある）
     const inPoly = (v: THREE.Vector2[], x: number, y: number) => {
@@ -164,17 +165,17 @@ export function Walk({
     };
     const overGateRow = (v: THREE.Vector2[], fl: number) =>
       v.some((q) => inGateRow(fl * FLOOR_M, q.x, -q.y)) ||
-      gateFrames.some(({ p, dx, dz }) => {
+      gateFrames.some(({ f, p, dx, dz }) => {
         if (Math.abs(p.y - fl * FLOOR_M) > 0.1) return false;
-        const [al, ac] = [GATE_L / 2 + 2, GATE_HALF_W + 0.2];
+        const { al, lo, hi } = rowBox(f);
         return [
           [0, 0],
-          [al, ac],
-          [al, -ac],
-          [-al, ac],
-          [-al, -ac],
-          [0, ac],
-          [0, -ac],
+          [al, hi],
+          [al, lo],
+          [-al, hi],
+          [-al, lo],
+          [0, hi],
+          [0, lo],
         ].some(([u, w]) => inPoly(v, p.x + dx * u + dz * w, -(p.z + dz * u - dx * w)));
       });
     const floors = new Map<number, THREE.BufferGeometry[]>();
@@ -290,7 +291,7 @@ export function Walk({
       return new THREE.SpriteMaterial({ map: t });
     })();
     // 道順が通る改札（そこには改札機の列を立てるので、名札は要らない）
-    const routeGates = lst.current.filter((m) => m.kind === "gate").map((m) => pointAt(way, wayAt, m.at));
+    const routeGates = gateFrames.map(({ p }) => p);
     const gateTags: { fl: number; x: number; z: number }[] = [];
     for (const f of indoor.features) {
       if (f.kind !== "gate" || !f.coords.length) continue;
@@ -351,7 +352,7 @@ export function Walk({
     }
 
     // 改札：道順が改札を通るところに、自動改札機の列を立てる（通路をまたぐ向き。両脇は壁までガラスの柵）
-    for (const { m, p, dx, dz } of gateFrames) {
+    for (const { f, p, dx, dz } of gateFrames) {
       // 横（列の向き）に、壁までの距離をはかる（列のところの壁は、上で抜いてある）
       const reach = (ux: number, uz: number) => {
         let best = 7;
@@ -368,7 +369,18 @@ export function Walk({
         return best;
       };
       // gateRow の中では +z が進む向き、+x が進む向きの左
-      const g = gateRow({ name: m.name, out: m.out, left: reach(-dz, dx), right: reach(dz, -dx) });
+      // 点の改札は、壁までの幅だけ並べて柵でふさぐ。線の改札は、線の長さだけ並べる
+      const [wl, wr] = f.fence ? [reach(-dz, dx), reach(dz, -dx)] : [7, 7]; // -x 側・+x 側の壁まで
+      const g = gateRow({
+        name: f.name,
+        out: f.out,
+        left: Math.min(f.left, wl),
+        right: Math.min(f.right, wr),
+        fenceLeft: f.fence ? wl : undefined,
+        fenceRight: f.fence ? wr : undefined,
+        board: f.board,
+        lane: f.onRoute,
+      });
       g.position.set(p.x, p.y, p.z);
       g.rotation.y = Math.atan2(dx, dz);
       floorGroup(p.floor).add(g);
@@ -586,7 +598,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, cum, sm, total, center, platformFloor]);
+  }, [indoor, pts, cum, sm, total, center, platformFloor, gates]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));

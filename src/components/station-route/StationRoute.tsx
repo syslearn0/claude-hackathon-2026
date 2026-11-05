@@ -8,7 +8,7 @@ import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
-import { gatePasses, type GateShape } from "@/lib/gates";
+import { gateFrames, gatePasses, type GateShape, type WalkLink } from "@/lib/gates";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
@@ -408,6 +408,13 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const endInside = goal?.place.gate === "inside" ? true : goal?.place.gate === "outside" ? false : undefined;
   const skipStartM = startKind === "gate" ? 10 : 0;
   const passes = useMemo(() => (path.pts.length ? gatePasses(path.pts, path.cum, gateShapes, { startInside, endInside, skipStartM }) : []), [path, gateShapes, startInside, endInside, skipStartM]);
+  // 改札機の列を立てる位置：道順が通る改札と、ほかの改札（点の改札は、近くの通路の向きで）
+  const walkLinks: WalkLink[] = useMemo(() => {
+    if (!net) return [];
+    const xz = (i: number) => ({ x: (net.nodes[i][1] - center.lon) * kx, z: -(net.nodes[i][0] - center.lat) * 110_540 });
+    return net.links.filter(([a, b]) => net.nodes[a][2] === net.nodes[b][2]).map(([a, b]) => ({ floor: net.nodes[a][2], ax: xz(a).x, az: xz(a).z, bx: xz(b).x, bz: xz(b).z }));
+  }, [net, center, kx]);
+  const gateRows = useMemo(() => gateFrames(gateShapes, walkLinks, path.pts.length ? { pts: path.pts, cum: path.cum, passes } : undefined), [gateShapes, walkLinks, path, passes]);
   const list = useMemo(() => {
     if (!path.pts.length) return [];
     const gates: Maneuver[] = passes.map((p) => ({ at: p.at, kind: "gate", text: gateText(p), out: p.out, name: p.name }));
@@ -908,18 +915,15 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       }
     }
 
-    // 改札：道順が改札を通るところに、自動改札機の列（大きめに）
-    for (const ps of passes) {
-      const p = pointAt(path.pts, path.cum, ps.at);
-      const a = pointAt(path.pts, path.cum, Math.max(0, ps.at - 1.5));
-      const b = pointAt(path.pts, path.cum, ps.at + 1.5);
-      const h = Math.hypot(b.x - a.x, b.z - a.z);
-      if (h < 0.3) continue;
-      const g = gateRow({ name: ps.name, out: ps.out });
-      g.scale.setScalar(GATE_SCALE);
+    // 改札：自動改札機の列（大きめに）。点の改札は 4 倍、線の改札は線の長さのまま並べる（台は 2 倍の大きさ）
+    for (const f of gateRows) {
+      if (!inRange(f.floor) || !near(center.lat - f.z / 110_540, center.lon + f.x / kx)) continue;
+      const k = f.fence ? GATE_SCALE : 2;
+      const g = gateRow({ name: f.name, out: f.out, left: f.left / k, right: f.right / k, board: f.board, lane: f.onRoute });
+      g.scale.setScalar(k);
       g.traverse((o) => (o.renderOrder = 7)); // 赤い道順の線（奥行きを見ずに描く）のあとに描いて、手前の改札機が線に隠れないように
-      g.position.set(p.x, (p.y / FLOOR_M) * FLOOR_H, p.z);
-      g.rotation.y = Math.atan2((b.x - a.x) / h, (b.z - a.z) / h);
+      g.position.set(f.x, f.floor * FLOOR_H, f.z);
+      g.rotation.y = Math.atan2(f.dx, f.dz);
       s.layer.add(g);
     }
 
@@ -984,7 +988,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 3.2)));
       s.camera.updateProjectionMatrix();
     }
-  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor, passes, path]);
+  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor, gateRows, center, kx]);
   useEffect(() => {
     const m = youMark.current;
     if (!m || !path.pts.length) return;
@@ -1511,6 +1515,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               height={full ? "100%" : 520}
               hudRight={full ? 56 : 8}
               speed={WALK_SPEED * rate}
+              gates={gateRows}
             />
           )}
           <div

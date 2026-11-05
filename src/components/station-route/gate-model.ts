@@ -1,6 +1,7 @@
 // 自動改札機の列の 3D（歩く目線と、上から見る画面で同じものを使う）。
 // 中の向き：+z が進む向き、y が上、+x は進む向きの左。道順の通路が x = 0 のまんなか。大きさは m（上から見る画面では拡大して置く）
 import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 // 絵（canvas）を貼る模様
 function canvasTex(w: number, h: number, draw: (g: CanvasRenderingContext2D) => void) {
@@ -129,12 +130,13 @@ function gateBoard(name: string, out: boolean, aspect: number) {
 export const GATE_L = 1.7; // 改札機の長さ（進む向き）
 export const GATE_HALF_W = 2.8; // 列の幅の半分（多くても 6 台・5 通路）
 
-// 改札機の列。left・right：通路のまんなかから、-x・+x の側の壁までの距離（m。壁がなければ 7 以上）。
-// 壁に当たらない台数だけ並べ、壁があればそこまでガラスの柵でふさぐ。上に「改札」（出るときは「出口」も）の案内板
-export function gateRow(opt: { name?: string; out?: boolean; left?: number; right?: number; board?: boolean }): THREE.Group {
+// 改札機の列。left・right：列のまんなかから -x・+x の側に、改札機を並べてよい幅（m）。
+// fenceLeft・fenceRight：そこまでガラスの柵でふさぐ（壁までの距離。なければ柵なし）。lane：まんなか（x = 0）を必ず通路にする（道順が通る）。
+// 上に「改札」（出るときは「出口」も）の案内板。部品は色ごとに 1 つにまとめる（長い改札の列でも重くならないように）
+export function gateRow(opt: { name?: string; out?: boolean; left?: number; right?: number; fenceLeft?: number; fenceRight?: number; board?: boolean; lane?: boolean }): THREE.Group {
   const GATE = (parts ??= makeGateParts());
-  const left = opt.left ?? 7;
-  const right = opt.right ?? 7;
+  const left = opt.left ?? GATE_HALF_W;
+  const right = opt.right ?? GATE_HALF_W;
   const L = GATE_L;
   const CW = 0.24; // 改札機の幅
   const PITCH = CW + 0.62; // 通路 0.62m
@@ -146,11 +148,14 @@ export function gateRow(opt: { name?: string; out?: boolean; left?: number; righ
     g.add(o);
   };
   const xs: number[] = [];
-  for (let k = -3; k <= 2; k++) {
+  const kl = Math.ceil(left / PITCH) + 1;
+  const kr = Math.ceil(right / PITCH) + 1;
+  for (let k = -Math.min(kl, 60); k <= Math.min(kr, 60); k++) {
     const x = (k + 0.5) * PITCH;
-    const fits = x < 0 ? -x + CW / 2 <= left - 0.05 : x + CW / 2 <= right - 0.05;
-    if (fits || k === -1 || k === 0) xs.push(x);
+    const fits = x < 0 ? -x + CW / 2 <= left + 0.05 : x + CW / 2 <= right + 0.05;
+    if (fits || (opt.lane !== false && (k === -1 || k === 0))) xs.push(x);
   }
+  if (!xs.length) xs.push((right - left) / 2); // 短い線の改札：まんなかに 1 台
   xs.forEach((x, i) => {
     const k = Math.round(x / PITCH - 0.5);
     add(GATE.geo.base, GATE.mat.base, x, 0.04, 0);
@@ -177,8 +182,8 @@ export function gateRow(opt: { name?: string; out?: boolean; left?: number; righ
   };
   const xl = Math.min(...xs) - CW / 2;
   const xr = Math.max(...xs) + CW / 2;
-  if (left < 7) fence(-left, xl);
-  if (right < 7) fence(xr, right);
+  if (opt.fenceLeft !== undefined && opt.fenceLeft < 7) fence(-opt.fenceLeft, xl);
+  if (opt.fenceRight !== undefined && opt.fenceRight < 7) fence(xr, opt.fenceRight);
   if (opt.board !== false) {
     // 通る通路の真上につるした案内板（列のまんなかだと、壁に隠れることがある）
     const bw = 2.6;
@@ -191,5 +196,24 @@ export function gateRow(opt: { name?: string; out?: boolean; left?: number; righ
     g.add(face);
     for (const sx of [-1, 1]) add(GATE.geo.rod, GATE.mat.rail, sx * (bw / 2 - 0.2), 3.0, -L / 2 - 0.4);
   }
-  return g;
+  return mergeByMaterial(g);
+}
+
+// 同じ色の部品を 1 つの形にまとめる（描く回数を減らす）
+function mergeByMaterial(g: THREE.Group): THREE.Group {
+  const by = new Map<THREE.Material, THREE.BufferGeometry[]>();
+  for (const o of g.children) {
+    if (!(o instanceof THREE.Mesh)) continue;
+    o.updateMatrix();
+    const geo = (o.geometry as THREE.BufferGeometry).clone().applyMatrix4(o.matrix);
+    const m = o.material as THREE.Material;
+    by.set(m, [...(by.get(m) ?? []), geo]);
+  }
+  const out = new THREE.Group();
+  for (const [m, gs] of by) {
+    const merged = mergeGeometries(gs);
+    if (merged) out.add(new THREE.Mesh(merged, m));
+    for (const x of gs) x.dispose();
+  }
+  return out;
 }

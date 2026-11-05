@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { PathPoint } from "../src/lib/maneuvers";
-import { gatePasses } from "../src/lib/gates";
+import { gateFrames, gatePasses } from "../src/lib/gates";
 
 // B4 を北へ 60m
 const pts: PathPoint[] = [
@@ -42,4 +42,38 @@ test("改札：別の階・離れた改札・出発した改札は数えない�
     },
   ];
   assert.deepEqual(gatePasses(pts, cum, row, { startInside: true }), [{ at: 40, out: true, name: "中央東改札" }]);
+});
+
+test("改札機の列：道順が通る線の改札は、交わるところを通路のまんなかに。ほかの線・点の改札にも列を立てる", () => {
+  // 道順は北へ（z が減る）。z=-20 に東西 10m の線の改札（交わるのは西端から 4m）、z=-40 に点の改札
+  const line = {
+    floor: -4,
+    pts: [
+      { x: -4, z: -20 },
+      { x: 6, z: -20 },
+    ],
+  };
+  const point = { floor: -4, pts: [{ x: 0.5, z: -40 }] };
+  const other = {
+    floor: -4,
+    pts: [
+      { x: 30, z: 0 },
+      { x: 30, z: -8 },
+    ],
+  }; // 道順から離れた線
+  const lonely = { floor: -4, pts: [{ x: 50, z: 50 }] }; // 近くに通路のない点（列は立てない）
+  const links = [{ floor: -4, ax: 20, az: 5, bx: 20, bz: 15 }];
+  const passes = gatePasses(pts, cum, [line, point, other, lonely], {});
+  const fs = gateFrames([line, point, other, lonely], links, { pts, cum, passes });
+  const onRoute = fs.filter((f) => f.onRoute);
+  assert.equal(onRoute.length, 2);
+  const l = onRoute.find((f) => !f.fence)!;
+  assert.ok(Math.abs(l.x) < 1e-6 && Math.abs(l.z + 20) < 1e-6);
+  assert.ok(Math.abs(l.dz + 1) < 1e-6); // 道順の向き（北）にそろえる
+  assert.ok(Math.abs(l.left + l.right - 10) < 1e-6);
+  const p = onRoute.find((f) => f.fence)!;
+  assert.ok(Math.abs(p.z + 40) < 1.1);
+  const rest = fs.filter((f) => !f.onRoute);
+  assert.equal(rest.length, 1); // 離れた線の 1 区間だけ（点 lonely は通路がないので立てない）
+  assert.ok(Math.abs(rest[0].x - 30) < 1e-6 && Math.abs(rest[0].left + rest[0].right - 8) < 1e-6);
 });
