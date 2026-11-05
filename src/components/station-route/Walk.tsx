@@ -62,6 +62,7 @@ export function Walk({
   onNudge,
   height = 520,
   hudRight = 8,
+  speed = WALK_SPEED,
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -82,6 +83,7 @@ export function Walk({
   onNudge?: (deg: number) => void; // 向きのずれを直す（度）
   height?: number | string; // 画面の高さ（全画面のときは "100%"）
   hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
+  speed?: number; // 「▶ 歩く」の速さ（m/秒）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -93,6 +95,7 @@ export function Walk({
   const cb = useRef({ onPos, onStop, onPick, heading, onNudge });
   const followRef = useRef(follow);
   const lst = useRef(list);
+  const speedRef = useRef(speed);
   const markAt = useRef(mark);
   const veil = useRef<HTMLDivElement>(null); // エレベーターに乗っている間の暗幕
   // 外で位置が変わったら合わせる（自分で歩いている途中の小さな差は、自分の位置のまま）
@@ -103,8 +106,9 @@ export function Walk({
     cb.current = { onPos, onStop, onPick, heading, onNudge };
     followRef.current = follow;
     lst.current = list;
+    speedRef.current = speed;
     markAt.current = mark;
-  }, [pos, playing, picking, onPos, onStop, onPick, list, mark, follow, heading, onNudge]);
+  }, [pos, playing, picking, onPos, onStop, onPick, list, mark, follow, heading, onNudge, speed]);
 
   useEffect(() => {
     const el = box.current;
@@ -446,7 +450,7 @@ export function Walk({
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       if (play.current) {
-        dist.current = Math.min(total, dist.current + dt * WALK_SPEED);
+        dist.current = Math.min(total, dist.current + dt * speedRef.current);
         if (now - lastHud > 120 || dist.current >= total) {
           lastHud = now;
           cb.current.onPos(dist.current);

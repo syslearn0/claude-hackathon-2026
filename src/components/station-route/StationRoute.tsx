@@ -45,6 +45,8 @@ import { Walk, WALK_SPEED } from "./Walk";
 const CROP_M = 70;
 // 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
+const RATES = [0.5, 1, 2, 4]; // 「▶ 歩く」の速さ（ふつうの何倍か）
+const RATE_JA: Record<number, string> = { 0.5: "ゆっくり", 1: "ふつう", 2: "2倍", 4: "4倍" };
 const ROUND: CSSProperties = { width: 40, height: 40, borderRadius: 20, padding: 0, fontSize: "1.1rem", background: "rgba(20,20,19,.82)", color: "#fff", border: "1px solid rgba(255,255,255,.25)" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
 const GATE_SCALE = 4; // 上から見る画面の改札機は、実物の 4 倍（遠くから見ても改札だと分かるように）
@@ -427,7 +429,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   });
   const current = guide[stepIdx];
   const next = nextCheckpoint(cps, pos);
-  const [playing, setPlaying] = useState(false); // 歩く目線の「▶ 歩く」（試しに自動で進める）
+  const [playing, setPlaying] = useState(false); // 「▶ 歩く」（事前に確かめるため、自動で進める）
+  const [rate, setRate] = useState(1); // 「▶ 歩く」の速さ（ふつうの何倍か）。押すたびに 0.5 → 1 → 2 → 4 倍
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
   const [started, setStarted] = useState(false); // 「案内をスタート」で向きを合わせてから、案内を始める（それまでは地図を見るだけ）
@@ -1004,7 +1007,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     let raf = 0;
     const tick = (now: number) => {
       if (Math.abs(live.current.pos - d) > 2) d = live.current.pos; // ボタンや地図で位置を直したら、そこから
-      d = Math.min(total, d + Math.min(0.1, (now - last) / 1000) * WALK_SPEED);
+      d = Math.min(total, d + Math.min(0.1, (now - last) / 1000) * WALK_SPEED * rate);
       last = now;
       if (now - sent > 100 || d >= total) {
         sent = now;
@@ -1015,7 +1018,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, view, total, setPos]);
+  }, [playing, view, total, setPos, rate]);
 
   const startLabel = starts[startIdx]?.label;
 
@@ -1509,6 +1512,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               onNudge={nudgeHeading}
               height={full ? "100%" : 520}
               hudRight={full ? 56 : 8}
+              speed={WALK_SPEED * rate}
             />
           )}
           <div
@@ -1690,7 +1694,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               </div>
               <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
                 <button
-                  style={{ ...BIG, flex: 0.6 }}
+                  style={{ ...BIG, flex: 0.45, padding: 0 }}
                   aria-label="ひとつ前の確認ポイントへ"
                   onClick={() => {
                     setPlaying(false);
@@ -1700,8 +1704,15 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                 >
                   ←
                 </button>
-                <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
+                <button style={{ ...BIG, padding: "0 4px", whiteSpace: "nowrap" }} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
                   {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+                </button>
+                <button
+                  style={{ ...BIG, flex: 0.55, padding: 0, fontSize: "0.95rem", lineHeight: 1.15 }}
+                  aria-label={`歩く速さ：${RATE_JA[rate]}。押すと変わります`}
+                  onClick={() => setRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length])}
+                >
+                  <span style={{ display: "block", fontSize: "0.7rem", fontWeight: 600 }}>速さ</span>×{rate}
                 </button>
                 {next ? (
                   <button
