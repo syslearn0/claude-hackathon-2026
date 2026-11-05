@@ -883,7 +883,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       framed.current = routeKey;
       s.controls.target.copy(c);
       // 画角が狭いので、そのぶん遠くから（立体図のように、ほぼ平行に見える）
-      s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 1.7)));
+      s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 3.2)));
       s.camera.updateProjectionMatrix();
     }
   }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor]);

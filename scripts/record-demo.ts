@@ -112,6 +112,21 @@ async function tap(page: Page, locator: ReturnType<Page["getByRole"]>) {
 const TAP_MARK = `addEventListener("DOMContentLoaded",()=>{const s=document.createElement("style");s.textContent="@keyframes tapmark{from{opacity:.55;transform:translate(-50%,-50%) scale(.4)}to{opacity:0;transform:translate(-50%,-50%) scale(1.6)}}";document.head.append(s);
 addEventListener("pointerdown",e=>{const d=document.createElement("div");d.style.cssText="position:fixed;z-index:99999;pointer-events:none;width:44px;height:44px;border-radius:50%;background:#888;left:"+e.clientX+"px;top:"+e.clientY+"px;animation:tapmark .5s ease-out forwards";document.body.append(d);setTimeout(()=>d.remove(),600)},true)});`;
 
+// 3D の枠（canvas の親）の、録画の中の位置（px）を目印に残す（動画で 3D だけを切り出すため）。<name>_x/_y/_w/_h
+let box3dPage: Page | null = null;
+async function box3d(name: string) {
+  if (!box3dPage) return;
+  const r = await box3dPage.evaluate(() => {
+    const el = document.querySelector("canvas")?.parentElement;
+    if (!el) return null;
+    const b = el.getBoundingClientRect();
+    return { x: b.left, y: b.top, w: b.width, h: b.height, vw: window.innerWidth };
+  });
+  if (!r) return;
+  const k = (VIEWPORT.width * 2) / r.vw; // 窓の幅と録画の幅の比（CSS の拡大のしかたによらず、録画の px にそろえる）
+  Object.assign(marks, { [`${name}_x`]: Math.round(r.x * k), [`${name}_y`]: Math.round(r.y * k), [`${name}_w`]: Math.round(r.w * k), [`${name}_h`]: Math.round(r.h * k) });
+}
+
 // 窓は 780 幅なので、ページを 2 倍に拡大して 390 幅のスマホの並びにする
 const ZOOM2 = `addEventListener("DOMContentLoaded",()=>{document.documentElement.style.zoom="2"});`;
 
@@ -432,21 +447,30 @@ scenes["route3d-oedo"] = {
     const cv = await page.locator("canvas").first().boundingBox();
     if (cv) {
       await page.mouse.move(cv.x + cv.width / 2, cv.y + cv.height / 2);
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 0; i++) {
         await page.mouse.wheel(0, -120);
         await sleep(90);
       }
     }
     await sleep(1000);
     mark("zoomed");
+    // スマホの向き（ジャイロの相対の向き。立てて持っている）。まず線路の向きで合わせ（「向いた」）、そこから回して最初の一歩の向きへ
     const face = (deg: number) =>
       page.evaluate((d) => {
-        const e = new Event("deviceorientationabsolute");
-        Object.defineProperty(e, "alpha", { value: (360 - d) % 360 });
+        const e = new Event("deviceorientation");
+        for (const [k, v] of Object.entries({ alpha: (360 - d) % 360, beta: 60, gamma: 0, absolute: false })) Object.defineProperty(e, k, { value: v });
         window.dispatchEvent(e);
       }, deg);
     let deg = 0;
     await face(deg);
+    await sleep(1500);
+    const calib = page.getByRole("button", { name: "向いた" });
+    check["線路の向きで合わせる"] = (await calib.count()) > 0;
+    if (check["線路の向きで合わせる"]) {
+      await tap(page, calib);
+      mark("calibrated");
+      await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    }
     await sleep(2500);
     for (let i = 0; i < 72 && !(await page.getByText(/この向きでOK/).count()); i++) {
       deg = (deg + 5) % 360;
@@ -458,6 +482,7 @@ scenes["route3d-oedo"] = {
     await sleep(2500);
     await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
     mark("walk");
+    await box3d("over");
     // 上り下りの乗り口（エスカレーター・エレベーター）の 10m 手前で、歩く目線に切り替える
     check["乗り口の手前"] = await seen(page, /の乗り口（あと\dm）/, 60_000);
     mark("lift");
@@ -466,6 +491,8 @@ scenes["route3d-oedo"] = {
     await page.getByRole("button", { name: "歩く目線" }).click();
     mark("walkview");
     await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    await sleep(1200);
+    await box3d("walk");
     check["トイレに着いた"] = await seen(page, "トイレに着きました", 120_000);
     mark("arrived");
     await sleep(3000);
@@ -509,6 +536,7 @@ async function record(browser: Browser, name: string, base: string): Promise<{ o
   const page = await ctx.newPage();
   marks = {};
   t0 = Date.now();
+  box3dPage = page;
   const video = page.video();
   let check: Check = {};
   let error = "";
