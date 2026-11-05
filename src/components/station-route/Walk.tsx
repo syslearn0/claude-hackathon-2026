@@ -60,6 +60,8 @@ export function Walk({
   platformFloor,
   heading,
   onNudge,
+  height = 520,
+  hudRight = 8,
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -78,6 +80,8 @@ export function Walk({
   follow?: boolean; // スマホの向きに合わせて画面を回す（「▶ 歩く」で試しているあいだは、道順の向き）
   heading?: () => number | null; // スマホの向き（北から時計回りの度）。分からなければ null
   onNudge?: (deg: number) => void; // 向きのずれを直す（度）
+  height?: number | string; // 画面の高さ（全画面のときは "100%"）
+  hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -530,6 +534,9 @@ export function Walk({
       renderer.setSize(el.clientWidth, el.clientHeight);
     };
     window.addEventListener("resize", onResize);
+    // 全画面にしたときなど、枠の大きさが変わったら描き直す
+    const ro = new ResizeObserver(() => el.clientWidth && onResize());
+    ro.observe(el);
     // 位置を直す：タップしたところ（見えている床か矢印の帯）を呼ぶ側に渡す（道順の上に合わせるか、出発地点にするかは呼ぶ側）
     const ray = new THREE.Raycaster();
     let drag: { x: number; y: number; moved: number } | null = null;
@@ -567,6 +574,7 @@ export function Walk({
     renderer.domElement.addEventListener("pointerup", onUp);
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       renderer.domElement.removeEventListener("pointerdown", onDown);
       renderer.domElement.removeEventListener("pointermove", onMove);
       renderer.domElement.removeEventListener("pointerup", onUp);
@@ -584,13 +592,13 @@ export function Walk({
 
   return (
     <>
-      <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
+      <div ref={box} style={{ height, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none" }} />
       <div
         ref={veil}
         style={{
           position: "absolute",
           inset: 0,
-          height: 520,
+          height,
           borderRadius: 10,
           background: "rgba(20,20,19,.92)",
           color: "#fff",
@@ -607,7 +615,7 @@ export function Walk({
         }}
       />
       {/* 上：次の曲がり角 */}
-      <div style={{ position: "absolute", left: 8, right: 8, top: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" }}>
+      <div style={{ position: "absolute", left: 8, right: hudRight, top: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" }}>
         {arrived ? (
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
         ) : (

@@ -45,6 +45,7 @@ import { Walk, WALK_SPEED } from "./Walk";
 const CROP_M = 70;
 // 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
+const ROUND: CSSProperties = { width: 40, height: 40, borderRadius: 20, padding: 0, fontSize: "1.1rem", background: "rgba(20,20,19,.82)", color: "#fff", border: "1px solid rgba(255,255,255,.25)" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
 const GATE_SCALE = 4; // 上から見る画面の改札機は、実物の 4 倍（遠くから見ても改札だと分かるように）
 const FLOOR_H = 14; // 1階ぶんの高さ（m。駅の立体図のように、階と階のあいだを大きくあける）
@@ -141,6 +142,18 @@ function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
 
 // 改札を通るところの言い方（「改札を出る」「中央東改札から入る」）
 const gateText = (p: { out?: boolean; name?: string }) => `${p.name ?? "改札"}${p.out === undefined ? "を通る" : p.out ? "を出る" : "から入る"}`;
+
+// 声で読む文に直す（「B6（ホーム） → B5」→「地下6階、ホーム、から、地下5階」、「約80m」→「約80メートル」）
+function sayable(t: string) {
+  return t
+    .replace(/B(\d+)F?/g, "地下$1階")
+    .replace(/(\d+)\s*m(?![a-z])/g, "$1メートル")
+    .replace(/\s*→\s*/g, "から、")
+    .replace(/[（(]/g, "、")
+    .replace(/[）)]/g, "、")
+    .replace(/、+/g, "、")
+    .replace(/、$/, "");
+}
 
 // 道順の進む向き（真上から見た方位）。上り下りの途中など、水平にほとんど動かないところは、その先まで見る
 function routeBearing(pts: Parameters<typeof pointAt>[0], cum: number[], d: number) {
@@ -418,7 +431,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
   const [started, setStarted] = useState(false); // 「案内をスタート」で向きを合わせてから、案内を始める（それまでは地図を見るだけ）
-  const [aligning, setAligning] = useState<null | "start" | "fix">(null); // 向きを合わせる画面（スタートのときと、途中で直すとき）
+  const [aligning, setAligning] = useState<null | "start" | "fix">(null);
+  const [full, setFull] = useState(false); // 全画面（3D と案内だけを画面いっぱいに）
+  const fullBox = useRef<HTMLDivElement>(null);
+  const [voice, setVoice] = useState(false); // 音声ガイド（読み上げ）。人前で急に鳴らないよう、選んだときだけ // 向きを合わせる画面（スタートのときと、途中で直すとき）
   const followAsked = useRef(false); // 自分でオンにしたか（センサーが届かないときの知らせは、そのときだけ出す）
   const [trackNote, setTrackNote] = useState("");
   const [pickNote, setPickNote] = useState("");
@@ -472,6 +488,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             : "トイレ";
   // エレベーターのボタンの書き方（B3・1・2。中二階はボタンの名前が駅ごとに違うので、階の名前で）
   const liftButton = (f: number) => (!Number.isInteger(f) ? floorName(f) : f < 0 ? `B${-f}` : `${f}`);
+  // 駅のエレベーターのボタンや案内は、階の数字（B4）と一緒に「改札」「ホーム」「地上」と大きく書いてあることが多い
+  const liftRole = (f: number) => (f === minFloor ? "ホーム" : gateFloors.has(f) ? "改札" : f >= 1 ? "地上" : "");
+  const liftPress = (f: number) => (liftRole(f) ? `「${liftRole(f)}」（${liftButton(f)}）` : `「${liftButton(f)}」`);
   // エレベーターの手前 25m から降りるまで、押す階を大きく出す
   const lift = cps.find((c) => c.via === "elevator" && ((c.kind === "board" && c.at > pos - 0.5 && c.at - pos <= 25) || (c.kind === "alight" && pos >= c.boardAt! - 0.5 && pos < c.at - 0.01)));
   // ボタン：「いまここにいる」と押して、位置をピンクの印に合わせる
@@ -1074,6 +1093,85 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (!gyro.current.pull(routeBearing(path.pts, path.cum, d + 0.5), 0.5, 30)) gyro.current.pull(routeBearing(path.pts, path.cum, Math.max(0, d - 4)), 0.5, 30);
     showHeading();
   };
+  // 全画面：使えるブラウザでは画面いっぱい（Fullscreen API）。iPhone の Safari のように使えないときも、ページの上いっぱいに広げる
+  const toggleFull = async () => {
+    if (full) {
+      setFull(false);
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+      return;
+    }
+    setFull(true);
+    try {
+      await fullBox.current?.requestFullscreen?.();
+    } catch {
+      // 使えない：ページの上いっぱいに広げるだけ
+    }
+  };
+  useEffect(() => {
+    if (!full) return;
+    // 全画面のあいだは、後ろのページをスクロールさせない。Esc などで全画面が終わったら、こちらも戻す
+    const was = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onChange = () => {
+      if (!document.fullscreenElement) setFull(false);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => {
+      document.body.style.overflow = was;
+      document.removeEventListener("fullscreenchange", onChange);
+    };
+  }, [full]);
+
+  // 音声ガイド：手順が変わったとき、確認ポイントの手前、逆向き・横向き、着いたときに読み上げる（同じことは二度言わない）
+  const said = useRef<Record<string, string>>({});
+  const speak = (text: string) => {
+    const ss = typeof window !== "undefined" ? window.speechSynthesis : undefined;
+    if (!ss) return;
+    const u = new SpeechSynthesisUtterance(sayable(text));
+    u.lang = "ja-JP";
+    u.rate = 1.05;
+    const ja = ss.getVoices().find((v) => v.lang.startsWith("ja"));
+    if (ja) u.voice = ja;
+    ss.speak(u);
+  };
+  const toggleVoice = () => {
+    if (voice) {
+      window.speechSynthesis?.cancel();
+      setVoice(false);
+      return;
+    }
+    said.current = {};
+    setVoice(true);
+    speak("音声ガイドをオンにしました。");
+  };
+  const cpVoice = (c: Checkpoint) =>
+    c.kind === "turn"
+      ? `${c.dir === "right" ? "右" : "左"}に曲がります。`
+      : c.kind === "board"
+        ? c.via === "stairs"
+          ? `階段を${c.up ? "上ります" : "下ります"}。`
+          : `${KIND_JA[c.via!]}に乗ります。${c.via === "elevator" && c.toFloor !== undefined ? `乗ったら、${liftPress(c.toFloor)}を押してください。` : ""}`
+        : c.kind === "alight"
+          ? c.via === "stairs"
+            ? `階段を${c.up ? "上りきります" : "下りきります"}。`
+            : `${KIND_JA[c.via!]}を降ります。`
+          : c.kind === "gate"
+            ? `${c.name ?? "改札"}${c.out === undefined ? "を通ります" : c.out ? "を出ます" : "から入ります"}。`
+            : "トイレです。";
+  useEffect(() => {
+    if (!voice || !started || !current) return;
+    const once = (slot: string, key: string, text: string) => {
+      if (said.current[slot] === key) return;
+      said.current[slot] = key;
+      speak(text);
+    };
+    if (arrived) return once("arrive", routeKey, "トイレに着きました。");
+    said.current.arrive = "";
+    once("step", `${routeKey}:${stepIdx}`, stepLine(current, guide[stepIdx + 1]));
+    if (next && next.kind !== "arrive" && next.at - pos <= 8 && next.at - pos > 0.5) once("cp", `${routeKey}:${next.at}`, `まもなく、${cpVoice(next)}`);
+    if (drift) once("drift", drift, drift === "back" ? "来た道を戻っています。進む方を向いているなら、画面のボタンを押してください。" : "道順からそれていませんか。");
+    else said.current.drift = "";
+  });
   const headingNow = useCallback(() => gyro.current.now(), []);
   const nudgeHeading = useCallback(
     (deg: number) => {
@@ -1373,248 +1471,300 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           </button>
         </div>
       )}
-      <div style={{ position: "relative", marginTop: 8, display: asking ? "none" : "block" }}>
-        {view === "walk" && route && indoor && goal && (
-          <Walk
-            key={routeKey}
-            indoor={indoor}
-            pts={path.pts}
-            cum={path.cum}
-            list={listText}
-            center={center}
-            floorName={floorName}
-            pos={pos}
-            onPos={setPos}
-            playing={playing}
-            onStop={() => setPlaying(false)}
-            picking={picking}
-            onPick={(q) => live.current.pick([q], FLOOR_M)}
-            mark={next && next.kind !== "arrive" ? next.at : undefined}
-            follow={follow && started}
-            platformFloor={line ? minFloor : undefined}
-            heading={headingNow}
-            onNudge={nudgeHeading}
-          />
-        )}
-        <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }} />
-        {view === "above" && route && goal && current && (
-          <div style={{ ...HUD, top: 8 }}>
-            {arrived ? (
-              <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
-            ) : (
-              <>
-                <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
-                  いまの手順（{stepIdx + 1} / {guide.length}）
-                </div>
-                <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepLine(current, guide[stepIdx + 1])}</div>
-                {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepLine(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
-              </>
-            )}
-          </div>
-        )}
-        {/* スタートの前：地図は見られる。下に「案内をスタート」だけ */}
-        {route && goal && !started && !aligning && (
-          <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
-            <div style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: 6 }}>地図は指で動かして見られます。歩き出すときに押してください。</div>
-            <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => setAligning("start")}>
-              ▶ 案内をスタート
-            </button>
-          </div>
-        )}
-        {/* 向きを合わせる：地図の前に出して、向いたら画面のどこかをタップ */}
-        {align && (
+      <div
+        ref={fullBox}
+        style={
+          full
+            ? {
+                position: "fixed",
+                inset: 0,
+                zIndex: 1000,
+                background: "var(--bg, #fff)",
+                padding: "env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)",
+                display: asking ? "none" : "block",
+              }
+            : { position: "relative", marginTop: 8, display: asking ? "none" : "block" }
+        }
+      >
+        <div style={{ position: "relative", height: full ? "100%" : undefined }}>
+          {view === "walk" && route && indoor && goal && (
+            <Walk
+              key={routeKey}
+              indoor={indoor}
+              pts={path.pts}
+              cum={path.cum}
+              list={listText}
+              center={center}
+              floorName={floorName}
+              pos={pos}
+              onPos={setPos}
+              playing={playing}
+              onStop={() => setPlaying(false)}
+              picking={picking}
+              onPick={(q) => live.current.pick([q], FLOOR_M)}
+              mark={next && next.kind !== "arrive" ? next.at : undefined}
+              follow={follow && started}
+              platformFloor={line ? minFloor : undefined}
+              heading={headingNow}
+              onNudge={nudgeHeading}
+              height={full ? "100%" : 520}
+              hudRight={full ? 56 : 8}
+            />
+          )}
           <div
-            role="button"
-            tabIndex={0}
-            aria-label={`${align.text}を向いたら、ここをタップ`}
-            onClick={alignTap}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && alignTap()}
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 5,
-              borderRadius: 10,
-              background: "rgba(15,20,25,.74)",
-              color: "#fff",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-              padding: 20,
-              textAlign: "center",
-              cursor: "pointer",
-            }}
-          >
-            <div style={{ fontSize: "3rem", lineHeight: 1 }}>🧭</div>
-            <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.45 }}>
-              <span style={{ color: "#9fe3ff" }}>{align.text}</span>を向いたら、
-              <br />
-              画面のどこかをタップ
+            ref={box}
+            style={{ height: full ? "100%" : 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }}
+          />
+          {view === "above" && route && goal && current && (
+            <div style={{ ...HUD, top: 8, right: full ? 56 : 8 }}>
+              {arrived ? (
+                <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: "0.8rem", opacity: 0.85 }}>
+                    いまの手順（{stepIdx + 1} / {guide.length}）
+                  </div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 800 }}>{stepLine(current, guide[stepIdx + 1])}</div>
+                  {guide[stepIdx + 1] && <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>そのあと：{stepLine(guide[stepIdx + 1], guide[stepIdx + 2])}</div>}
+                </>
+              )}
             </div>
-            <div style={{ fontSize: "0.9rem", opacity: 0.85, maxWidth: 300 }}>{align.sub}</div>
-            <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>スマホは画面を上にして、胸の前で持ってください</div>
-            <div className="row" style={{ gap: 8, marginTop: 4 }}>
-              {aligning === "start" && (
+          )}
+          {/* スタートの前：地図は見られる。下に「案内をスタート」だけ */}
+          {route && goal && !started && !aligning && (
+            <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: 6 }}>地図は指で動かして見られます。歩き出すときに押してください。</div>
+              <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => setAligning("start")}>
+                ▶ 案内をスタート
+              </button>
+            </div>
+          )}
+          {/* 向きを合わせる：地図の前に出して、向いたら画面のどこかをタップ */}
+          {align && (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={`${align.text}を向いたら、ここをタップ`}
+              onClick={alignTap}
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && alignTap()}
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 5,
+                borderRadius: 10,
+                background: "rgba(15,20,25,.74)",
+                color: "#fff",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 12,
+                padding: 20,
+                textAlign: "center",
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontSize: "3rem", lineHeight: 1 }}>🧭</div>
+              <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.45 }}>
+                <span style={{ color: "#9fe3ff" }}>{align.text}</span>を向いたら、
+                <br />
+                画面のどこかをタップ
+              </div>
+              <div style={{ fontSize: "0.9rem", opacity: 0.85, maxWidth: 300 }}>{align.sub}</div>
+              <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>スマホは画面を上にして、胸の前で持ってください</div>
+              <div className="row" style={{ gap: 8, marginTop: 4 }}>
+                {aligning === "start" && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      alignSkip();
+                    }}
+                  >
+                    合わせずに始める
+                  </button>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    alignSkip();
+                    setAligning(null);
                   }}
                 >
-                  合わせずに始める
+                  やめる
                 </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAligning(null);
-                }}
-              >
-                やめる
-              </button>
-            </div>
-          </div>
-        )}
-        {/* 下：次の確認ポイント（ピンクの印）と、そこに位置を合わせるボタン（どちらの見方でも同じ場所） */}
-        {route && goal && started && (
-          <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
-            {/* 案内の2行。エレベーターの手前と中では、2行目を行き先にして、右に押すボタンを出す（高さは変えない。3D を狭めない） */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {picking ? (
-                  <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
-                ) : next ? (
-                  <div style={{ fontWeight: 800 }}>
-                    {next.kind !== "arrive" && <span style={{ color: CP_CSS }}>● </span>}
-                    次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
-                  </div>
-                ) : (
-                  <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
-                )}
-                <div style={{ fontSize: "0.8rem", opacity: (lift || hint) && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {drift && !picking ? (
-                    <button
-                      onClick={() => {
-                        // 「進む方を向いている」：いまのスマホの向きを、道順の向きに合わせ直す
-                        gyro.current.calibrate(routeBearing(path.pts, path.cum, pos));
-                        showHeading();
-                        recal.current = true;
-                        setDrift(null);
-                      }}
-                      style={{ all: "unset", cursor: "pointer", color: "#ffb4a8", fontWeight: 800 }}
-                    >
-                      ⚠ {drift === "back" ? "来た道を戻っています" : "道順からそれていませんか"}（進む方を向いていれば押す）
-                    </button>
-                  ) : hint && (hint.text || advice) && !picking ? (
-                    <span style={{ color: "#9fe3ff", fontWeight: 800 }}>
-                      {pos < 3 ? "最初は" : "降りたら"}
-                      {hint.text ?? "矢印の向き"}
-                      {advice && `・${advice.text}`}
-                    </span>
-                  ) : lift && !picking ? (
-                    <span style={{ color: "#ffe27a", fontWeight: 800 }}>
-                      {lift.kind === "board" ? "乗ったら右を押す：" : "行き先："}
-                      {floorName(lift.toFloor!)}
-                    </span>
-                  ) : (
-                    <>
-                      {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
-                    </>
-                  )}
-                </div>
               </div>
-              {advice && !picking ? (
-                <div
-                  aria-label={`進む向き：${advice.text}`}
-                  style={{
-                    flexShrink: 0,
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    border: `3px solid ${Math.abs(advice.diff) <= 30 ? "#7ee2a0" : "#9fe3ff"}`,
-                    background: "#0f2a36",
-                    color: "#fff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.5rem",
-                    fontWeight: 800,
-                  }}
-                >
-                  <span style={{ display: "inline-block", transform: `rotate(${advice.diff}deg)`, transition: "transform .2s" }}>↑</span>
+            </div>
+          )}
+          {/* 下：次の確認ポイント（ピンクの印）と、そこに位置を合わせるボタン（どちらの見方でも同じ場所） */}
+          {route && goal && started && (
+            <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+              {/* 案内の2行。エレベーターの手前と中では、2行目を行き先にして、右に押すボタンを出す（高さは変えない。3D を狭めない） */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {picking ? (
+                    <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
+                  ) : next ? (
+                    <div style={{ fontWeight: 800 }}>
+                      {next.kind !== "arrive" && <span style={{ color: CP_CSS }}>● </span>}
+                      次の確認ポイント：{cpLabel(next)}（あと{Math.max(0, Math.round(next.at - pos))}m）
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: 800 }}>◎ トイレに着きました</div>
+                  )}
+                  <div style={{ fontSize: "0.8rem", opacity: (lift || hint) && !picking ? 1 : 0.85, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {drift && !picking ? (
+                      <button
+                        onClick={() => {
+                          // 「進む方を向いている」：いまのスマホの向きを、道順の向きに合わせ直す
+                          gyro.current.calibrate(routeBearing(path.pts, path.cum, pos));
+                          showHeading();
+                          recal.current = true;
+                          setDrift(null);
+                        }}
+                        style={{ all: "unset", cursor: "pointer", color: "#ffb4a8", fontWeight: 800 }}
+                      >
+                        ⚠ {drift === "back" ? "来た道を戻っています" : "道順からそれていませんか"}（進む方を向いていれば押す）
+                      </button>
+                    ) : hint && (hint.text || advice) && !picking ? (
+                      <span style={{ color: "#9fe3ff", fontWeight: 800 }}>
+                        {pos < 3 ? "最初は" : "降りたら"}
+                        {hint.text ?? "矢印の向き"}
+                        {advice && `・${advice.text}`}
+                      </span>
+                    ) : lift && !picking ? (
+                      <span style={{ color: "#ffe27a", fontWeight: 800 }}>{lift.kind === "board" ? `乗ったら${liftPress(lift.toFloor!)}を押す` : `行き先：${floorName(lift.toFloor!)}`}</span>
+                    ) : (
+                      <>
+                        {goal.short}・のこり {Math.max(0, Math.round(total - pos))} メートル
+                      </>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                lift &&
-                !picking && (
+                {advice && !picking ? (
                   <div
-                    aria-label={`エレベーターで押すボタン：${liftButton(lift.toFloor!)}`}
+                    aria-label={`進む向き：${advice.text}`}
                     style={{
                       flexShrink: 0,
-                      minWidth: 44,
+                      width: 44,
                       height: 44,
                       borderRadius: 22,
-                      border: "3px solid #ffe27a",
-                      background: "#fff4c2",
-                      color: "#3a2f00",
+                      border: `3px solid ${Math.abs(advice.diff) <= 30 ? "#7ee2a0" : "#9fe3ff"}`,
+                      background: "#0f2a36",
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "1.25rem",
+                      fontSize: "1.5rem",
                       fontWeight: 800,
-                      padding: "0 6px",
                     }}
                   >
-                    {liftButton(lift.toFloor!)}
+                    <span style={{ display: "inline-block", transform: `rotate(${advice.diff}deg)`, transition: "transform .2s" }}>↑</span>
                   </div>
-                )
-              )}
-            </div>
-            <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
-              <button
-                style={{ ...BIG, flex: 0.6 }}
-                aria-label="ひとつ前の確認ポイントへ"
-                onClick={() => {
-                  setPlaying(false);
-                  setPos(prevCheckpoint(cps, pos)?.at ?? 0);
-                }}
-                disabled={pos < 0.5}
-              >
-                ←
-              </button>
-              <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
-                {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
-              </button>
-              {next ? (
+                ) : (
+                  lift &&
+                  !picking && (
+                    <div
+                      aria-label={`エレベーターで押すボタン：${liftPress(lift.toFloor!)}`}
+                      style={{
+                        flexShrink: 0,
+                        minWidth: 52,
+                        height: 48,
+                        borderRadius: 12,
+                        border: "3px solid #ffe27a",
+                        background: "#fff4c2",
+                        color: "#3a2f00",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: liftRole(lift.toFloor!) ? "1.05rem" : "1.25rem",
+                        fontWeight: 800,
+                        lineHeight: 1.1,
+                        padding: "0 6px",
+                      }}
+                    >
+                      {liftRole(lift.toFloor!) || liftButton(lift.toFloor!)}
+                      {liftRole(lift.toFloor!) && <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>{liftButton(lift.toFloor!)}</span>}
+                    </div>
+                  )
+                )}
+              </div>
+              <div className="row" style={{ marginTop: 6, flexWrap: "nowrap" }}>
                 <button
-                  className="primary"
-                  style={{ ...BIG, flex: 2 }}
+                  style={{ ...BIG, flex: 0.6 }}
+                  aria-label="ひとつ前の確認ポイントへ"
                   onClick={() => {
                     setPlaying(false);
-                    setPos(next.at);
-                    pullAt(next.at);
+                    setPos(prevCheckpoint(cps, pos)?.at ?? 0);
                   }}
+                  disabled={pos < 0.5}
                 >
-                  <span style={{ display: "block", lineHeight: 1.25 }}>{cpButton(next)}</span>
-                  <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, opacity: 0.9 }}>
-                    {next.kind === "arrive" ? "押すと、ここまで進めます" : "押すと、ピンクの印に位置を合わせます"}
-                  </span>
+                  ←
                 </button>
-              ) : (
-                <button style={{ ...BIG, flex: 2 }} onClick={() => setPos(0)}>
-                  ↺ 最初から
+                <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
+                  {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+                </button>
+                {next ? (
+                  <button
+                    className="primary"
+                    style={{ ...BIG, flex: 2 }}
+                    onClick={() => {
+                      setPlaying(false);
+                      setPos(next.at);
+                      pullAt(next.at);
+                    }}
+                  >
+                    <span style={{ display: "block", lineHeight: 1.25 }}>{cpButton(next)}</span>
+                    <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, opacity: 0.9 }}>
+                      {next.kind === "arrive" ? "押すと、ここまで進めます" : "押すと、ピンクの印に位置を合わせます"}
+                    </span>
+                  </button>
+                ) : (
+                  <button style={{ ...BIG, flex: 2 }} onClick={() => setPos(0)}>
+                    ↺ 最初から
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          {full && (
+            <div style={{ position: "absolute", top: 8, right: 8, zIndex: 6, display: "flex", flexDirection: "column", gap: 6 }}>
+              <button aria-label="全画面をやめる" onClick={toggleFull} style={ROUND}>
+                ✕
+              </button>
+              {route && (
+                <button
+                  aria-label={view === "walk" ? "まわりを上から見る" : "歩く目線で見る"}
+                  onClick={() => {
+                    setMore(true);
+                    setView(view === "walk" ? "above" : "walk");
+                  }}
+                  style={ROUND}
+                >
+                  {view === "walk" ? "🗺" : "🚶"}
                 </button>
               )}
+              {started && (
+                <button aria-label="向きを直す" onClick={() => setAligning("fix")} style={ROUND}>
+                  🧭
+                </button>
+              )}
+              <button aria-label={voice ? "音声ガイドを止める" : "音声ガイドをオンにする"} aria-pressed={voice} onClick={toggleVoice} style={ROUND}>
+                {voice ? "🔊" : "🔇"}
+              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       {!asking && (
         <div className="chips" style={{ marginTop: 6 }}>
           <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
             📍 地図で位置を直す
           </button>
+          <button onClick={toggleFull}>⛶ 全画面で見る</button>
           {started && <button onClick={() => setAligning("fix")}>🧭 向きを直す</button>}
+          <button aria-pressed={voice} onClick={toggleVoice}>
+            {voice ? "🔊 音声ガイドを止める" : "🔇 音声ガイド"}
+          </button>
           <button aria-pressed={follow} onClick={toggleFollow}>
             {follow ? "⏸ 自分に合わせて動くのを止める" : "▶ 自分に合わせて動く"}
           </button>
