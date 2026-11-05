@@ -29,3 +29,14 @@ test("向き：合わせる前は磁石、線路で合わせたあとは相対�
   h.nudge(-5);
   assert.ok(near(h.now()!, 70));
 });
+
+test("向き：歩きながら道順の向きに少しだけ寄せる。合わせる前と、大きくずれているときは寄せない", () => {
+  const h = new Heading();
+  h.setRel(0);
+  assert.equal(h.pull(10, 0.5), false); // まだ合わせていない
+  h.calibrate(100);
+  assert.ok(h.pull(110, 0.5));
+  assert.ok(near(h.now()!, 105));
+  assert.equal(h.pull(200, 0.5), false); // 95 度ずれ：寄せない
+  assert.ok(near(h.now()!, 105));
+});

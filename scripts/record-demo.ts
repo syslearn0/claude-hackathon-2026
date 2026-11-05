@@ -454,7 +454,7 @@ scenes["route3d-oedo"] = {
     }
     await sleep(1000);
     mark("zoomed");
-    // スマホの向き（ジャイロの相対の向き。立てて持っている）。まず線路の向きで合わせ（「向いた」）、そこから回して最初の一歩の向きへ
+    // スマホの向き（ジャイロの相対の向き。立てて持っている）。「案内をスタート」→ 線路の向きで合わせ（前に出る画面をタップ）、そこから回して最初の一歩の向きへ
     const face = (deg: number) =>
       page.evaluate((d) => {
         const e = new Event("deviceorientation");
@@ -464,7 +464,10 @@ scenes["route3d-oedo"] = {
     let deg = 0;
     await face(deg);
     await sleep(1500);
-    const calib = page.getByRole("button", { name: "向いた" });
+    await tap(page, page.getByRole("button", { name: "▶ 案内をスタート" }));
+    mark("start");
+    await sleep(1500);
+    const calib = page.getByRole("button", { name: /を向いたら、ここをタップ/ });
     check["線路の向きで合わせる"] = (await calib.count()) > 0;
     if (check["線路の向きで合わせる"]) {
       await tap(page, calib);

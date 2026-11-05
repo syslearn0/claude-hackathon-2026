@@ -7,7 +7,17 @@ import type { KindName } from "./route";
 export const STEP_M = 0.7; // 1歩（m）
 
 // 確認ポイント：曲がる角・上り下りの乗り口と降り口・改札（出る・入る）・トイレ
-export type Checkpoint = { at: number; kind: "turn" | "board" | "alight" | "gate" | "arrive"; dir?: "left" | "right"; via?: KindName; toFloor?: number; up?: boolean; boardAt?: number; out?: boolean; name?: string };
+export type Checkpoint = {
+  at: number;
+  kind: "turn" | "board" | "alight" | "gate" | "arrive";
+  dir?: "left" | "right";
+  via?: KindName;
+  toFloor?: number;
+  up?: boolean;
+  boardAt?: number;
+  out?: boolean;
+  name?: string;
+};
 
 export function checkpoints(list: Maneuver[]): Checkpoint[] {
   const out: Checkpoint[] = [];
@@ -128,5 +138,32 @@ export class HeadingCheck {
     const aside = this.recent.filter(([, x]) => x > 60).length;
     const drift: Drift | undefined = back >= 4 ? "back" : this.recent.length >= 6 && aside >= 5 ? "aside" : undefined;
     return { advance: d <= 75, drift };
+  }
+}
+
+// スマホの向き（線路などで合わせたもの）と道順の向きから、1歩ごとに 進む（1）・戻る（-1）・止まる（0）を決める。
+// 後ろを向いて歩いていたら（135 度より大きくずれた歩が 2 歩続いたら）来た道を戻し、横を向いているあいだは止める
+export class PhoneSteps {
+  private back = 0;
+  private aside = 0;
+  reset() {
+    this.back = 0;
+    this.aside = 0;
+  }
+  step(phone: number, route: number, ahead = route): { move: 1 | 0 | -1; drift?: Drift } {
+    const now = angleDiff(phone, route);
+    const next = angleDiff(phone, ahead);
+    if (now > 135 && next > 135) {
+      this.back++;
+      this.aside = 0;
+      return { move: this.back >= 2 ? -1 : 0, drift: this.back >= 3 ? "back" : undefined };
+    }
+    this.back = 0;
+    if (Math.min(now, next) <= 60) {
+      this.aside = 0;
+      return { move: 1 };
+    }
+    this.aside++;
+    return { move: 0, drift: this.aside >= 5 ? "aside" : undefined };
   }
 }

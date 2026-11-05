@@ -63,4 +63,19 @@ export class Heading {
     if (this.offset === null) return;
     this.offset = norm360(this.offset + deg);
   }
+  // 歩きながら、道順の向き（routeDeg）に少しだけ寄せる（k：寄せる割合）。差が maxDiff 度より大きいときは、
+  // よそ見や向きの取り違えかもしれないので寄せない。線路などで合わせたあとだけ
+  pull(routeDeg: number, k: number, maxDiff = 30): boolean {
+    const h = this.now();
+    if (h === null || this.by !== "track") return false;
+    const d = signedDiff(routeDeg, h);
+    if (Math.abs(d) > maxDiff) return false;
+    this.nudge(d * k);
+    return true;
+  }
+}
+
+// 向き h から向き a へ回す角度（-180〜180。正：時計回り）
+export function signedDiff(a: number, h: number): number {
+  return norm360(a - h + 180) - 180;
 }

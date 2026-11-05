@@ -9,13 +9,28 @@ import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
 import { gatePasses, type GateShape } from "@/lib/gates";
-import { Heading, headingFromEuler, type HeadingSource } from "@/lib/orientation";
+import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
-import { advanceBySteps, checkpoints, HeadingCheck, nextCheckpoint, prevCheckpoint, snapFloor, snapTurn, STEP_M, StepCounter, TurnWatcher, yawRate, type Checkpoint, type Drift } from "@/lib/tracking";
+import {
+  advanceBySteps,
+  checkpoints,
+  HeadingCheck,
+  nextCheckpoint,
+  PhoneSteps,
+  prevCheckpoint,
+  snapFloor,
+  snapTurn,
+  STEP_M,
+  StepCounter,
+  TurnWatcher,
+  yawRate,
+  type Checkpoint,
+  type Drift,
+} from "@/lib/tracking";
 import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
@@ -125,6 +140,17 @@ function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
 // 改札を通るところの言い方（「改札を出る」「中央東改札から入る」）
 const gateText = (p: { out?: boolean; name?: string }) => `${p.name ?? "改札"}${p.out === undefined ? "を通る" : p.out ? "を出る" : "から入る"}`;
 
+// 道順の進む向き（真上から見た方位）。上り下りの途中など、水平にほとんど動かないところは、その先まで見る
+function routeBearing(pts: Parameters<typeof pointAt>[0], cum: number[], d: number) {
+  const total = cum.at(-1) ?? 0;
+  const a = pointAt(pts, cum, d);
+  for (let k = 2; k <= 12; k++) {
+    const b = pointAt(pts, cum, Math.min(total, d + k));
+    if (Math.hypot(b.x - a.x, b.z - a.z) >= 1.5 || d + k >= total) return bearingDeg(b.x - a.x, b.z - a.z);
+  }
+  return 0;
+}
+
 type Props = { station: string; goalId?: string | null; embedded?: boolean };
 
 export function StationRoute({ station, goalId: goalFromUrl = null, embedded = false }: Props) {
@@ -153,14 +179,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   // 基準は磁石を使わない相対の向き（ジャイロ）。ホームで線路の向きに合わせたあとは、地下で磁石が狂っても向きがずれない
   const compass = useRef<number | null>(null);
   const gyro = useRef(new Heading());
-  const [headingBy, setHeadingBy] = useState<HeadingSource>("none");
   const [hasCompass, setHasCompass] = useState(false);
   const [phoneDeg, setPhoneDeg] = useState<number | null>(null); // 画面に出す用（4 度以上、0.15 秒以上あけて更新）
   const shownHeading = useRef({ h: -999, t: 0 });
   const [askCompass, setAskCompass] = useState(false); // iPhone：許可を聞くボタンを出す
   const showHeading = useCallback(() => {
     const h = gyro.current.now();
-    setHeadingBy(gyro.current.by);
     if (h === null) return;
     compass.current = h;
     const b = youMark.current?.beam;
@@ -391,6 +415,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const [playing, setPlaying] = useState(false); // 歩く目線の「▶ 歩く」（試しに自動で進める）
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
+  const [started, setStarted] = useState(false); // 「案内をスタート」で向きを合わせてから、案内を始める（それまでは地図を見るだけ）
+  const [aligning, setAligning] = useState<null | "start" | "fix">(null); // 向きを合わせる画面（スタートのときと、途中で直すとき）
   const followAsked = useRef(false); // 自分でオンにしたか（センサーが届かないときの知らせは、そのときだけ出す）
   const [trackNote, setTrackNote] = useState("");
   const [pickNote, setPickNote] = useState("");
@@ -469,7 +495,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
 
   // センサーで追う：歩数で進め、曲がった・気圧で階が変わったら近くの確認ポイントに合わせ直す
   useEffect(() => {
-    if (!follow) return;
+    if (!follow || !started) return;
     const steps = new StepCounter();
     const turns = new TurnWatcher();
     let n = 0;
@@ -479,14 +505,14 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     let alive = true;
     let stopBaro: (() => void) | undefined;
     const note = () => setTrackNote(`歩数 ${n}・曲がり角などで自動で合わせ直した ${fixes} 回${baro}`);
-    // 向き：歩いている向きと道順の向きを比べ、逆向き・横向きのときは進めずに知らせる
+    // 向き：歩いている向きと道順の向きを比べる（後ろ向きなら戻す・横向きなら止めて知らせる）
+    // スマホの向きを合わせてあれば（線路・道順の向き）、その向きで 進む・戻る・止まる を決める。なければジャイロで回った角度から
     const heads = new HeadingCheck();
+    const phoneSteps = new PhoneSteps();
     const bearing = (d: number) => {
       const { path } = live.current;
-      if (path.pts.length < 2) return 0; // 道順がまだない（自分に合わせて動くのは、規定で最初からオン）
-      const a = pointAt(path.pts, path.cum, d);
-      const b = pointAt(path.pts, path.cum, d + 2);
-      return (Math.atan2(b.x - a.x, -(b.z - a.z)) * 180) / Math.PI;
+      if (path.pts.length < 2) return 0; // 道順がまだない
+      return routeBearing(path.pts, path.cum, d);
     };
     const spun: [number, number][] = []; // 回った角度の合計（度。左回りが正）の、直近 6 秒
     let turning: { t: number; dir: "left" | "right" } | null = null;
@@ -497,6 +523,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       if (fix) {
         fixes++;
         heads.calibrate(bearing(d));
+        phoneSteps.reset();
+        // 角を曲がった・階が変わったところは、向きが道順の向きとほぼ同じはず。スマホの向きを半分だけ寄せる
+        gyro.current.pull(bearing(d), 0.5, 30);
         setDrift(null);
       }
       mine = d;
@@ -519,13 +548,31 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         heads.calibrate(bearing(at));
         mine = at;
         recal.current = false;
+        phoneSteps.reset();
         setDrift(null);
       }
       if (steps.push(e.timeStamp, Math.hypot(g.x, g.y, g.z))) {
         n++;
-        const h = heads.step(bearing(at), bearing(at + 5));
-        setDrift(h.drift ?? null);
-        if (h.advance) go(advanceBySteps(live.current.cps, at, STEP_M), false);
+        const route = bearing(at);
+        const ahead = bearing(at + 5);
+        const phone = gyro.current.by === "track" ? gyro.current.now() : null;
+        if (phone !== null) {
+          const s = phoneSteps.step(phone, route, ahead);
+          setDrift(s.drift ?? null);
+          if (s.move === 1) {
+            // まっすぐの通路を進んでいるときは、スマホの向きを道順の向きに少しずつ寄せる（ジャイロの少しずつのずれを消す）
+            if (Math.abs(signedDiff(route, ahead)) < 10) gyro.current.pull(route, 0.08, 25);
+            go(advanceBySteps(live.current.cps, at, STEP_M), false);
+          } else if (s.move === -1) {
+            // 後ろを向いて歩いている：来た道を戻す（エレベーターなどを降りたところより前には戻さない）
+            const stop = live.current.cps.filter((c) => c.kind === "alight" && c.at <= at + 0.01).at(-1)?.at ?? 0;
+            go(Math.max(stop, at - STEP_M), false);
+          }
+        } else {
+          const h = heads.step(route, ahead);
+          setDrift(h.drift ?? null);
+          if (h.advance) go(advanceBySteps(live.current.cps, at, STEP_M), false);
+        }
         note();
       }
       if (yaw === undefined) return;
@@ -572,7 +619,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       clearTimeout(check);
       stopBaro?.();
     };
-  }, [follow, setPos]);
+  }, [follow, started, setPos]);
   // iPhone は、ボタンを押したときに動きと向きのセンサーの許可を聞く。断られても止めない（届かなければ知らせる）
   const askSensors = async () => {
     for (const name of ["DeviceMotionEvent", "DeviceOrientationEvent"]) {
@@ -956,17 +1003,58 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (!a || !b) return undefined;
     return { floor: minFloor, toCar1: { x: (b.lon - a.lon) * kx, z: -(b.lat - a.lat) * 110_540 }, cars: LINE_CARS.大江戸線.cars, car1Side: ends.car1Side, otherSide: ends.otherSide };
   }, [station, stations, minFloor, kx]);
-  // 線路の向きで、スマホの向きを合わせる（ホームから出発するとき）。合わせたあとは、ジャイロだけで向きを追う
-  const onPlatform = !!route && !!net && net.nodes[route.nodes[0]][2] === minFloor;
+  // 向きを合わせる（「案内をスタート」と、途中の「向きを直す」）。ホームにいれば線路の向き（電車の行く方面）で、
+  // それ以外は道順の最初に進む向き（目印があればその方）で。合わせたあとは、ジャイロだけで向きを追う（地下では磁石が狂う）
   const [calibNote, setCalibNote] = useState("");
-  const calibrateByTrack = async () => {
-    if (!platformInfo) return;
+  const onPlatform = !!platformInfo && path.pts.length > 0 && Math.abs(floorNow - minFloor) < 0.01;
+  const align: { text: string; sub: string; deg: number } | undefined =
+    !aligning || path.pts.length < 2
+      ? undefined
+      : aligning === "fix"
+        ? { text: "道順の進む方（通路の先）", sub: "まわりの通路と地図を見くらべて、これから進む方を向いてください。", deg: routeBearing(path.pts, path.cum, pos) }
+        : onPlatform && platformInfo
+          ? {
+              text: `${platformInfo.car1Side}方面`,
+              sub: `線路と同じ向きに立って、電車が${platformInfo.car1Side}へ行く向きを向いてください。`,
+              deg: bearingDeg(platformInfo.toCar1.x, platformInfo.toCar1.z),
+            }
+          : (() => {
+              const h = startHint(path.pts, path.cum, pos, hintMarks);
+              return {
+                text: h?.text ? h.text.replace(/の方へ$/, "の方") : "道順の最初に進む方",
+                sub: "地図の赤い道順の、最初に進む向きです。",
+                deg: h?.bearing ?? routeBearing(path.pts, path.cum, pos),
+              };
+            })();
+  const alignTap = async () => {
+    if (!align) return;
+    const fix = aligning === "fix";
+    setAligning(null);
+    followAsked.current = true;
     await askSensors();
     // 許可を聞いた直後は、まだ向きが届いていないことがある
     for (let i = 0; i < 10 && gyro.current.base === null; i++) await new Promise((r) => setTimeout(r, 100));
-    const ok = gyro.current.calibrate(bearingDeg(platformInfo.toCar1.x, platformInfo.toCar1.z));
+    const ok = gyro.current.calibrate(align.deg);
     showHeading();
-    setCalibNote(ok ? "向きを線路に合わせました。ずれていたら、歩く目線で左右にドラッグして直せます。" : "スマホの向きが取れません（パソコンなど）。");
+    recal.current = true;
+    setDrift(null);
+    setPlaying(false);
+    setStarted(true);
+    setCalibNote(
+      ok ? `${fix ? "向きを直しました" : "向きを合わせました"}。ずれてきたら「🧭 向きを直す」で、いつでも合わせ直せます。` : "スマホの向きが取れません（パソコンなど）。向きなしで案内します。",
+    );
+  };
+  const alignSkip = async () => {
+    setAligning(null);
+    followAsked.current = true;
+    await askSensors();
+    setStarted(true);
+    setCalibNote("磁石の向きで始めました（地下ではずれることがあります）。「🧭 向きを直す」で合わせられます。");
+  };
+  // 確認ポイントで位置を合わせたとき：そこで向いているのは、来た向きか進む向きのはず。近い方にスマホの向きを半分寄せる
+  const pullAt = (d: number) => {
+    if (!gyro.current.pull(routeBearing(path.pts, path.cum, d + 0.5), 0.5, 30)) gyro.current.pull(routeBearing(path.pts, path.cum, Math.max(0, d - 4)), 0.5, 30);
+    showHeading();
   };
   const headingNow = useCallback(() => gyro.current.now(), []);
   const nudgeHeading = useCallback(
@@ -1250,17 +1338,6 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         </section>
       )}
 
-      {/* 線路の向きでスマホの向きを合わせる（ホームから出発するとき。磁石は地下で狂うので、これが基準になる） */}
-      {!asking && follow && onPlatform && platformInfo && headingBy !== "track" && (
-        <div className="card" style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: "8px 12px" }}>
-          <div style={{ flex: 1, fontSize: "0.9rem" }}>
-            🧭 線路と同じ向きに立って、<strong>{platformInfo.car1Side}方面</strong>（電車が{platformInfo.car1Side}へ行く向き）を向いたら押す
-          </div>
-          <button className="primary" onClick={calibrateByTrack} style={{ flexShrink: 0 }}>
-            向いた
-          </button>
-        </div>
-      )}
       {calibNote && (
         <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
           {calibNote}
@@ -1295,7 +1372,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             picking={picking}
             onPick={(q) => live.current.pick([q], FLOOR_M)}
             mark={next && next.kind !== "arrive" ? next.at : undefined}
-            follow={follow}
+            follow={follow && started}
             platformFloor={line ? minFloor : undefined}
             heading={headingNow}
             onNudge={nudgeHeading}
@@ -1317,8 +1394,72 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             )}
           </div>
         )}
+        {/* スタートの前：地図は見られる。下に「案内をスタート」だけ */}
+        {route && goal && !started && !aligning && (
+          <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
+            <div style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: 6 }}>地図は指で動かして見られます。歩き出すときに押してください。</div>
+            <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => setAligning("start")}>
+              ▶ 案内をスタート
+            </button>
+          </div>
+        )}
+        {/* 向きを合わせる：地図の前に出して、向いたら画面のどこかをタップ */}
+        {align && (
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={`${align.text}を向いたら、ここをタップ`}
+            onClick={alignTap}
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && alignTap()}
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 5,
+              borderRadius: 10,
+              background: "rgba(15,20,25,.74)",
+              color: "#fff",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+              padding: 20,
+              textAlign: "center",
+              cursor: "pointer",
+            }}
+          >
+            <div style={{ fontSize: "3rem", lineHeight: 1 }}>🧭</div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.45 }}>
+              <span style={{ color: "#9fe3ff" }}>{align.text}</span>を向いたら、
+              <br />
+              画面のどこかをタップ
+            </div>
+            <div style={{ fontSize: "0.9rem", opacity: 0.85, maxWidth: 300 }}>{align.sub}</div>
+            <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>スマホは画面を上にして、胸の前で持ってください</div>
+            <div className="row" style={{ gap: 8, marginTop: 4 }}>
+              {aligning === "start" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    alignSkip();
+                  }}
+                >
+                  合わせずに始める
+                </button>
+              )}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAligning(null);
+                }}
+              >
+                やめる
+              </button>
+            </div>
+          </div>
+        )}
         {/* 下：次の確認ポイント（ピンクの印）と、そこに位置を合わせるボタン（どちらの見方でも同じ場所） */}
-        {route && goal && (
+        {route && goal && started && (
           <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
             {/* 案内の2行。エレベーターの手前と中では、2行目を行き先にして、右に押すボタンを出す（高さは変えない。3D を狭めない） */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1337,12 +1478,15 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                   {drift && !picking ? (
                     <button
                       onClick={() => {
+                        // 「進む方を向いている」：いまのスマホの向きを、道順の向きに合わせ直す
+                        gyro.current.calibrate(routeBearing(path.pts, path.cum, pos));
+                        showHeading();
                         recal.current = true;
                         setDrift(null);
                       }}
                       style={{ all: "unset", cursor: "pointer", color: "#ffb4a8", fontWeight: 800 }}
                     >
-                      ⚠ {drift === "back" ? "逆に歩いていませんか" : "道順からそれていませんか"}（合っていれば押す）
+                      ⚠ {drift === "back" ? "来た道を戻っています" : "道順からそれていませんか"}（進む方を向いていれば押す）
                     </button>
                   ) : hint && (hint.text || advice) && !picking ? (
                     <span style={{ color: "#9fe3ff", fontWeight: 800 }}>
@@ -1430,6 +1574,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                   onClick={() => {
                     setPlaying(false);
                     setPos(next.at);
+                    pullAt(next.at);
                   }}
                 >
                   <span style={{ display: "block", lineHeight: 1.25 }}>{cpButton(next)}</span>
@@ -1451,6 +1596,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
             📍 地図で位置を直す
           </button>
+          {started && <button onClick={() => setAligning("fix")}>🧭 向きを直す</button>}
           <button aria-pressed={follow} onClick={toggleFollow}>
             {follow ? "⏸ 自分に合わせて動くのを止める" : "▶ 自分に合わせて動く"}
           </button>
@@ -1480,7 +1626,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。センサーは、逆向き・横向きに歩いていると進めずに知らせます。
+        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。最初に「案内をスタート」で向きを合わせると、後ろを向いて歩けば来た道を戻り、横を向いているあいだは止まります。向きがずれてきたら「🧭 向きを直す」で合わせ直せます。
       </p>
 
       {/* ④ 条件を変える */}

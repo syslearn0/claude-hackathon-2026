@@ -212,6 +212,38 @@ export function Walk({
     const PAD = { escalator: 0x9a9a94, steps: 0xb4b4ae, elevator: 0x86cff2 } as Record<string, number>;
     // エレベーターの箱は1つずつ。近づくと薄くして、入る前に消す（箱の壁をくぐると、目の前で壁が切れてちかちかする）
     const lifts: { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial>; box: THREE.Box3 }[] = [];
+    // 改札の名札（「改札」と日本語で。近くに並ぶ改札機は 1 枚にまとめる）
+    const gateTag = (() => {
+      const c = document.createElement("canvas");
+      c.width = 160;
+      c.height = 64;
+      const g = c.getContext("2d")!;
+      g.fillStyle = "rgba(40,48,58,.92)";
+      g.fillRect(0, 0, 160, 64);
+      g.fillStyle = "#fff";
+      g.font = "bold 38px system-ui";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText("改札", 80, 34);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.SpriteMaterial({ map: t });
+    })();
+    const gateTags: { fl: number; x: number; z: number }[] = [];
+    for (const f of indoor.features) {
+      if (f.kind !== "gate" || !f.coords.length) continue;
+      const v = f.coords.map(([lat, lon]) => xz(lat, lon));
+      const x = v.reduce((s, p) => s + p.x, 0) / v.length;
+      const z = -v.reduce((s, p) => s + p.y, 0) / v.length;
+      for (const fl of f.floors) {
+        if (gateTags.some((t) => t.fl === fl && Math.hypot(t.x - x, t.z - z) < 6)) continue;
+        gateTags.push({ fl, x, z });
+        const s = new THREE.Sprite(gateTag);
+        s.scale.set(2.2, 0.88, 1);
+        s.position.set(x, fl * FLOOR_M + 2.2, z);
+        floorGroup(fl).add(s);
+      }
+    }
     for (const f of indoor.features) {
       if (f.coords.length < 2) continue;
       for (const fl of f.floors) {
