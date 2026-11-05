@@ -31,6 +31,7 @@ import {
   type Checkpoint,
   type Drift,
 } from "@/lib/tracking";
+import { gateRow } from "./gate-model";
 import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
@@ -45,6 +46,7 @@ const CROP_M = 70;
 // 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
+const GATE_SCALE = 4; // 上から見る画面の改札機は、実物の 4 倍（遠くから見ても改札だと分かるように）
 const FLOOR_H = 14; // 1階ぶんの高さ（m。駅の立体図のように、階と階のあいだを大きくあける）
 const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, route: 0xd93025, now: 0xf2b705, toilet: 0x1f5fbf, you: 0xd93025, checkpoint: 0xd6338a };
 const CP_CSS = "#ff6fb5"; // 確認ポイントの印の色（暗い案内の上の文字用に少し明るく）
@@ -660,6 +662,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     sc.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+    sun.position.set(0.4, 1, 0.6);
+    sc.add(sun);
     const layer = new THREE.Group();
     sc.add(layer);
     scene.current = { camera, controls, layer };
@@ -831,7 +836,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         s.layer.add(l);
       } else if (f.kind === "gate") {
         const l = label("改札", { fg: "#fff", bg: "#4a5568", size: 30, scale: 2.6 });
-        l.position.set(at.x, at.y + 2.5, at.z);
+        l.position.set(at.x, at.y + 15, at.z); // 改札機の列（案内板の高さ 12m ほど）より上に
         s.layer.add(l);
       }
     }
@@ -867,6 +872,21 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           s.layer.add(l);
         }
       }
+    }
+
+    // 改札：道順が改札を通るところに、自動改札機の列（大きめに）
+    for (const ps of passes) {
+      const p = pointAt(path.pts, path.cum, ps.at);
+      const a = pointAt(path.pts, path.cum, Math.max(0, ps.at - 1.5));
+      const b = pointAt(path.pts, path.cum, ps.at + 1.5);
+      const h = Math.hypot(b.x - a.x, b.z - a.z);
+      if (h < 0.3) continue;
+      const g = gateRow({ name: ps.name, out: ps.out });
+      g.scale.setScalar(GATE_SCALE);
+      g.traverse((o) => (o.renderOrder = 7)); // 赤い道順の線（奥行きを見ずに描く）のあとに描いて、手前の改札機が線に隠れないように
+      g.position.set(p.x, (p.y / FLOOR_M) * FLOOR_H, p.z);
+      g.rotation.y = Math.atan2((b.x - a.x) / h, (b.z - a.z) / h);
+      s.layer.add(g);
     }
 
     // 経路と、いまの手順
@@ -930,7 +950,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 3.2)));
       s.camera.updateProjectionMatrix();
     }
-  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor]);
+  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor, passes, path]);
   useEffect(() => {
     const m = youMark.current;
     if (!m || !path.pts.length) return;
@@ -952,6 +972,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       if (Math.hypot(d.dx, d.dz) < 0.5) d = flat(next.at, next.at + 3);
       m.cp.rotation.y = Math.atan2(d.dx, d.dz);
       m.cpSign.visible = next.at - pos > 12;
+      for (const i of [1, 2, 3]) m.cp.children[i].visible = next.kind !== "gate";
     }
   }, [pos, path, current, arrived, next]);
 
@@ -1623,7 +1644,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         </div>
       )}
       <p className="muted" style={{ fontSize: "0.8rem" }}>
-        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。最初に「案内をスタート」で向きを合わせると、後ろを向いて歩けば来た道を戻り、横を向いているあいだは止まります。向きがずれてきたら「🧭 向きを直す」で合わせ直せます。
+        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。最初に「案内をスタート」で向きを合わせると、後ろを向いて歩けば来た道を戻り、横を向いているあいだは止まります。向きがずれてきたら「🧭
+        向きを直す」で合わせ直せます。
       </p>
 
       {/* ④ 条件を変える */}
