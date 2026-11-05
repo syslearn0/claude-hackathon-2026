@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { barometerAvailable, heightDiffM, watchPressure } from "@/lib/barometer";
 import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
 import { gatePasses, type GateShape } from "@/lib/gates";
-import { startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
+import { Heading, headingFromEuler, type HeadingSource } from "@/lib/orientation";
+import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
 import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
@@ -30,7 +30,7 @@ const CROP_M = 70;
 // 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
-const FLOOR_H = 10; // 1階ぶんの高さ（m。見やすさのため実際の約2倍）
+const FLOOR_H = 14; // 1階ぶんの高さ（m。駅の立体図のように、階と階のあいだを大きくあける）
 const COLOR = { stairs: 0xa8875c, escalator: 0x8a63b8, elevator: 0x1e7a3c, slope: 0x7a7a72, route: 0xd93025, now: 0xf2b705, toilet: 0x1f5fbf, you: 0xd93025, checkpoint: 0xd6338a };
 const CP_CSS = "#ff6fb5"; // 確認ポイントの印の色（暗い案内の上の文字用に少し明るく）
 
@@ -41,6 +41,67 @@ const MODES: { label: string; opts: RouteOptions }[] = [
   { label: "階段を使わない", opts: { noStairs: true } },
   { label: "段差なし（車いす・ベビーカー）", opts: { stepFree: true } },
 ];
+
+// 駅の立体図の色（白地に灰色の通路、ホームは路線の色、エレベーターは水色、階の名前は紺、出口番号は黄色）
+const DIAGRAM = {
+  floorTop: 0xeeeeec,
+  floorSide: 0xb9b9b4,
+  edge: 0x8f8f8a,
+  platformTop: 0xf4c3d8, // 都営大江戸線（マゼンタ）のホーム
+  platformSide: 0xc9729b,
+  lift: 0x86cff2,
+  stairs: 0xdcdcd8,
+  route: 0xe60012,
+  navy: "#1d2a7a",
+};
+
+// 文字だけの札（背景なし、または色つきの角丸）。幅は文字に合わせる
+function label(text: string, opt: { fg?: string; bg?: string; border?: string; size?: number; scale?: number } = {}) {
+  const size = opt.size ?? 40;
+  const c = document.createElement("canvas");
+  const g0 = c.getContext("2d")!;
+  g0.font = `bold ${size}px system-ui`;
+  const w = Math.ceil(g0.measureText(text).width) + (opt.bg ? size : 8);
+  c.width = w;
+  c.height = Math.ceil(size * 1.5);
+  const g = c.getContext("2d")!;
+  if (opt.bg) {
+    g.fillStyle = opt.bg;
+    g.beginPath();
+    g.roundRect(2, 2, w - 4, c.height - 4, size * 0.25);
+    g.fill();
+    if (opt.border) {
+      g.strokeStyle = opt.border;
+      g.lineWidth = 3;
+      g.stroke();
+    }
+  }
+  g.fillStyle = opt.fg ?? DIAGRAM.navy;
+  g.font = `bold ${size}px system-ui`;
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.fillText(text, w / 2, c.height / 2 + 2);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+  const k = (opt.scale ?? 4) / c.height;
+  s.scale.set(c.width * k, c.height * k, 1);
+  s.renderOrder = 9;
+  return s;
+}
+
+// 階段・エスカレーターの段の模様
+function stepsTexture() {
+  const c = document.createElement("canvas");
+  c.width = 32;
+  c.height = 32;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#e4e4e0";
+  g.fillRect(0, 0, 32, 32);
+  g.fillStyle = "#9c9c96";
+  g.fillRect(0, 0, 32, 6);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
 
 // 文字の看板
 function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
@@ -88,45 +149,59 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const youGoal = useRef<THREE.Vector3 | null>(null); // 「あなた」の行き先。描くたびに少しずつ近づける（位置が飛んでも、滑って動く）
   const framed = useRef(""); // カメラの距離を決めた道順（同じ道順のあいだは、本人が決めた角度と距離のまま）
   const youMark = useRef<{ you: THREE.Mesh; sign: THREE.Sprite; beam: THREE.Mesh; cp: THREE.Group; cpSign: THREE.Sprite } | null>(null);
-  // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出す。速く変わるので state にせず、扇を直接回す
+  // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出し、歩く目線もこの向きに回す。速く変わるので state にせず、扇を直接回す。
+  // 基準は磁石を使わない相対の向き（ジャイロ）。ホームで線路の向きに合わせたあとは、地下で磁石が狂っても向きがずれない
   const compass = useRef<number | null>(null);
+  const gyro = useRef(new Heading());
+  const [headingBy, setHeadingBy] = useState<HeadingSource>("none");
   const [hasCompass, setHasCompass] = useState(false);
   const [phoneDeg, setPhoneDeg] = useState<number | null>(null); // 画面に出す用（4 度以上、0.15 秒以上あけて更新）
   const shownHeading = useRef({ h: -999, t: 0 });
   const [askCompass, setAskCompass] = useState(false); // iPhone：許可を聞くボタンを出す
+  const showHeading = useCallback(() => {
+    const h = gyro.current.now();
+    setHeadingBy(gyro.current.by);
+    if (h === null) return;
+    compass.current = h;
+    const b = youMark.current?.beam;
+    if (b) {
+      b.rotation.y = (-h * Math.PI) / 180;
+      b.visible = true;
+    }
+    setHasCompass(true);
+    const now = performance.now();
+    const last = shownHeading.current;
+    if (now - last.t > 150 && Math.abs(((h - last.h + 540) % 360) - 180) > 4) {
+      shownHeading.current = { h, t: now };
+      setPhoneDeg(h);
+    }
+  }, []);
   useEffect(() => {
-    const set = (h: number) => {
-      compass.current = h;
-      const b = youMark.current?.beam;
-      if (b) {
-        b.rotation.y = (-h * Math.PI) / 180;
-        b.visible = true;
-      }
-      setHasCompass(true);
-      const now = performance.now();
-      const last = shownHeading.current;
-      if (now - last.t > 150 && Math.abs(((h - last.h + 540) % 360) - 180) > 4) {
-        shownHeading.current = { h, t: now };
-        setPhoneDeg(h);
-      }
+    const H = gyro.current;
+    // 相対の向き（Android の deviceorientation、iPhone の alpha）と、磁石の向き（deviceorientationabsolute、iPhone の webkitCompassHeading）
+    const onRel = (e: DeviceOrientationEvent) => {
+      const ios = (e as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading;
+      if (typeof ios === "number") H.setAbs(ios);
+      if (e.alpha === null) return;
+      if (e.absolute) H.setAbs(headingFromEuler(e.alpha, e.beta, e.gamma));
+      else H.setRel(headingFromEuler(e.alpha, e.beta, e.gamma));
+      showHeading();
     };
     const onAbs = (e: DeviceOrientationEvent) => {
-      if (e.alpha !== null) set((360 - e.alpha) % 360);
-    };
-    const onIos = (e: DeviceOrientationEvent) => {
-      const h = (e as DeviceOrientationEvent & { webkitCompassHeading?: number }).webkitCompassHeading;
-      if (typeof h === "number") set(h);
+      if (e.alpha === null) return;
+      H.setAbs(headingFromEuler(e.alpha, e.beta, e.gamma));
+      showHeading();
     };
     window.addEventListener("deviceorientationabsolute", onAbs as EventListener);
-    window.addEventListener("deviceorientation", onIos);
+    window.addEventListener("deviceorientation", onRel);
     const DO = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
     const t = setTimeout(() => setAskCompass(compass.current === null && typeof DO?.requestPermission === "function"), 1500);
     return () => {
       clearTimeout(t);
       window.removeEventListener("deviceorientationabsolute", onAbs as EventListener);
-      window.removeEventListener("deviceorientation", onIos);
+      window.removeEventListener("deviceorientation", onRel);
     };
-  }, []);
+  }, [showHeading]);
   const allowCompass = async () => {
     const DO = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
     try {
@@ -315,7 +390,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const next = nextCheckpoint(cps, pos);
   const [playing, setPlaying] = useState(false); // 歩く目線の「▶ 歩く」（試しに自動で進める）
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
-  const [track, setTrack] = useState(false); // センサーで追う
+  const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
+  const followAsked = useRef(false); // 自分でオンにしたか（センサーが届かないときの知らせは、そのときだけ出す）
   const [trackNote, setTrackNote] = useState("");
   const [pickNote, setPickNote] = useState("");
   const floors = useMemo(() => (net ? [...new Set(net.nodes.map((n) => n[2]))] : []), [net]); // データにある階（B1.5 のような中二階も）
@@ -393,7 +469,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
 
   // センサーで追う：歩数で進め、曲がった・気圧で階が変わったら近くの確認ポイントに合わせ直す
   useEffect(() => {
-    if (!track) return;
+    if (!follow) return;
     const steps = new StepCounter();
     const turns = new TurnWatcher();
     let n = 0;
@@ -407,6 +483,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const heads = new HeadingCheck();
     const bearing = (d: number) => {
       const { path } = live.current;
+      if (path.pts.length < 2) return 0; // 道順がまだない（自分に合わせて動くのは、規定で最初からオン）
       const a = pointAt(path.pts, path.cum, d);
       const b = pointAt(path.pts, path.cum, d + 2);
       return (Math.atan2(b.x - a.x, -(b.z - a.z)) * 180) / Math.PI;
@@ -465,7 +542,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     };
     window.addEventListener("devicemotion", onMotion);
     const check = setTimeout(() => {
-      if (!got) setTrackNote("動きのセンサーが届いていません（パソコンのときなど）。ピンクの印のところで「いま〜にいる」を押すか、地図のタップで進めてください。");
+      if (!got && followAsked.current) setTrackNote("動きのセンサーが届いていません（パソコンのときなど）。ピンクの印のところで「いま〜にいる」を押すか、地図のタップで進めてください。");
     }, 3000);
     barometerAvailable().then(async (ok) => {
       if (!ok || !alive) return;
@@ -495,23 +572,30 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       clearTimeout(check);
       stopBaro?.();
     };
-  }, [track, setPos]);
-  const toggleTrack = async () => {
-    if (track) {
-      setTrack(false);
-      setTrackNote("");
+  }, [follow, setPos]);
+  // iPhone は、ボタンを押したときに動きと向きのセンサーの許可を聞く。断られても止めない（届かなければ知らせる）
+  const askSensors = async () => {
+    for (const name of ["DeviceMotionEvent", "DeviceOrientationEvent"]) {
+      const E = (window as unknown as Record<string, { requestPermission?: () => Promise<string> } | undefined>)[name];
+      try {
+        await E?.requestPermission?.();
+      } catch {
+        // 聞けない（http のときなど）。そのまま試す
+      }
+    }
+    setAskCompass(false);
+  };
+  const toggleFollow = async () => {
+    if (follow) {
+      setFollow(false);
+      setTrackNote("止めました。ピンクの印のところでボタンを押すか、地図のタップで進めます。");
       return;
     }
-    // iPhone は、ボタンを押したときに許可を聞く。断られても止めない（届かなければ 3 秒後に知らせる）
-    const DM = (window as unknown as { DeviceMotionEvent?: { requestPermission?: () => Promise<string> } }).DeviceMotionEvent;
-    try {
-      await DM?.requestPermission?.();
-    } catch {
-      // 許可を聞けない（http のときなど）。そのまま試す
-    }
+    followAsked.current = true;
+    await askSensors();
     setPlaying(false);
-    setTrackNote("センサーで追っています。スマホを手に持って歩いてください。");
-    setTrack(true);
+    setTrackNote("自分に合わせて動きます。スマホを手に持って歩いてください。");
+    setFollow(true);
   };
 
   // 3D の舞台
@@ -521,10 +605,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(el.clientWidth, el.clientHeight);
-    renderer.setClearColor(0xfcfcfa);
+    renderer.setClearColor(0xffffff);
     el.appendChild(renderer.domElement);
     const sc = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, el.clientWidth / el.clientHeight, 1, 2000);
+    // 立体図のように、遠近の弱い（画角の狭い）カメラで遠くから見る
+    const camera = new THREE.PerspectiveCamera(22, el.clientWidth / el.clientHeight, 5, 8000);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     sc.add(new THREE.AmbientLight(0xffffff, 1.2));
@@ -616,64 +701,144 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const [fMin, fMax] = [Math.floor(Math.min(...fl)), Math.ceil(Math.max(...fl))];
     const inRange = (f: number) => f >= fMin - 0.01 && f <= fMax + 0.01;
 
-    // 床（通路・広場・ホーム）と部屋・店
-    const groups = new Map<string, THREE.BufferGeometry[]>();
-    for (const f of indoor.features) {
-      if (!f.closed || f.coords.length < 3 || !f.floors.some(inRange)) continue;
-      const walk = ["corridor", "area", "platform"].includes(f.kind);
-      if (!walk && !["room", "shop"].includes(f.kind)) continue;
-      if (!f.coords.some(([lat, lon]) => near(lat, lon, crop * 1.2))) continue;
-      const shape = new THREE.Shape(
-        f.coords.map(([lat, lon]) => {
-          const v = toXYZ(lat, lon, 0);
-          return new THREE.Vector2(v.x, -v.z);
-        }),
-      );
-      for (const x of f.floors.filter(inRange)) {
-        const g = new THREE.ShapeGeometry(shape);
+    // 駅の立体図ふうに描く：歩ける所（通路・広場・ホーム）だけを厚みのある板にし、部屋や店は描かない。
+    // ホームは路線の色、エレベーターは水色の柱、階段・エスカレーターは段の模様の坂。階の名前・出口番号・改札・トイレ・方面は札で
+    const xz = (lat: number, lon: number) => toXYZ(lat, lon, 0);
+    const T = 0.9; // 板の厚み
+    const walkFeatures = indoor.features.filter(
+      (f) => f.closed && f.coords.length >= 3 && f.floors.some(inRange) && ["corridor", "area", "platform"].includes(f.kind) && f.coords.some(([lat, lon]) => near(lat, lon, crop * 1.2)),
+    );
+    const westOf = new Map<number, THREE.Vector3>(); // 階ごとの、いちばん西の角（階の名前を置く）
+    for (const f of walkFeatures) {
+      const shape = new THREE.Shape(f.coords.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z)));
+      for (const fl of f.floors.filter(inRange)) {
+        // ホームは路線の色（大江戸線のデータは「ホーム」の区別がないので、いちばん下の階の歩ける所はホームとみなす）
+        const plat = !!line && (f.kind === "platform" || fl === minFloor);
+        const g = new THREE.ExtrudeGeometry(shape, { depth: T, bevelEnabled: false });
         g.rotateX(-Math.PI / 2);
-        g.translate(0, x * FLOOR_H + (walk ? 0 : 0.2), 0);
-        const k = walk ? "walk" : "room";
-        groups.set(k, [...(groups.get(k) ?? []), g]);
+        g.translate(0, fl * FLOOR_H - T, 0);
+        const top = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformTop : DIAGRAM.floorTop });
+        const side = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformSide : DIAGRAM.floorSide });
+        s.layer.add(new THREE.Mesh(g, [top, side]));
+        s.layer.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 30), new THREE.LineBasicMaterial({ color: DIAGRAM.edge })));
+        if (Number.isInteger(fl))
+          for (const [lat, lon] of f.coords) {
+            const v = toXYZ(lat, lon, fl);
+            if (near(lat, lon, crop * 0.5) && (!westOf.has(fl) || v.x < westOf.get(fl)!.x)) westOf.set(fl, v);
+          }
       }
     }
-    for (const [k, gs] of groups) {
-      const merged = mergeGeometries(gs);
-      if (merged)
-        s.layer.add(
-          new THREE.Mesh(
-            merged,
-            new THREE.MeshBasicMaterial({ color: k === "walk" ? 0xc9d8ea : 0xe4e1d6, transparent: true, opacity: k === "walk" ? 0.6 : 0.5, side: THREE.DoubleSide, depthWrite: false }),
-          ),
-        );
-    }
 
-    // 上り下りの手段（まわりのものだけ。同じ階の通路の線は描かない）
-    const buckets = new Map<number, number[]>();
+    // 上り下り：エレベーターは水色の柱（乗り降りする階のあいだ）、階段・エスカレーターは段の模様の坂
+    const lifts = new Map<string, { x: number; z: number; lo: number; hi: number }>();
+    const stepsTex = stepsTexture();
     for (const [a, b, , kind] of net.links) {
       const na = net.nodes[a];
       const nb = net.nodes[b];
       if (na[2] === nb[2] || !inRange(na[2]) || !inRange(nb[2]) || !near(na[0], na[1])) continue;
-      const color = kind === KIND.stairs ? COLOR.stairs : kind === KIND.escalator ? COLOR.escalator : kind === KIND.elevator ? COLOR.elevator : COLOR.slope;
       const p = toXYZ(na[0], na[1], na[2]);
       const q = toXYZ(nb[0], nb[1], nb[2]);
-      buckets.set(color, [...(buckets.get(color) ?? []), p.x, p.y, p.z, q.x, q.y, q.z]);
-    }
-    for (const [color, arr] of buckets) {
+      if (kind === KIND.elevator) {
+        const k = `${Math.round(p.x / 3)},${Math.round(p.z / 3)}`;
+        const e = lifts.get(k) ?? { x: p.x, z: p.z, lo: Infinity, hi: -Infinity };
+        e.lo = Math.min(e.lo, p.y, q.y);
+        e.hi = Math.max(e.hi, p.y, q.y);
+        lifts.set(k, e);
+        continue;
+      }
+      const dx = q.x - p.x;
+      const dz = q.z - p.z;
+      const h = Math.hypot(dx, dz);
+      if (h < 0.5) continue;
+      const [nx, nz] = [(-dz / h) * 1.4, (dx / h) * 1.4];
+      const len = Math.hypot(h, q.y - p.y);
       const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.Float32BufferAttribute(arr, 3));
-      s.layer.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color })));
+      g.setAttribute("position", new THREE.Float32BufferAttribute([p.x + nx, p.y, p.z + nz, p.x - nx, p.y, p.z - nz, q.x + nx, q.y, q.z + nz, q.x - nx, q.y, q.z - nz], 3));
+      g.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, len / 1.2, 1, len / 1.2], 2));
+      g.setIndex([0, 1, 2, 1, 3, 2]);
+      s.layer.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: stepsTex, side: THREE.DoubleSide })));
+    }
+    for (const e of lifts.values()) {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(3.2, e.hi - e.lo + 6, 3.2), new THREE.MeshBasicMaterial({ color: DIAGRAM.lift, transparent: true, opacity: 0.85 }));
+      box.position.set(e.x, (e.lo + e.hi) / 2 + 3, e.z);
+      s.layer.add(box);
+    }
+
+    // 札：階の名前（紺）、出口番号（黄色）、改札、トイレ
+    for (const [fl, v] of westOf) {
+      const l = label(fl < 0 ? `B${-fl}F` : `${fl}F`, { size: 48, scale: 7 });
+      l.position.set(v.x - 6, v.y + 3, v.z);
+      s.layer.add(l);
+    }
+    for (const f of indoor.features) {
+      if (!f.coords.length || !f.coords.some(([lat, lon]) => near(lat, lon))) continue;
+      const fl = f.floors[0] ?? (f.kind === "entrance" ? 1 : undefined);
+      if (fl === undefined || !inRange(fl)) continue;
+      const lat = f.coords.reduce((a, c) => a + c[0], 0) / f.coords.length;
+      const lon = f.coords.reduce((a, c) => a + c[1], 0) / f.coords.length;
+      const at = toXYZ(lat, lon, fl);
+      if (f.kind === "entrance" && f.name) {
+        const n = f.name.replace(/(出入口|出口|番)/g, "").trim();
+        if (!n || n.length > 6) continue;
+        const l = label(n, { fg: "#222", bg: "#ffe14d", size: 36, scale: 3.2 });
+        l.position.set(at.x, at.y + 3, at.z);
+        s.layer.add(l);
+      } else if (f.kind === "gate") {
+        const l = label("改札", { fg: "#fff", bg: "#4a5568", size: 30, scale: 2.6 });
+        l.position.set(at.x, at.y + 2.5, at.z);
+        s.layer.add(l);
+      }
+    }
+    for (const g of goals) {
+      const fl = placeFloor(g.place, indoor.features)?.floor;
+      if (fl === undefined || !inRange(fl) || !near(g.place.lat, g.place.lon)) continue;
+      const l = label("🚻", { bg: "#ffffff", border: "#1f5fbf", size: 40, scale: 3.4 });
+      const at = toXYZ(g.place.lat, g.place.lon, fl);
+      l.position.set(at.x, at.y + 3, at.z);
+      s.layer.add(l);
+    }
+    // ホームの両端に方面（大江戸線の駅）
+    const ends = carEnds(station);
+    const st = (name: string) => stations.find((x) => x.name === name && /交通局/.test(x.operator ?? "")) ?? stations.find((x) => x.name === name);
+    if (ends && st(ends.car1Side) && st(ends.otherSide)) {
+      const a = st(ends.otherSide)!;
+      const b = st(ends.car1Side)!;
+      const ax = toXYZ(b.lat, b.lon, 0)
+        .sub(toXYZ(a.lat, a.lon, 0))
+        .setY(0)
+        .normalize();
+      const plat = walkFeatures.filter((f) => f.kind === "platform" || f.floors.includes(minFloor)).flatMap((f) => f.coords.map(([lat, lon]) => toXYZ(lat, lon, minFloor)));
+      if (plat.length) {
+        const along = plat.map((v) => v.x * ax.x + v.z * ax.z);
+        const hi = plat[along.indexOf(Math.max(...along))];
+        const lo = plat[along.indexOf(Math.min(...along))];
+        for (const [v, name] of [
+          [hi, ends.car1Side],
+          [lo, ends.otherSide],
+        ] as const) {
+          const l = label(`${name} 方面`, { bg: "#ffffff", border: DIAGRAM.navy, size: 34, scale: 3.4 });
+          l.position.copy(v).add(new THREE.Vector3(0, 3, 0));
+          s.layer.add(l);
+        }
+      }
     }
 
     // 経路と、いまの手順
     const pts = route.nodes.map((i) => toXYZ(net.nodes[i][0], net.nodes[i][1], net.nodes[i][2]).add(new THREE.Vector3(0, 0.6, 0)));
-    const tube = (ps: THREE.Vector3[], r: number, color: number) =>
-      new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ps, false, "catmullrom", 0), Math.max(16, ps.length * 4), r, 6, false), new THREE.MeshBasicMaterial({ color }));
-    s.layer.add(tube(pts, 0.8, COLOR.route));
-    if (!arrived && current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now));
+    const tube = (ps: THREE.Vector3[], r: number, color: number, order: number) => {
+      const m = new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ps, false, "catmullrom", 0), Math.max(16, ps.length * 4), r, 6, false),
+        new THREE.MeshBasicMaterial({ color, depthTest: false }),
+      );
+      m.renderOrder = order;
+      return m;
+    };
+    if (!arrived && current.to > current.from) s.layer.add(tube(pts.slice(current.from, current.to + 1), 1.6, COLOR.now, 5));
+    s.layer.add(tube(pts, 0.8, DIAGRAM.route, 6));
 
     // あなた（位置は下の効果で動かす）・トイレ
-    const you = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: COLOR.you }));
+    const you = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), new THREE.MeshBasicMaterial({ color: COLOR.you, depthTest: false }));
+    you.renderOrder = 8;
     const youAt = arrived ? pts.at(-1)! : pts[current.from];
     s.layer.add(you);
     const youSign = sign("あなた", "rgba(217,48,37,.92)", 180);
@@ -705,21 +870,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     s.layer.add(cp);
     youMark.current = { you, sign: youSign, beam, cp, cpSign };
     const end = pts.at(-1)!;
-    const wc = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 5, 20), new THREE.MeshBasicMaterial({ color: COLOR.toilet }));
-    wc.position.copy(end).add(new THREE.Vector3(0, 2.5, 0));
-    s.layer.add(wc);
     const wcSign = sign("トイレ", "rgba(31,95,191,.92)", 180);
     wcSign.position.copy(end).add(new THREE.Vector3(0, 8, 0));
     s.layer.add(wcSign);
-
-    // 階の名前（この範囲の西の端に）
-    const fx = toXYZ(focus.lat, focus.lon, 0);
-    for (let f = fMin; f <= fMax; f++) {
-      if (f === 0 || !net.nodes.some((n) => n[2] === f)) continue;
-      const l = sign(floorName(f), "rgba(20,20,19,.75)", Math.max(160, floorName(f).length * 30));
-      l.position.set(fx.x - crop * 0.9, f * FLOOR_H, fx.z);
-      s.layer.add(l);
-    }
 
     // カメラ：いまの手順が全部入る距離で、斜め上から（回す中心は、下の効果で「あなた」に移す）
     const seg = new THREE.Box3().setFromPoints(arrived ? [youAt] : pts.slice(current.from, current.to + 1));
@@ -729,12 +882,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (framed.current !== routeKey) {
       framed.current = routeKey;
       s.controls.target.copy(c);
-      s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85))));
+      // 画角が狭いので、そのぶん遠くから（立体図のように、ほぼ平行に見える）
+      s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 1.7)));
       s.camera.updateProjectionMatrix();
     }
-    // floorName は描くたびに作り直しているので、依存に入れない（階の役割が変わるのは駅を替えたときだけ）
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indoor, net, route, current, arrived, toXYZ, routeKey]);
+  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor]);
   useEffect(() => {
     const m = youMark.current;
     if (!m || !path.pts.length) return;
@@ -804,6 +956,26 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (!a || !b) return undefined;
     return { floor: minFloor, toCar1: { x: (b.lon - a.lon) * kx, z: -(b.lat - a.lat) * 110_540 }, cars: LINE_CARS.大江戸線.cars, car1Side: ends.car1Side, otherSide: ends.otherSide };
   }, [station, stations, minFloor, kx]);
+  // 線路の向きで、スマホの向きを合わせる（ホームから出発するとき）。合わせたあとは、ジャイロだけで向きを追う
+  const onPlatform = !!route && !!net && net.nodes[route.nodes[0]][2] === minFloor;
+  const [calibNote, setCalibNote] = useState("");
+  const calibrateByTrack = async () => {
+    if (!platformInfo) return;
+    await askSensors();
+    // 許可を聞いた直後は、まだ向きが届いていないことがある
+    for (let i = 0; i < 10 && gyro.current.base === null; i++) await new Promise((r) => setTimeout(r, 100));
+    const ok = gyro.current.calibrate(bearingDeg(platformInfo.toCar1.x, platformInfo.toCar1.z));
+    showHeading();
+    setCalibNote(ok ? "向きを線路に合わせました。ずれていたら、歩く目線で左右にドラッグして直せます。" : "スマホの向きが取れません（パソコンなど）。");
+  };
+  const headingNow = useCallback(() => gyro.current.now(), []);
+  const nudgeHeading = useCallback(
+    (deg: number) => {
+      gyro.current.nudge(deg);
+      showHeading();
+    },
+    [showHeading],
+  );
   const starting = !arrived && path.pts.length > 0 && (pos < 3 || cps.some((c) => c.kind === "alight" && pos >= c.at - 0.01 && pos - c.at < 3));
   // すぐそこがエレベーター（乗り口まで 3m 未満か、乗っている）なら、押す階の案内を先に
   const liftFirst = !!lift && (lift.kind === "alight" || lift.at - pos < 3);
@@ -1078,6 +1250,23 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         </section>
       )}
 
+      {/* 線路の向きでスマホの向きを合わせる（ホームから出発するとき。磁石は地下で狂うので、これが基準になる） */}
+      {!asking && follow && onPlatform && platformInfo && headingBy !== "track" && (
+        <div className="card" style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: "8px 12px" }}>
+          <div style={{ flex: 1, fontSize: "0.9rem" }}>
+            🧭 線路と同じ向きに立って、<strong>{platformInfo.car1Side}方面</strong>（電車が{platformInfo.car1Side}へ行く向き）を向いたら押す
+          </div>
+          <button className="primary" onClick={calibrateByTrack} style={{ flexShrink: 0 }}>
+            向いた
+          </button>
+        </div>
+      )}
+      {calibNote && (
+        <p className="muted" style={{ fontSize: "0.85rem", margin: "4px 0" }}>
+          {calibNote}
+        </p>
+      )}
+
       {/* ③ 自分のまわりだけの 3D（いまどこ？に答えるまでは隠す。舞台は作っておく） */}
       {!asking && more && (
         <div className="chips" style={{ marginTop: 8 }}>
@@ -1106,6 +1295,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             picking={picking}
             onPick={(q) => live.current.pick([q], FLOOR_M)}
             mark={next && next.kind !== "arrive" ? next.at : undefined}
+            follow={follow}
+            platformFloor={line ? minFloor : undefined}
+            heading={headingNow}
+            onNudge={nudgeHeading}
           />
         )}
         <div ref={box} style={{ height: 520, borderRadius: 10, overflow: "hidden", border: "1px solid var(--line)", touchAction: "none", display: view === "above" ? "block" : "none" }} />
@@ -1227,7 +1420,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               >
                 ←
               </button>
-              <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))} disabled={track}>
+              <button style={BIG} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
                 {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
               </button>
               {next ? (
@@ -1258,14 +1451,11 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
             📍 地図で位置を直す
           </button>
+          <button aria-pressed={follow} onClick={toggleFollow}>
+            {follow ? "⏸ 自分に合わせて動くのを止める" : "▶ 自分に合わせて動く"}
+          </button>
           {askCompass && !hasCompass && <button onClick={allowCompass}>🧭 スマホの向きを出す</button>}
-          {more ? (
-            <button aria-pressed={track} onClick={toggleTrack}>
-              📡 センサーで位置を追う
-            </button>
-          ) : (
-            <button onClick={() => setMore(true)}>もっと見る（歩く目線・センサー）</button>
-          )}
+          {!more && <button onClick={() => setMore(true)}>もっと見る（歩く目線）</button>}
         </div>
       )}
       {pickNote && (

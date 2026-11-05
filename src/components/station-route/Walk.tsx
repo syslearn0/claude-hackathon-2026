@@ -9,6 +9,7 @@ import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/l
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
 // 次の確認ポイント（mark）には、ピンクの輪と薄い柱を立てる（ここに来たらボタンで位置を合わせる）。
+// 自分に合わせて動く（follow）ときは、スマホの向き（heading）に画面を回す。左右のドラッグは、向きのずれを直す（onNudge）。
 // ここでは、その位置から見た景色と次の曲がり角を描くだけ。「▶ 歩く」（playing）のときは自分で進めて知らせる。
 // 壁は、部屋・店の形を 2.8m 立ち上げたものと、階の外形（国交省のデータの「床」）のふち。改札は腰の高さの仕切り。
 // いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
@@ -53,6 +54,10 @@ export function Walk({
   picking,
   onPick,
   mark,
+  follow = false,
+  platformFloor,
+  heading,
+  onNudge,
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -67,6 +72,10 @@ export function Walk({
   picking: boolean; // 「地図で位置を直す」：次のタップで、そこを今の位置にする
   onPick: (q: { x: number; y: number; z: number }) => void; // タップした床の点（この 3D の座標）
   mark?: number; // 次の確認ポイント（道順の上の m）
+  platformFloor?: number; // ホームの階（路線の色で塗る）
+  follow?: boolean; // スマホの向きに合わせて画面を回す（「▶ 歩く」で試しているあいだは、道順の向き）
+  heading?: () => number | null; // スマホの向き（北から時計回りの度）。分からなければ null
+  onNudge?: (deg: number) => void; // 向きのずれを直す（度）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -75,7 +84,8 @@ export function Walk({
   const dist = useRef(pos);
   const play = useRef(playing);
   const pick = useRef(picking);
-  const cb = useRef({ onPos, onStop, onPick });
+  const cb = useRef({ onPos, onStop, onPick, heading, onNudge });
+  const followRef = useRef(follow);
   const lst = useRef(list);
   const markAt = useRef(mark);
   const veil = useRef<HTMLDivElement>(null); // エレベーターに乗っている間の暗幕
@@ -84,10 +94,11 @@ export function Walk({
     if (!playing || Math.abs(pos - dist.current) > 2) dist.current = pos;
     play.current = playing;
     pick.current = picking;
-    cb.current = { onPos, onStop, onPick };
+    cb.current = { onPos, onStop, onPick, heading, onNudge };
+    followRef.current = follow;
     lst.current = list;
     markAt.current = mark;
-  }, [pos, playing, picking, onPos, onStop, onPick, list, mark]);
+  }, [pos, playing, picking, onPos, onStop, onPick, list, mark, follow, heading, onNudge]);
 
   useEffect(() => {
     const el = box.current;
@@ -95,10 +106,10 @@ export function Walk({
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(el.clientWidth, el.clientHeight);
-    renderer.setClearColor(0xf2f1ec);
+    renderer.setClearColor(0xf7f7f5); // 駅の立体図に合わせた明るい色（白に近い灰色の床・壁、ホームは路線の色）
     el.appendChild(renderer.domElement);
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xf2f1ec, 20, 70);
+    scene.fog = new THREE.Fog(0xf7f7f5, 20, 70);
     const camera = new THREE.PerspectiveCamera(70, el.clientWidth / el.clientHeight, 0.1, 300);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9a92, 2.2));
     const kx = 111_320 * Math.cos((center.lat * Math.PI) / 180);
@@ -153,11 +164,11 @@ export function Walk({
     }
     for (const [fl, gs] of floors) {
       const m = mergeGeometries(gs);
-      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xdfe6ee })));
+      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: fl === platformFloor ? 0xf4c3d8 : 0xeeeeec })));
     }
     for (const [fl, gs] of walls) {
       const m = mergeGeometries(gs);
-      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xd8d4c8 })));
+      if (m) floorGroup(fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xdcdcd8 })));
     }
     // 立てた面（ふちに沿った帯）。道順がまたぐところ、すぐそば（0.6m 以内）、上り下りの乗り降りの所（2.5m 以内）は開けておく
     // （目の前で壁を突き抜けると、ちかちかする）
@@ -198,14 +209,14 @@ export function Walk({
     };
     // 上り下りの手段の床（エスカレーター・階段）と、エレベーターの箱
     const pads = new Map<string, { fl: number; color: number; gs: THREE.BufferGeometry[] }>();
-    const PAD = { escalator: 0x8a63b8, steps: 0xa8875c, elevator: 0x1e7a3c } as Record<string, number>;
+    const PAD = { escalator: 0x9a9a94, steps: 0xb4b4ae, elevator: 0x86cff2 } as Record<string, number>;
     // エレベーターの箱は1つずつ。近づくと薄くして、入る前に消す（箱の壁をくぐると、目の前で壁が切れてちかちかする）
     const lifts: { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.MeshLambertMaterial>; box: THREE.Box3 }[] = [];
     for (const f of indoor.features) {
       if (f.coords.length < 2) continue;
       for (const fl of f.floors) {
-        if (f.tags?.category === "floor" && f.closed) ribbon(`wall${fl}`, fl, f.coords, true, 2.8, 0xc9c4b6, 0.55, true);
-        else if (f.tags?.indoor === "wall") ribbon(`wall${fl}`, fl, f.coords, f.closed, 2.8, 0xc9c4b6, 0.55, true);
+        if (f.tags?.category === "floor" && f.closed) ribbon(`wall${fl}`, fl, f.coords, true, 2.8, 0xcfcfca, 0.55, true);
+        else if (f.tags?.indoor === "wall") ribbon(`wall${fl}`, fl, f.coords, f.closed, 2.8, 0xcfcfca, 0.55, true);
         else if (f.kind === "gate") ribbon(`gate${fl}`, fl, f.coords, f.closed, 1.0, 0x4a5a6a, 0.45, false);
         else if (f.closed && f.coords.length >= 3 && f.kind in PAD) {
           const shape = new THREE.Shape(f.coords.map(([lat, lon]) => xz(lat, lon)));
@@ -348,8 +359,10 @@ export function Walk({
         ax = q.x - p.x;
         az = q.z - p.z;
       }
-      if (Math.hypot(ax, az) >= 1.5) {
-        const want = Math.atan2(ax, az);
+      // 自分に合わせるときは、スマホの向き（北から時計回り）。この 3D は +z が南なので、向きは π − 方位
+      const phone = followRef.current && !play.current ? (cb.current.heading?.() ?? null) : null;
+      if (phone !== null || Math.hypot(ax, az) >= 1.5) {
+        const want = phone !== null ? Math.PI - (phone * Math.PI) / 180 : Math.atan2(ax, az);
         if (facing === null) facing = want;
         else {
           const turn = ((want - facing + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
@@ -417,7 +430,9 @@ export function Walk({
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
       drag = { x: e.clientX, y: e.clientY, moved: drag.moved + Math.hypot(dx, dy) };
-      look.yaw += dx * 0.006;
+      // スマホの向きに合わせているときは、左右のドラッグで向きのずれを直す（見えている景色を、実際の景色に合わせる）
+      if (followRef.current && !play.current && cb.current.heading?.() != null) cb.current.onNudge?.(-dx * 0.344);
+      else look.yaw += dx * 0.006;
       look.pitch = Math.max(-0.7, Math.min(0.7, look.pitch + dy * 0.004));
       look.last = performance.now();
     };
@@ -447,7 +462,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, cum, sm, total, center]);
+  }, [indoor, pts, cum, sm, total, center, platformFloor]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));
