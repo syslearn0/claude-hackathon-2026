@@ -229,7 +229,7 @@ export default function GpsLogPage() {
           .slice(0, 10)
           .map((e, i) => (
             <li key={i}>
-              {new Date(e.t).toLocaleTimeString("ja-JP")} {e.type === "error" ? "⚠ " : ""}
+              {new Date(e.t).toLocaleTimeString("ja-JP")} {e.type === "error" ? "エラー：" : ""}
               {e.text}
             </li>
           ))}

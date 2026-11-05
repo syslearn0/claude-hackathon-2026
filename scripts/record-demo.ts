@@ -367,8 +367,8 @@ scenes.route3d = {
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
     await sleep(3000);
-    // 上から見る画面で「▶ 歩く」：あなたが道順の上を歩いて進む（とびとびにしない）。エレベーターの手前で「B3 を押す」
-    await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    // 上から見る画面で「歩く」：あなたが道順の上を歩いて進む（とびとびにしない）。エレベーターの手前で「B3 を押す」
+    await tap(page, page.getByRole("button", { name: "歩く", exact: true }));
     check["押す階が出た"] = await seen(page, /乗ったら右を押す/, 60_000);
     // 押す階を少し見せてから、歩く目線に切り替えて（歩いたまま）エレベーターに乗り、トイレまで
     await sleep(6000);
@@ -464,7 +464,7 @@ scenes["route3d-oedo"] = {
     let deg = 0;
     await face(deg);
     await sleep(1500);
-    await tap(page, page.getByRole("button", { name: "▶ 案内をスタート" }));
+    await tap(page, page.getByRole("button", { name: "案内をスタート" }));
     mark("start");
     await sleep(1500);
     const calib = page.getByRole("button", { name: /を向いたら、ここをタップ/ });
@@ -483,7 +483,7 @@ scenes["route3d-oedo"] = {
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
     mark("facing");
     await sleep(2500);
-    await tap(page, page.getByRole("button", { name: "▶ 歩く" }));
+    await tap(page, page.getByRole("button", { name: "歩く", exact: true }));
     mark("walk");
     await box3d("over");
     // 上り下りの乗り口（エスカレーター・エレベーター）の 10m 手前で、歩く目線に切り替える

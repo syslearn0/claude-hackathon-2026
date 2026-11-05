@@ -11,13 +11,13 @@ import { GATE_HALF_W, GATE_L, gateRow } from "./gate-model";
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
 // 次の確認ポイント（mark）には、ピンクの輪と薄い柱を立てる（ここに来たらボタンで位置を合わせる）。
 // 自分に合わせて動く（follow）ときは、スマホの向き（heading）に画面を回す。左右のドラッグは、向きのずれを直す（onNudge）。
-// ここでは、その位置から見た景色と次の曲がり角を描くだけ。「▶ 歩く」（playing）のときは自分で進めて知らせる。
+// ここでは、その位置から見た景色と次の曲がり角を描くだけ。「歩く」（playing）のときは自分で進めて知らせる。
 // 壁は、部屋・店の形を 2.8m 立ち上げたものと、階の外形（国交省のデータの「床」）のふち。改札は腰の高さの仕切り。
 // いまいる階（と上り下りの途中の階）だけを見せる。指でドラッグするとまわりを見渡せ、離して少しすると前に向き直る。
 
 const EYE = 1.6;
 
-export const WALK_SPEED = 1.3; // 「▶ 歩く」の速さ（m/秒。少し速めに歩く）
+export const WALK_SPEED = 1.3; // 「歩く」の速さ（m/秒。少し速めに歩く）
 
 // 矢印の帯の模様（進む向きが上）
 function chevronTexture() {
@@ -78,12 +78,12 @@ export function Walk({
   onPick: (q: { x: number; y: number; z: number }) => void; // タップした床の点（この 3D の座標）
   mark?: number; // 次の確認ポイント（道順の上の m）
   platformFloor?: number; // ホームの階（路線の色で塗る）
-  follow?: boolean; // スマホの向きに合わせて画面を回す（「▶ 歩く」で試しているあいだは、道順の向き）
+  follow?: boolean; // スマホの向きに合わせて画面を回す（「歩く」で試しているあいだは、道順の向き）
   heading?: () => number | null; // スマホの向き（北から時計回りの度）。分からなければ null
   onNudge?: (deg: number) => void; // 向きのずれを直す（度）
   height?: number | string; // 画面の高さ（全画面のときは "100%"）
   hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
-  speed?: number; // 「▶ 歩く」の速さ（m/秒）
+  speed?: number; // 「歩く」の速さ（m/秒）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -591,7 +591,7 @@ export function Walk({
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));
   const arrived = pos >= total - 0.5;
-  const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : next.kind === "gate" ? "🎫" : "◎";
+  const icon = next.kind === "right" ? "↱" : next.kind === "left" ? "↰" : next.kind === "floor" ? "⇅" : next.kind === "gate" ? "" : "◎";
   const here = pointAt(pts, cum, pos);
 
   return (
@@ -624,7 +624,8 @@ export function Walk({
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>◎ トイレに着きました</div>
         ) : (
           <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>
-            {icon} {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" || next.kind === "gate" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
+            {icon && `${icon} `}
+            {next.kind === "arrive" ? `${toNext}m で到着` : next.kind === "floor" || next.kind === "gate" ? `${toNext}m 先：${next.text}` : `${toNext}m ${next.text}`}
           </div>
         )}
         <div style={{ fontSize: "0.85rem", opacity: 0.85 }}>いま：{floorName(Math.round(here.floor * 2) / 2)}</div>

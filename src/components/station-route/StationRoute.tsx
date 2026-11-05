@@ -45,7 +45,7 @@ import { Walk, WALK_SPEED } from "./Walk";
 const CROP_M = 70;
 // 3D の上に重ねる案内（歩く目線と同じ見た目）と、押しやすい大きいボタン
 const HUD: CSSProperties = { position: "absolute", left: 8, right: 8, background: "rgba(20,20,19,.82)", color: "#fff", borderRadius: 10, padding: "10px 12px" };
-const RATES = [0.5, 1, 2, 4]; // 「▶ 歩く」の速さ（ふつうの何倍か）
+const RATES = [0.5, 1, 2, 4]; // 「歩く」の速さ（ふつうの何倍か）
 const RATE_JA: Record<number, string> = { 0.5: "ゆっくり", 1: "ふつう", 2: "2倍", 4: "4倍" };
 const ROUND: CSSProperties = { width: 40, height: 40, borderRadius: 20, padding: 0, fontSize: "1.1rem", background: "rgba(20,20,19,.82)", color: "#fff", border: "1px solid rgba(255,255,255,.25)" };
 const BIG: CSSProperties = { flex: 1, minHeight: 52, fontSize: "1.05rem", fontWeight: 700 };
@@ -429,8 +429,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   });
   const current = guide[stepIdx];
   const next = nextCheckpoint(cps, pos);
-  const [playing, setPlaying] = useState(false); // 「▶ 歩く」（事前に確かめるため、自動で進める）
-  const [rate, setRate] = useState(1); // 「▶ 歩く」の速さ（ふつうの何倍か）。押すたびに 0.5 → 1 → 2 → 4 倍
+  const [playing, setPlaying] = useState(false); // 「歩く」（事前に確かめるため、自動で進める）
+  const [rate, setRate] = useState(1); // 「歩く」の速さ（ふつうの何倍か）。押すたびに 0.5 → 1 → 2 → 4 倍
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
   const [started, setStarted] = useState(false); // 「案内をスタート」で向きを合わせてから、案内を始める（それまでは地図を見るだけ）
@@ -1010,7 +1010,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     }
   }, [pos, path, current, arrived, next]);
 
-  // 上から見る画面の「▶ 歩く」（試しに自動で進める。歩く目線では Walk が自分で進める）
+  // 上から見る画面の「歩く」（試しに自動で進める。歩く目線では Walk が自分で進める）
   useEffect(() => {
     if (!playing || view !== "above") return;
     let last = performance.now();
@@ -1094,7 +1094,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     setStarted(true);
     openFull();
     setCalibNote(
-      ok ? `${fix ? "向きを直しました" : "向きを合わせました"}。ずれてきたら「🧭 向きを直す」で、いつでも合わせ直せます。` : "スマホの向きが取れません（パソコンなど）。向きなしで案内します。",
+      ok ? `${fix ? "向きを直しました" : "向きを合わせました"}。ずれてきたら「向きを直す」で、いつでも合わせ直せます。` : "スマホの向きが取れません（パソコンなど）。向きなしで案内します。",
     );
   };
   const alignSkip = async () => {
@@ -1103,7 +1103,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     await askSensors();
     setStarted(true);
     openFull();
-    setCalibNote("磁石の向きで始めました（地下ではずれることがあります）。「🧭 向きを直す」で合わせられます。");
+    setCalibNote("磁石の向きで始めました（地下ではずれることがあります）。「向きを直す」で合わせられます。");
   };
   // 確認ポイントで位置を合わせたとき：そこで向いているのは、来た向きか進む向きのはず。近い方にスマホの向きを半分寄せる
   const pullAt = (d: number) => {
@@ -1292,7 +1292,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           <div className="muted">押すと、そこからトイレまでの道順を出します</div>
           <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
             <button className="big" onClick={() => chooseStart(starts.find((s) => s.kind === "platform"))} disabled={!net}>
-              🚃 ホーム（電車を降りたところ）
+              ホーム（電車を降りたところ）
             </button>
             {cars.length > 0 && (
               <div>
@@ -1308,7 +1308,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             )}
             {gates.length > 0 && (
               <button className="big" aria-expanded={askGate} onClick={() => setAskGate(!askGate)}>
-                🎫 改札の近く
+                改札の近く
               </button>
             )}
             {askGate && (
@@ -1321,10 +1321,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               </div>
             )}
             <button className="big" onClick={() => chooseStart(starts.find((s) => s.kind === "ground"))} disabled={!net}>
-              🚶 地上（出入口から入るところ）
+              地上（出入口から入るところ）
             </button>
             <button onClick={startLocate} disabled={!net || !!loc?.busy}>
-              📷 分からない：近くの看板を撮る
+              分からない：近くの看板を撮る
             </button>
           </div>
         </section>
@@ -1389,10 +1389,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               }}
               disabled={!route}
             >
-              📍 地図で、いまいる所をタップする
+              地図で、いまいる所をタップする
             </button>
             <button onClick={startLocate} disabled={!net || !!loc?.busy}>
-              📷 いまどこか分からない：近くの看板を撮る
+              いまどこか分からない：近くの看板を撮る
             </button>
             {embedded && (
               <button
@@ -1537,7 +1537,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
             <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
               <div style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: 6 }}>地図は指で動かして見られます。歩き出すときに押してください。</div>
               <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => setAligning("start")}>
-                ▶ 案内をスタート
+                案内をスタート
               </button>
             </div>
           )}
@@ -1566,7 +1566,6 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                 cursor: "pointer",
               }}
             >
-              <div style={{ fontSize: "3rem", lineHeight: 1 }}>🧭</div>
               <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.45 }}>
                 <span style={{ color: "#9fe3ff" }}>{align.text}</span>を向いたら、
                 <br />
@@ -1603,7 +1602,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {picking ? (
-                    <div style={{ fontWeight: 800 }}>📍 いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
+                    <div style={{ fontWeight: 800 }}>いまいるところをタップしてください（道順から離れていれば、そこから出し直します）</div>
                   ) : next ? (
                     <div style={{ fontWeight: 800 }}>
                       {next.kind !== "arrive" && <span style={{ color: CP_CSS }}>● </span>}
@@ -1624,7 +1623,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                         }}
                         style={{ all: "unset", cursor: "pointer", color: "#ffb4a8", fontWeight: 800 }}
                       >
-                        ⚠ {drift === "back" ? "来た道を戻っています" : "道順からそれていませんか"}（進む方を向いていれば押す）
+                        {drift === "back" ? "来た道を戻っています" : "道順からそれていませんか"}（進む方を向いていれば押す）
                       </button>
                     ) : hint && (hint.text || advice) && !picking ? (
                       <span style={{ color: "#9fe3ff", fontWeight: 800 }}>
@@ -1703,7 +1702,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
                   ←
                 </button>
                 <button style={{ ...BIG, padding: "0 4px", whiteSpace: "nowrap" }} onClick={() => (arrived ? (setPos(0), setPlaying(false)) : setPlaying(!playing))}>
-                  {playing ? "⏸ 止める" : arrived ? "↺ もう一度" : "▶ 歩く"}
+                  {playing ? "止める" : arrived ? "↺ もう一度" : "歩く"}
                 </button>
                 <button
                   style={{ ...BIG, flex: 0.55, padding: 0, fontSize: "0.95rem", lineHeight: 1.15 }}
@@ -1767,17 +1766,17 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       {!asking && (
         <div className="chips" style={{ marginTop: 6 }}>
           <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
-            📍 地図で位置を直す
+            地図で位置を直す
           </button>
-          <button onClick={toggleFull}>⛶ 全画面で見る</button>
-          {started && <button onClick={() => setAligning("fix")}>🧭 向きを直す</button>}
+          <button onClick={toggleFull}>全画面で見る</button>
+          {started && <button onClick={() => setAligning("fix")}>向きを直す</button>}
           <button aria-pressed={voice} onClick={toggleVoice}>
-            {voice ? "🔊 音声ガイドを止める" : "🔇 音声ガイド"}
+            {voice ? "音声ガイドを止める" : "音声ガイド"}
           </button>
           <button aria-pressed={follow} onClick={toggleFollow}>
-            {follow ? "⏸ 自分に合わせて動くのを止める" : "▶ 自分に合わせて動く"}
+            {follow ? "自分に合わせて動くのを止める" : "自分に合わせて動く"}
           </button>
-          {askCompass && !hasCompass && <button onClick={allowCompass}>🧭 スマホの向きを出す</button>}
+          {askCompass && !hasCompass && <button onClick={allowCompass}>スマホの向きを出す</button>}
           {!more && <button onClick={() => setMore(true)}>もっと見る（歩く目線）</button>}
         </div>
       )}

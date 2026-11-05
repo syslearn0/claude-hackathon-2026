@@ -111,7 +111,7 @@ export function VoiceInput({ onText }: { onText: (text: string) => void }) {
   return (
     <div style={{ margin: "8px 0" }}>
       <button onClick={() => (listening ? stop() : start())} aria-pressed={listening}>
-        {listening ? "■ 話し終わったら押す" : "🎤 声で入れる"}
+        {listening ? "■ 話し終わったら押す" : "声で入れる"}
       </button>
       {listening && <div className="muted">聞いています…{interim && `「${interim}」`}</div>}
       {error && <div className="muted">{error}</div>}
