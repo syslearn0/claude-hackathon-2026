@@ -486,6 +486,24 @@ scenes["route3d-oedo"] = {
     await tap(page, page.getByRole("button", { name: "歩く", exact: true }));
     mark("walk");
     await box3d("over");
+    // 上から見る画面は、指でなぞると視点を回せる（少し回して、また戻す）
+    await sleep(1500);
+    const ov = await page.locator("canvas").first().boundingBox();
+    if (ov) {
+      const [cx, cy] = [ov.x + ov.width / 2, ov.y + ov.height / 2];
+      mark("rotate");
+      for (const dx of [260, -260]) {
+        await page.mouse.move(cx - dx / 2, cy);
+        await page.mouse.down();
+        for (let i = 1; i <= 40; i++) {
+          await page.mouse.move(cx - dx / 2 + (dx * i) / 40, cy);
+          await sleep(30);
+        }
+        await page.mouse.up();
+        await sleep(900);
+      }
+      mark("rotated");
+    }
     // 上り下りの乗り口（エスカレーター・エレベーター）の 10m 手前で、歩く目線に切り替える
     check["乗り口の手前"] = await seen(page, /の乗り口（あと\dm）/, 60_000);
     mark("lift");
