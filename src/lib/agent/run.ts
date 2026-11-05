@@ -69,7 +69,9 @@ const CANNOT: Answer = {
 export async function runAgent(input: AgentInput, client: MessagesClient = new Anthropic()): Promise<AgentResult> {
   const ctx = input.context ?? {};
   const model = MODEL;
-  const system = [BASE_SYSTEM, input.modeInstruction].filter(Boolean).join("\n\n");
+  // 約束ごと（道具の定義と system）は毎回同じなので、ここまでを使い回す（プロンプトキャッシュ）。
+  // 時刻や現在地のように毎回変わるものは、system ではなく利用者のメッセージに入れている
+  const system: Anthropic.Beta.BetaTextBlockParam[] = [{ type: "text", text: [BASE_SYSTEM, input.modeInstruction].filter(Boolean).join("\n\n"), cache_control: { type: "ephemeral" } }];
   const now = new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
   const situation = ctx.position
     ? `（利用者の現在地：緯度 ${ctx.position.lat.toFixed(5)}、経度 ${ctx.position.lon.toFixed(5)}。現在時刻：${now}）`
@@ -96,6 +98,8 @@ export async function runAgent(input: AgentInput, client: MessagesClient = new A
       system,
       tools: TOOLS,
       messages,
+      // 道具を呼ぶたびに伸びる会話も、前の回までを使い回す（いちばん後ろに自動で印を付ける）
+      cache_control: { type: "ephemeral" },
       // 返答の形。place_ids に書けるのは、ここまでに道具が返した id だけ
       output_config: { effort: "medium", format: { type: "json_schema", schema: answerSchema([...seen], input.shape) } },
       ...(SUPPORTS_FALLBACK.test(model) && { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }),

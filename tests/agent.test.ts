@@ -84,6 +84,18 @@ test("道具が返した場所は、次の送信から選べるようになる",
   assert.match(String(block.content), /"id":"t1"/);
 });
 
+test("プロンプトキャッシュ：system は毎回同じ文で印つき、時刻は system に入れず、会話にも自動の印", async () => {
+  const { client, sent } = fakeClient([toolUse("find_nearby_places", near), answer(["t1"])]);
+  await runAgent({ userText: "トイレ", modeInstruction: "場面の指示", context: { position: { lat: 35, lon: 135 }, places } }, client);
+  for (const p of sent) {
+    assert.deepEqual(p.cache_control, { type: "ephemeral" });
+    const sys = p.system as Anthropic.Beta.BetaTextBlockParam[];
+    assert.deepEqual(sys.at(-1)!.cache_control, { type: "ephemeral" });
+    assert.doesNotMatch(sys.map((b) => b.text).join(""), /現在時刻/);
+  }
+  assert.deepEqual(sent[0].system, sent[1].system);
+});
+
 test("形が違う返事は1回だけ直させる", async () => {
   const { client, sent } = fakeClient([toolUse("find_nearby_places", near), say("ふつうの文"), answer(["t1"])]);
   const r = await runAgent({ userText: "トイレ", context: { position: { lat: 35, lon: 135 }, places } }, client);
