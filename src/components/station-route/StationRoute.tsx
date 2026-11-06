@@ -33,7 +33,7 @@ import {
   type Drift,
 } from "@/lib/tracking";
 import { gateRow } from "./gate-model";
-import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
+import { elevatorModel, escalatorModel, padModel, stairsModel } from "./lift-model";
 import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
@@ -109,6 +109,10 @@ function label(text: string, opt: { fg?: string; bg?: string; border?: string; s
   s.renderOrder = 9;
   return s;
 }
+
+// 床に隠れた階段・エスカレーターを、薄く透かして描く（手前に何かあるところだけ描く）
+// 床（描く順 0）のあと、本体（描く順 2）の前に描く（1）ので、床に隠れたところにだけ出る（本体の奥の部品には重ならない）
+const LIFT_GHOST = new THREE.MeshBasicMaterial({ color: 0xc3c9cf, depthWrite: false, depthFunc: THREE.GreaterDepth });
 
 // 文字の看板
 function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
@@ -826,8 +830,18 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const nodeNear = (p: { x: number; z: number }) => near(center.lat - p.z / 110_540, center.lon + p.x / kx);
     for (const f of parts.flights) {
       if (!inRange(f.a.floor) || !inRange(f.b.floor) || !(nodeNear(f.a) || nodeNear(f.b))) continue;
-      s.layer.add(f.kind === "stairs" ? stairsModel(f, { stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f));
+      const g = f.kind === "stairs" ? stairsModel(f, { stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f);
+      g.traverse((o) => (o.renderOrder = 2));
+      s.layer.add(g);
+      // 上の階の床に隠れる部分（データでは吹き抜けがなく、床が上にかぶさる）は、薄く透かして見せる
+      const ghost = g.clone();
+      ghost.traverse((o) => {
+        if (o instanceof THREE.Mesh) o.material = LIFT_GHOST;
+        o.renderOrder = 1;
+      });
+      s.layer.add(ghost);
     }
+    for (const pd of parts.pads) if (inRange(pd.floor) && nodeNear(pd)) s.layer.add(padModel(pd));
     for (const sh of parts.shafts) {
       const stops = sh.stops.filter((t) => inRange(t.floor));
       if (stops.length < 1 || !nodeNear(sh)) continue;

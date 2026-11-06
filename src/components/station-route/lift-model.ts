@@ -143,6 +143,14 @@ export function stairsModel(f: Flight, opt: { k?: number; stepH?: number } = {})
   return place(p.group(), lo, hi);
 }
 
+// 踊り場のつなぎ目の板（段と段の角をふさぐ）
+export function padModel(pad: { x: number; y: number; z: number }, opt: { size?: number } = {}): THREE.Mesh {
+  const w = opt.size ?? 1.8;
+  const g = new THREE.BoxGeometry(w, 0.25, w);
+  g.translate(pad.x, pad.y - 0.125, pad.z);
+  return new THREE.Mesh(g, S().tread);
+}
+
 // エスカレーター
 export function escalatorModel(f: Flight, opt: { k?: number } = {}): THREE.Group {
   const m = S();

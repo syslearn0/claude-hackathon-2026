@@ -47,3 +47,14 @@ test("大門駅：横に並ぶ階段・エスカレーターには、となり�
     assert.ok(w <= f.room, `${f.kind} room ${f.room}`);
   }
 });
+
+test("大門駅：階の途中の高さの通路は踊り場（平らな階段）になり、つなぎ目の板がある", () => {
+  const net = JSON.parse(readFileSync("data/network/daimon.json", "utf8")) as Network;
+  const { flights, pads } = liftParts(net, (i) => {
+    const [lat, lon, floor] = net.nodes[i];
+    return { x: lon * 90_000, y: floor * 5, z: -lat * 110_540, floor };
+  });
+  assert.ok(flights.some((f) => f.kind === "stairs" && f.a.y === f.b.y && !Number.isInteger(f.a.floor)));
+  assert.ok(pads.length > 0);
+  for (const p of pads) assert.ok(!Number.isInteger(p.floor));
+});

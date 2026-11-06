@@ -10,7 +10,9 @@ export type LiftPoint = { x: number; y: number; z: number; floor: number };
 export type Flight = { kind: "stairs" | "escalator"; a: LiftPoint; b: LiftPoint; floors: number[]; room: number };
 export type ShaftStop = { floor: number; y: number; dx: number; dz: number };
 export type Shaft = { x: number; z: number; stops: ShaftStop[] };
-export type LiftParts = { flights: Flight[]; shafts: Shaft[] };
+// pads：踊り場の高さ（階の途中）で、段と段、段と踊り場がつながる点。そこに床の板を置いて、つなぎ目をふさぐ
+export type LiftPad = LiftPoint & { floors: number[] };
+export type LiftParts = { flights: Flight[]; shafts: Shaft[]; pads: LiftPad[] };
 
 function unionFind(n: number) {
   const p = Array.from({ length: n }, (_, i) => i);
@@ -21,7 +23,9 @@ function unionFind(n: number) {
 // at：点の番号 → 3D の位置（呼ぶ側の座標。y は高さ）
 export function liftParts(net: Network, at: (i: number) => LiftPoint): LiftParts {
   const n = net.nodes.length;
-  const flightLinks = net.links.filter((l) => l[3] === KIND.stairs || l[3] === KIND.escalator);
+  // 踊り場：データでは、階の途中の高さ（B4.5 など）を通る、ふつうの通路の線になっている。床の面がないので、ここで踊り場として描く
+  const landing = (l: Network["links"][number]) => l[3] === KIND.walk && net.nodes[l[0]][2] === net.nodes[l[1]][2] && !Number.isInteger(net.nodes[l[0]][2]);
+  const flightLinks = net.links.filter((l) => l[3] === KIND.stairs || l[3] === KIND.escalator || landing(l));
   const uf = unionFind(n);
   for (const l of flightLinks) uf.join(l[0], l[1]);
   const floorsOf = new Map<number, Set<number>>();
@@ -38,8 +42,8 @@ export function liftParts(net: Network, at: (i: number) => LiftPoint): LiftParts
     seen.add(key);
     const a = at(l[0]);
     const b = at(l[1]);
-    if (Math.hypot(b.x - a.x, b.z - a.z) < 0.3) continue; // 真上・真下の線は描けない（データの誤り）
-    flights.push({ kind: l[3] === KIND.stairs ? "stairs" : "escalator", a, b, floors: [...floorsOf.get(uf.find(l[0]))!].sort((x, y) => x - y), room: Infinity });
+    if (Math.hypot(b.x - a.x, b.z - a.z) < 0.3) continue; // 真上・真下の線は描けない（データの誤り）。短い踊り場は、下の板でふさがる
+    flights.push({ kind: l[3] === KIND.escalator ? "escalator" : "stairs", a, b, floors: [...floorsOf.get(uf.find(l[0]))!].sort((x, y) => x - y), room: Infinity });
   }
   // 横に並ぶもの：向きがほぼ同じ（または逆）で、高さが重なり、前後にも重なるもの。2 本の線の真ん中どうしの横の間隔を、幅の上限にする
   for (const f of flights) {
@@ -92,5 +96,14 @@ export function liftParts(net: Network, at: (i: number) => LiftPoint): LiftParts
     }
     shafts.push({ x, z, stops });
   }
-  return { flights, shafts };
+  // つなぎ目の板：階の途中の高さにある、段・踊り場の端の点
+  const pads: LiftPad[] = [];
+  const padSeen = new Set<number>();
+  for (const l of flightLinks)
+    for (const i of [l[0], l[1]]) {
+      if (padSeen.has(i) || Number.isInteger(net.nodes[i][2])) continue;
+      padSeen.add(i);
+      pads.push({ ...at(i), floors: [...floorsOf.get(uf.find(i))!].sort((x, y) => x - y) });
+    }
+  return { flights, shafts, pads };
 }
