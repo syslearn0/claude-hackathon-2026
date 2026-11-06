@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { barometerAvailable, heightDiffM, watchPressure } from "@/lib/barometer";
 import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
-import { floorReach, gateDirs, gateFrames, gatePasses, type FloorPoly, type GateShape, type WalkLink } from "@/lib/gates";
+import { floorReach, gateDirs, gateFrames, gatePasses, onFloor, paidWalls, type FloorPoly, type GateShape, type WalkLink, type WallSeg } from "@/lib/gates";
 import { liftParts } from "@/lib/lifts";
 import VOIDS from "../../../data/station-voids.json";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
@@ -434,6 +435,17 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         .flatMap((f) => f.floors.map((floor) => ({ floor, pts: f.coords.map(([lat, lon]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540 })) }))),
     [indoor, center, kx],
   );
+  // 改札の内と外を分ける壁（改札のある階。床は内も外も 1 枚の広間のことが多く、そのままだと改札の横を通れて見える）
+  const paidWallSegs: WallSeg[] = useMemo(() => {
+    if (!net) return [];
+    const nodes = net.nodes.map(([lat, lon, floor]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540, floor }));
+    return paidWalls(
+      nodes,
+      net.links.map(([a, b]) => [a, b] as [number, number]),
+      gateShapes,
+      floorPolys,
+    );
+  }, [net, gateShapes, floorPolys, center, kx]);
   const gateRows = useMemo(
     () =>
       gateFrames(gateShapes, walkLinks, path.pts.length ? { pts: path.pts, cum: path.cum, passes } : undefined, dirs).map((f) => {
@@ -894,7 +906,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.layer.add(g);
     }
     for (const sh of parts.shafts) {
-      const stops = sh.stops.filter((t) => inRange(t.floor));
+      // 止まる階のうち、この画面に床が描かれている階だけ（床のない階まで柱をのばすと、空中に浮いて見える）
+      const stops = sh.stops.filter((t) => inRange(t.floor) && onFloor(floorPolys, t.floor, sh.x, sh.z));
       if (stops.length < 1 || !nodeNear(sh)) continue;
       s.layer.add(elevatorModel({ ...sh, stops }, { k: 2, cab: 4, glass: 0.6 }).group);
     }
@@ -956,6 +969,21 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           s.layer.add(l);
         }
       }
+    }
+
+    // 改札の内と外を分ける壁（低めの灰色の壁）
+    {
+      const gs: THREE.BufferGeometry[] = [];
+      for (const w of paidWallSegs) {
+        if (!inRange(w.floor) || !near(center.lat - w.az / 110_540, center.lon + w.ax / kx)) continue;
+        const len = Math.hypot(w.bx - w.ax, w.bz - w.az);
+        const g = new THREE.BoxGeometry(len + 0.15, 2.4, 0.15);
+        g.rotateY(-Math.atan2(w.bz - w.az, w.bx - w.ax));
+        g.translate((w.ax + w.bx) / 2, w.floor * FLOOR_H + 1.2, (w.az + w.bz) / 2);
+        gs.push(g);
+      }
+      const m = gs.length ? mergeGeometries(gs) : null;
+      if (m) s.layer.add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: 0xb9bcc0 })));
     }
 
     // 改札：自動改札機の列（大きめに）。点の改札は 4 倍、線の改札は線の長さのまま並べる（台は 2 倍の大きさ）
@@ -1040,7 +1068,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.camera.position.copy(c.clone().add(new THREE.Vector3(-0.6, 0.75, 0.9).multiplyScalar(Math.max(CROP_M * 1.1, size * 0.85) * 3.2)));
       s.camera.updateProjectionMatrix();
     }
-  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor, gateRows, center, kx]);
+  }, [indoor, net, route, current, arrived, toXYZ, routeKey, goals, stations, station, line, minFloor, gateRows, paidWallSegs, floorPolys, center, kx]);
   useEffect(() => {
     const m = youMark.current;
     if (!m || !path.pts.length) return;
@@ -1568,6 +1596,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               hudRight={full ? 56 : 8}
               speed={WALK_SPEED * rate}
               gates={gateRows}
+              paidWalls={paidWallSegs}
               lifts={walkLifts}
             />
           )}

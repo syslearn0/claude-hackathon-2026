@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
-import { floorReach, gateDirs, type GateShape } from "../src/lib/gates";
+import { floorReach, gateDirs, paidWalls, type GateShape } from "../src/lib/gates";
 import type { Network } from "../src/lib/route";
 
 // 駅のデータ（ネットワークと、屋内データ <駅>-*.json の改札）を、駅の最初の点を原点にした m に
@@ -54,4 +54,24 @@ test("改札を通る向き：麻布十番の改札は、内（ホーム側）�
   const r = floorReach(f, floors);
   assert.ok(r.left > 4 && r.left < 15, `left ${r.left}`);
   assert.ok(r.right > 4 && r.right < 15, `right ${r.right}`);
+});
+
+test("改札の内と外を分ける壁：麻布十番にあり、どの駅でも道の線（通路）を横切らない", () => {
+  const keys = ["tochomae", "shinjuku-nishiguchi", "higashi-shinjuku", "yoyogi", "kokuritsu-kyogijo", "aoyama-itchome", "roppongi", "azabu-juban", "akabanebashi", "daimon", "ueno-okachimachi"];
+  const cross = (a: { x: number; z: number }, b: { x: number; z: number }, c: { x: number; z: number }, d: { x: number; z: number }) => {
+    const o = (p: typeof a, q: typeof a, r: typeof a) => (q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x);
+    return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+  };
+  for (const key of keys) {
+    const { net, nodes, gates, floors } = load(key);
+    const links = net.links.map(([a, b]) => [a, b] as [number, number]);
+    const walls = paidWalls(nodes, links, gates, floors);
+    if (key === "azabu-juban") assert.ok(walls.reduce((s, w) => s + Math.hypot(w.bx - w.ax, w.bz - w.az), 0) > 20);
+    for (const w of walls)
+      for (const [a, b] of links) {
+        const [p, q] = [nodes[a], nodes[b]];
+        if (Math.abs(p.floor - w.floor) > 0.01 || Math.abs(q.floor - w.floor) > 0.01) continue;
+        assert.ok(!cross(p, q, { x: w.ax, z: w.az }, { x: w.bx, z: w.bz }), `${key} 線 ${a}-${b} が壁を横切る`);
+      }
+  }
 });

@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Indoor } from "@/lib/indoor";
 import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
-import type { GateFrame } from "@/lib/gates";
+import type { GateFrame, WallSeg } from "@/lib/gates";
 import type { LiftParts } from "@/lib/lifts";
 import { GATE_L, gateRow } from "./gate-model";
 import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
@@ -67,6 +67,7 @@ export function Walk({
   hudRight = 8,
   speed = WALK_SPEED,
   gates = [],
+  paidWalls = [],
   lifts: liftData,
 }: {
   indoor: Indoor;
@@ -90,6 +91,7 @@ export function Walk({
   hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
   speed?: number; // 「歩く」の速さ（m/秒）
   gates?: GateFrame[]; // 改札機の列を立てる位置（道順が通る改札と、ほかの改札）
+  paidWalls?: WallSeg[]; // 改札の内と外を分ける壁
   lifts?: LiftParts; // 階段・エスカレーター・エレベーターの形（駅のネットワークから。あれば、本物のような形で描く）
 }) {
   const box = useRef<HTMLDivElement>(null);
@@ -337,6 +339,15 @@ export function Walk({
         }
       }
     }
+    // 改札の内と外を分ける壁（道順から 80m 以内）。壁の帯と同じ形で、高さ 2.8m
+    for (const w of paidWalls) {
+      if (!way.some((q) => Math.abs(q.y - w.floor * FLOOR_M) < 0.1 && Math.hypot(q.x - w.ax, q.z - w.az) < 80)) continue;
+      const r = ribbons.get(`paid${w.floor}`) ?? { fl: w.floor, color: 0xc4c6c8, opacity: 0.9, pos: [] };
+      ribbons.set(`paid${w.floor}`, r);
+      const y = w.floor * FLOOR_M;
+      r.pos.push(w.ax, y, w.az, w.bx, y, w.bz, w.ax, y + 2.8, w.az, w.bx, y, w.bz, w.bx, y + 2.8, w.bz, w.ax, y + 2.8, w.az);
+      wallSegs.push({ y, ax: w.ax, az: w.az, bx: w.bx, bz: w.bz });
+    }
     for (const r of ribbons.values()) {
       if (!r.pos.length) continue;
       const g = new THREE.BufferGeometry();
@@ -359,12 +370,15 @@ export function Walk({
         scene.add(g);
         liftVis.push({ obj: g, floors: f.floors });
       }
+      // エレベーターは、止まる階ごとに、その階の高さ（かご 1 つ分）だけ描く（今いる階しか描かないので、上の階まで柱が突き抜けて浮いて見えないように）
       for (const sh of liftData!.shafts) {
         if (!nearRoute(sh.x, sh.z)) continue;
-        const e = elevatorModel(sh);
-        scene.add(e.group);
-        liftVis.push({ obj: e.group, floors: sh.stops.map((t) => t.floor) });
-        shafts3d.push({ obj: e.group, mats: e.mats, box: e.box });
+        for (const t of sh.stops) {
+          const e = elevatorModel({ ...sh, stops: [t] });
+          floorGroup(t.floor).add(e.group);
+          liftVis.push({ obj: e.group, floors: [t.floor] });
+          shafts3d.push({ obj: e.group, mats: e.mats, box: e.box });
+        }
       }
     }
     // 床のデータがない駅（OSM だけの駅など）でも、足元が見えるように広い床を敷く
@@ -633,7 +647,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, cum, sm, total, center, platformFloor, gates, liftData]);
+  }, [indoor, pts, cum, sm, total, center, platformFloor, gates, liftData, paidWalls]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));
