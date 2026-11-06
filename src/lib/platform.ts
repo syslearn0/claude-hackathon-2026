@@ -1,19 +1,45 @@
 // 何号車に乗っていたか → 降りたホームのどのあたりか（経路の出発点にする）。
 // ホームは、その駅のネットワークでいちばん深い階の点（大江戸線の駅はホームがいちばん下）。
-// 1号車がどちらの端かは路線ごとに決まっている。大江戸線は「都庁前寄りが1号車」（非公式の情報。目安）で、
-// 環状部では 都庁前 → 新宿西口 → … → 大門 → 六本木 → … → 新宿 → 都庁前 の向きの前が1号車になる。
+// 1号車がどちらの端かは路線ごとに決まっている。大江戸線は「光が丘→都庁前、大門・月島・両国行きの先頭が1号車」
+// （号車案内の個人サイト https://wadattsu261.com/content/azabujuban-toeioedohome-info/ 。公式資料では未確認）。
+// 電車は 光が丘 → 都庁前 → 新宿 → 六本木 → 大門 → 両国 → 飯田橋 → 都庁前 と向きを変えずに走るので、環状部ではこの向きの前が1号車。
 import type { LatLon } from "./geo";
 import type { Network } from "./route";
 
-// 大江戸線の環状部（1号車が前になる向き）。光が丘方面の放射部は、ここでは使わない
+// 大江戸線の環状部（1号車が前になる向き：都庁前 → 新宿 → 六本木 → 大門 → 両国 → 飯田橋 → 新宿西口）。光が丘方面の放射部は、ここでは使わない
 const OEDO_LOOP = [
-  "都庁前", "新宿西口", "東新宿", "若松河田", "牛込柳町", "牛込神楽坂", "飯田橋", "春日", "本郷三丁目", "上野御徒町", "新御徒町",
-  "蔵前", "両国", "森下", "清澄白河", "門前仲町", "月島", "勝どき", "築地市場", "汐留", "大門", "赤羽橋", "麻布十番", "六本木",
-  "青山一丁目", "国立競技場", "代々木", "新宿",
+  "都庁前",
+  "新宿",
+  "代々木",
+  "国立競技場",
+  "青山一丁目",
+  "六本木",
+  "麻布十番",
+  "赤羽橋",
+  "大門",
+  "汐留",
+  "築地市場",
+  "勝どき",
+  "月島",
+  "門前仲町",
+  "清澄白河",
+  "森下",
+  "両国",
+  "蔵前",
+  "新御徒町",
+  "上野御徒町",
+  "本郷三丁目",
+  "春日",
+  "飯田橋",
+  "牛込神楽坂",
+  "牛込柳町",
+  "若松河田",
+  "東新宿",
+  "新宿西口",
 ];
 
 export const LINE_CARS: Record<string, { cars: number; note: string }> = {
-  大江戸線: { cars: 8, note: "1号車は都庁前寄り（非公式の情報。目安）" },
+  大江戸線: { cars: 8, note: "1号車は大門・両国行きの先頭（非公式の情報。目安）" },
 };
 
 // 1号車の側にある隣の駅と、反対側の隣の駅（大江戸線の駅だけ）
@@ -31,7 +57,11 @@ export function carStartNode(net: Network, station: string, car: number, station
   const b = stationsAt(ends.car1Side);
   if (!a || !b) return undefined;
   const minFloor = Math.min(...net.nodes.map((n) => n[2]));
-  const platform = net.nodes.map((n, i) => ({ n, i })).filter(({ n }) => n[2] === minFloor);
+  // 階段・エスカレーター・エレベーターの乗り口の点は、出発点にしない（降りたところが乗り口の上に重ならないように）
+  const lift = new Set(net.links.filter((l) => l[3] === 1 || l[3] === 2 || l[3] === 3).flatMap((l) => [l[0], l[1]]));
+  const onFloor = net.nodes.map((n, i) => ({ n, i })).filter(({ n }) => n[2] === minFloor);
+  const flat = onFloor.filter(({ i }) => !lift.has(i));
+  const platform = flat.length ? flat : onFloor;
   if (!platform.length) return undefined;
   // 反対側の駅 → 1号車側の駅 の向き（m 単位の平面）に、ホームの点を並べる
   const kx = 111_320 * Math.cos((a.lat * Math.PI) / 180);

@@ -9,11 +9,12 @@ import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
 import { gateFrames, gatePasses, type GateShape, type WalkLink } from "@/lib/gates";
+import { liftParts } from "@/lib/lifts";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
 import { carEnds, carStartNode, LINE_CARS } from "@/lib/platform";
-import { findRoute, guideSteps, KIND, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
+import { findRoute, guideSteps, KIND_JA, nearestNode, type GuideStep, type Network, type Route, type RouteOptions } from "@/lib/route";
 import type { Station } from "@/lib/station-mode";
 import {
   advanceBySteps,
@@ -32,6 +33,7 @@ import {
   type Drift,
 } from "@/lib/tracking";
 import { gateRow } from "./gate-model";
+import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
 import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
@@ -106,21 +108,6 @@ function label(text: string, opt: { fg?: string; bg?: string; border?: string; s
   s.scale.set(c.width * k, c.height * k, 1);
   s.renderOrder = 9;
   return s;
-}
-
-// 階段・エスカレーターの段の模様
-function stepsTexture() {
-  const c = document.createElement("canvas");
-  c.width = 32;
-  c.height = 32;
-  const g = c.getContext("2d")!;
-  g.fillStyle = "#e4e4e0";
-  g.fillRect(0, 0, 32, 32);
-  g.fillStyle = "#9c9c96";
-  g.fillRect(0, 0, 32, 6);
-  const t = new THREE.CanvasTexture(c);
-  t.wrapT = THREE.RepeatWrapping;
-  return t;
 }
 
 // 文字の看板
@@ -409,6 +396,14 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const skipStartM = startKind === "gate" ? 10 : 0;
   const passes = useMemo(() => (path.pts.length ? gatePasses(path.pts, path.cum, gateShapes, { startInside, endInside, skipStartM }) : []), [path, gateShapes, startInside, endInside, skipStartM]);
   // 改札機の列を立てる位置：道順が通る改札と、ほかの改札（点の改札は、近くの通路の向きで）
+  // 階段・エスカレーター・エレベーターの形（歩く目線の座標：高さは実際に近い FLOOR_M）
+  const walkLifts = useMemo(() => {
+    if (!net) return undefined;
+    return liftParts(net, (i) => {
+      const [lat, lon, floor] = net.nodes[i];
+      return { x: (lon - center.lon) * kx, y: floor * FLOOR_M, z: -(lat - center.lat) * 110_540, floor };
+    });
+  }, [net, center, kx]);
   const walkLinks: WalkLink[] = useMemo(() => {
     if (!net) return [];
     const xz = (i: number) => ({ x: (net.nodes[i][1] - center.lon) * kx, z: -(net.nodes[i][0] - center.lat) * 110_540 });
@@ -821,39 +816,22 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       }
     }
 
-    // 上り下り：エレベーターは水色の柱（乗り降りする階のあいだ）、階段・エスカレーターは段の模様の坂
-    const lifts = new Map<string, { x: number; z: number; lo: number; hi: number }>();
-    const stepsTex = stepsTexture();
-    for (const [a, b, , kind] of net.links) {
-      const na = net.nodes[a];
-      const nb = net.nodes[b];
-      if (na[2] === nb[2] || !inRange(na[2]) || !inRange(nb[2]) || !near(na[0], na[1])) continue;
-      const p = toXYZ(na[0], na[1], na[2]);
-      const q = toXYZ(nb[0], nb[1], nb[2]);
-      if (kind === KIND.elevator) {
-        const k = `${Math.round(p.x / 3)},${Math.round(p.z / 3)}`;
-        const e = lifts.get(k) ?? { x: p.x, z: p.z, lo: Infinity, hi: -Infinity };
-        e.lo = Math.min(e.lo, p.y, q.y);
-        e.hi = Math.max(e.hi, p.y, q.y);
-        lifts.set(k, e);
-        continue;
-      }
-      const dx = q.x - p.x;
-      const dz = q.z - p.z;
-      const h = Math.hypot(dx, dz);
-      if (h < 0.5) continue;
-      const [nx, nz] = [(-dz / h) * 1.4, (dx / h) * 1.4];
-      const len = Math.hypot(h, q.y - p.y);
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.Float32BufferAttribute([p.x + nx, p.y, p.z + nz, p.x - nx, p.y, p.z - nz, q.x + nx, q.y, q.z + nz, q.x - nx, q.y, q.z - nz], 3));
-      g.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, len / 1.2, 1, len / 1.2], 2));
-      g.setIndex([0, 1, 2, 1, 3, 2]);
-      s.layer.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: stepsTex, side: THREE.DoubleSide })));
+    // 上り下り：本物のような階段・エスカレーター・エレベーター（横は 2 倍の大きさ。高さは階の間を広げた分だけ伸びるので、
+    // 階段の 1 段もそのぶん高くして、段の数は実際と同じくらいにする）。エレベーターのガラスは、立体図と同じ水色
+    const parts = liftParts(net, (i) => {
+      const [lat, lon, floor] = net.nodes[i];
+      const v = toXYZ(lat, lon, floor);
+      return { x: v.x, y: v.y, z: v.z, floor };
+    });
+    const nodeNear = (p: { x: number; z: number }) => near(center.lat - p.z / 110_540, center.lon + p.x / kx);
+    for (const f of parts.flights) {
+      if (!inRange(f.a.floor) || !inRange(f.b.floor) || !(nodeNear(f.a) || nodeNear(f.b))) continue;
+      s.layer.add(f.kind === "stairs" ? stairsModel(f, { k: 2, stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f, { k: 2 }));
     }
-    for (const e of lifts.values()) {
-      const box = new THREE.Mesh(new THREE.BoxGeometry(3.2, e.hi - e.lo + 6, 3.2), new THREE.MeshBasicMaterial({ color: DIAGRAM.lift, transparent: true, opacity: 0.85 }));
-      box.position.set(e.x, (e.lo + e.hi) / 2 + 3, e.z);
-      s.layer.add(box);
+    for (const sh of parts.shafts) {
+      const stops = sh.stops.filter((t) => inRange(t.floor));
+      if (stops.length < 1 || !nodeNear(sh)) continue;
+      s.layer.add(elevatorModel({ ...sh, stops }, { k: 2, cab: 4, glass: 0.6 }).group);
     }
 
     // 札：階の名前（紺）、出口番号（黄色）、改札、トイレ
@@ -1516,6 +1494,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
               hudRight={full ? 56 : 8}
               speed={WALK_SPEED * rate}
               gates={gateRows}
+              lifts={walkLifts}
             />
           )}
           <div

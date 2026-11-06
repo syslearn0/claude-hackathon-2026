@@ -6,7 +6,9 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import type { Indoor } from "@/lib/indoor";
 import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/lib/maneuvers";
 import type { GateFrame } from "@/lib/gates";
+import type { LiftParts } from "@/lib/lifts";
 import { GATE_L, gateRow } from "./gate-model";
+import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
@@ -65,6 +67,7 @@ export function Walk({
   hudRight = 8,
   speed = WALK_SPEED,
   gates = [],
+  lifts: liftData,
 }: {
   indoor: Indoor;
   pts: PathPoint[];
@@ -87,6 +90,7 @@ export function Walk({
   hudRight?: number; // 上の案内の右のすき間（全画面のときは、右上のボタンの分あける）
   speed?: number; // 「歩く」の速さ（m/秒）
   gates?: GateFrame[]; // 改札機の列を立てる位置（道順が通る改札と、ほかの改札）
+  lifts?: LiftParts; // 階段・エスカレーター・エレベーターの形（駅のネットワークから。あれば、本物のような形で描く）
 }) {
   const box = useRef<HTMLDivElement>(null);
   const total = cum.at(-1) ?? 0;
@@ -268,7 +272,8 @@ export function Walk({
         }
       }
     };
-    // 上り下りの手段の床（エスカレーター・階段）と、エレベーターの箱
+    // 上り下りの手段の床（エスカレーター・階段）と、エレベーターの箱。ネットワークから形が分かるときは、本物のような形で描く（下で）
+    const liftModels = !!liftData && liftData.flights.length + liftData.shafts.length > 0;
     const pads = new Map<string, { fl: number; color: number; gs: THREE.BufferGeometry[] }>();
     const PAD = { escalator: 0x9a9a94, steps: 0xb4b4ae, elevator: 0x86cff2 } as Record<string, number>;
     // エレベーターの箱は1つずつ。近づくと薄くして、入る前に消す（箱の壁をくぐると、目の前で壁が切れてちかちかする）
@@ -314,7 +319,7 @@ export function Walk({
         if (f.tags?.category === "floor" && f.closed) ribbon(`wall${fl}`, fl, f.coords, true, 2.8, 0xcfcfca, 0.55, true);
         else if (f.tags?.indoor === "wall") ribbon(`wall${fl}`, fl, f.coords, f.closed, 2.8, 0xcfcfca, 0.55, true);
         else if (f.kind === "gate") ribbon(`gate${fl}`, fl, f.coords, f.closed, 1.0, 0x4a5a6a, 0.45, true);
-        else if (f.closed && f.coords.length >= 3 && f.kind in PAD) {
+        else if (!liftModels && f.closed && f.coords.length >= 3 && f.kind in PAD) {
           const shape = new THREE.Shape(f.coords.map(([lat, lon]) => xz(lat, lon)));
           const g = f.kind === "elevator" ? new THREE.ExtrudeGeometry(shape, { depth: 2.6, bevelEnabled: false }) : new THREE.ShapeGeometry(shape);
           g.rotateX(-Math.PI / 2);
@@ -342,6 +347,25 @@ export function Walk({
     for (const pad of pads.values()) {
       const m = mergeGeometries(pad.gs);
       if (m) floorGroup(pad.fl).add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color: pad.color, side: THREE.DoubleSide, transparent: true, opacity: 0.55, depthWrite: false })));
+    }
+    // 階段・エスカレーター・エレベーター（道順から 80m 以内）。今いる階を見せるときに、その階を通るものを見せる
+    const liftVis: { obj: THREE.Object3D; floors: number[] }[] = [];
+    const shafts3d: { obj: THREE.Object3D; mats: { m: THREE.Material; base: number }[]; box: THREE.Box3 }[] = [];
+    const nearRoute = (x: number, z: number) => way.some((q) => Math.hypot(q.x - x, q.z - z) < 80);
+    if (liftModels) {
+      for (const f of liftData!.flights) {
+        if (!nearRoute(f.a.x, f.a.z) && !nearRoute(f.b.x, f.b.z)) continue;
+        const g = f.kind === "stairs" ? stairsModel(f) : escalatorModel(f);
+        scene.add(g);
+        liftVis.push({ obj: g, floors: f.floors });
+      }
+      for (const sh of liftData!.shafts) {
+        if (!nearRoute(sh.x, sh.z)) continue;
+        const e = elevatorModel(sh);
+        scene.add(e.group);
+        liftVis.push({ obj: e.group, floors: sh.stops.map((t) => t.floor) });
+        shafts3d.push({ obj: e.group, mats: e.mats, box: e.box });
+      }
     }
     // 床のデータがない駅（OSM だけの駅など）でも、足元が見えるように広い床を敷く
     for (const f of new Set(pts.map((p) => Math.round(p.floor)))) {
@@ -398,13 +422,14 @@ export function Walk({
       const nx = -(b.z - a.z) / h;
       const nz = (b.x - a.x) / h;
       const w = 0.7;
+      const lift = Math.abs(b.y - a.y) > 0.05 ? 0.22 : 0.03; // 坂（階段・エスカレーター）では、段の上に浮かせる
       const v0 = wayAt[i - 1] / 2;
       const v1 = wayAt[i] / 2;
       const quad = [
-        [a.x + nx * w, a.y + 0.03, a.z + nz * w, 0, v0],
-        [a.x - nx * w, a.y + 0.03, a.z - nz * w, 1, v0],
-        [b.x + nx * w, b.y + 0.03, b.z + nz * w, 0, v1],
-        [b.x - nx * w, b.y + 0.03, b.z - nz * w, 1, v1],
+        [a.x + nx * w, a.y + lift, a.z + nz * w, 0, v0],
+        [a.x - nx * w, a.y + lift, a.z - nz * w, 1, v0],
+        [b.x + nx * w, b.y + lift, b.z + nz * w, 0, v1],
+        [b.x - nx * w, b.y + lift, b.z - nz * w, 1, v1],
       ];
       for (const k of [0, 1, 2, 1, 3, 2]) {
         pos.push(quad[k][0], quad[k][1], quad[k][2]);
@@ -515,6 +540,14 @@ export function Walk({
       const soon = lst.current.find((m) => m.kind === "floor" && m.at >= shown - 0.01 && m.at - shown <= 6);
       const show = moving ? [floorAt(moving.at), floorAt(moving.end ?? moving.at)] : [floorAt(shown), ...(soon ? [floorAt(soon.end ?? soon.at)] : [])];
       for (const [f, g] of byFloor) g.visible = show.some((x) => Math.abs(f - x) < 0.01);
+      for (const { obj, floors } of liftVis) obj.visible = floors.some((f) => show.some((x) => Math.abs(f - x) < 0.01));
+      // エレベーターは、近づくと薄くして、入る前に消す
+      for (const { obj, mats, box } of shafts3d) {
+        if (!obj.visible) continue;
+        const o = Math.max(0, Math.min(1, (box.distanceToPoint(camera.position) - 0.3) / 1.5));
+        for (const { m, base } of mats) m.opacity = base * o;
+        obj.visible = o > 0.01;
+      }
       for (const { mesh, box } of lifts) {
         const o = 0.55 * Math.max(0, Math.min(1, (box.distanceToPoint(camera.position) - 1) / 4));
         mesh.material.opacity = o;
@@ -598,7 +631,7 @@ export function Walk({
       renderer.dispose();
       el.removeChild(renderer.domElement);
     };
-  }, [indoor, pts, cum, sm, total, center, platformFloor, gates]);
+  }, [indoor, pts, cum, sm, total, center, platformFloor, gates, liftData]);
 
   const next = list.find((m) => m.at > pos + 0.5) ?? list.at(-1)!;
   const toNext = Math.max(0, Math.round(next.at - pos));
