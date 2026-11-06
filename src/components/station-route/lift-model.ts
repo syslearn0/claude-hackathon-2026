@@ -117,8 +117,9 @@ export function stairsModel(f: Flight, opt: { k?: number; stepH?: number } = {})
   const { lo, hi, L, H } = ends(f);
   const p = new Parts();
   if (H < 0.05) {
-    // 踊り場：平らな床
-    p.box(m.tread, W, 0.25, L, 0, -0.125, L / 2);
+    // 踊り場：平らな床（向きを変えて段につながる角では、段の幅の半分だけ延ばす）
+    const [e0, e1] = f.ext ?? [0, 0];
+    p.box(m.tread, W, 0.25, L + e0 + e1, 0, -0.125, (L + e1 - e0) / 2);
   } else {
     const n = Math.max(1, Math.round(H / (opt.stepH ?? 0.17)));
     const h = H / n;
@@ -141,14 +142,6 @@ export function stairsModel(f: Flight, opt: { k?: number; stepH?: number } = {})
     }
   }
   return place(p.group(), lo, hi);
-}
-
-// 踊り場のつなぎ目の板（段と段の角をふさぐ）
-export function padModel(pad: { x: number; y: number; z: number }, opt: { size?: number } = {}): THREE.Mesh {
-  const w = opt.size ?? 1.8;
-  const g = new THREE.BoxGeometry(w, 0.25, w);
-  g.translate(pad.x, pad.y - 0.125, pad.z);
-  return new THREE.Mesh(g, S().tread);
 }
 
 // エスカレーター

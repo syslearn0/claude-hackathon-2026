@@ -8,7 +8,7 @@ import { FLOOR_M, pointAt, smoothPath, type Maneuver, type PathPoint } from "@/l
 import type { GateFrame } from "@/lib/gates";
 import type { LiftParts } from "@/lib/lifts";
 import { GATE_L, gateRow } from "./gate-model";
-import { elevatorModel, escalatorModel, padModel, stairsModel } from "./lift-model";
+import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
 
 // 歩く目線の 3D。カメラの映像（AR）ではなく、データから作った駅の中に矢印の帯を敷いて、その上を歩く。
 // 地下で現在地が取れなくても使える。位置（道順の上の m）は呼ぶ側が持つ（センサー・確認ポイントのボタン・タップで変わる）。
@@ -358,12 +358,6 @@ export function Walk({
         const g = f.kind === "stairs" ? stairsModel(f) : escalatorModel(f);
         scene.add(g);
         liftVis.push({ obj: g, floors: f.floors });
-      }
-      for (const pd of liftData!.pads) {
-        if (!nearRoute(pd.x, pd.z)) continue;
-        const g = padModel(pd);
-        scene.add(g);
-        liftVis.push({ obj: g, floors: pd.floors });
       }
       for (const sh of liftData!.shafts) {
         if (!nearRoute(sh.x, sh.z)) continue;

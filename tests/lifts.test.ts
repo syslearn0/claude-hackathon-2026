@@ -48,15 +48,22 @@ test("大門駅：横に並ぶ階段・エスカレーターには、となり�
   }
 });
 
-test("大門駅：階の途中の高さの通路は踊り場（平らな階段）になり、つなぎ目の板がある", () => {
+test("大門駅：階の途中の高さの通路は踊り場（平らな階段）になる。まっすぐ続く踊り場は延ばさない", () => {
   const net = JSON.parse(readFileSync("data/network/daimon.json", "utf8")) as Network;
-  const { flights, pads } = liftParts(net, (i) => {
+  const { flights } = liftParts(net, (i) => {
     const [lat, lon, floor] = net.nodes[i];
     return { x: lon * 90_000, y: floor * 5, z: -lat * 110_540, floor };
   });
   assert.ok(flights.some((f) => f.kind === "stairs" && f.a.y === f.b.y && !Number.isInteger(f.a.floor)));
-  assert.ok(pads.length > 0);
-  for (const p of pads) assert.ok(!Number.isInteger(p.floor));
+  // 麻布十番 B6→B5 のような、段・踊り場・段がまっすぐ並ぶところでは延ばさない（延ばすと下の段の上に板が浮く）
+  const az = JSON.parse(readFileSync("data/network/azabu-juban.json", "utf8")) as Network;
+  const { flights: af } = liftParts(az, (i) => {
+    const [lat, lon, floor] = az.nodes[i];
+    return { x: lon * 90_000, y: floor * 5, z: -lat * 110_540, floor };
+  });
+  const straight = af.filter((f) => f.kind === "stairs" && f.a.y === f.b.y && f.a.floor === -5.5);
+  assert.ok(straight.length > 0);
+  assert.ok(straight.some((f) => !f.ext));
 });
 
 test("吹き抜けの一覧：駅ごとに、階（整数）と 4 つの角。駅の近くにある", () => {

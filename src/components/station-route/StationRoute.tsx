@@ -34,7 +34,7 @@ import {
   type Drift,
 } from "@/lib/tracking";
 import { gateRow } from "./gate-model";
-import { elevatorModel, escalatorModel, padModel, stairsModel } from "./lift-model";
+import { elevatorModel, escalatorModel, stairsModel } from "./lift-model";
 import { Walk, WALK_SPEED } from "./Walk";
 
 // 駅の中の道順を 3D で見る。/now のトイレのカードの中（embedded）と、試作の画面（/lab/3d）で使う。急いでいる人が読む順に並べる：
@@ -862,7 +862,6 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       const g = f.kind === "stairs" ? stairsModel(f, { stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f);
       s.layer.add(g);
     }
-    for (const pd of parts.pads) if (inRange(pd.floor) && nodeNear(pd)) s.layer.add(padModel(pd));
     for (const sh of parts.shafts) {
       const stops = sh.stops.filter((t) => inRange(t.floor));
       if (stops.length < 1 || !nodeNear(sh)) continue;
