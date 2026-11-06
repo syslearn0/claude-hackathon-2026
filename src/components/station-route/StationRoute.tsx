@@ -10,6 +10,7 @@ import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
 import { gateFrames, gatePasses, type GateShape, type WalkLink } from "@/lib/gates";
 import { liftParts } from "@/lib/lifts";
+import VOIDS from "../../../data/station-voids.json";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
@@ -111,8 +112,10 @@ function label(text: string, opt: { fg?: string; bg?: string; border?: string; s
 }
 
 // 床に隠れた階段・エスカレーターを、薄く透かして描く（手前に何かあるところだけ描く）
-// 床（描く順 0）のあと、本体（描く順 2）の前に描く（1）ので、床に隠れたところにだけ出る（本体の奥の部品には重ならない）
-const LIFT_GHOST = new THREE.MeshBasicMaterial({ color: 0xc3c9cf, depthWrite: false, depthFunc: THREE.GreaterDepth });
+// 吹き抜け（駅ごとに手で確かめた一覧）。データの床には吹き抜けがないので、階段・エスカレーターの上の床をここで抜く
+const STATION_VOIDS = VOIDS as unknown as Record<string, { floor: number; pts: [number, number][]; note: string }[]>;
+// 階ごとの印（ステンシルの 1 ビット）。吹き抜けの四角がその階の印を付け、その階の床は印のあるところを描かない（ほかの階の床は消えない）
+const voidBit = (fl: number) => 1 << (((fl % 8) + 8) % 8);
 
 // 文字の看板
 function sign(text: string, bg = "rgba(20,20,19,.8)", w = 220) {
@@ -691,7 +694,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
     renderer.setSize(el.clientWidth, el.clientHeight);
     renderer.setClearColor(0xffffff);
@@ -800,6 +803,32 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       (f) => f.closed && f.coords.length >= 3 && f.floors.some(inRange) && ["corridor", "area", "platform"].includes(f.kind) && f.coords.some(([lat, lon]) => near(lat, lon, crop * 1.2)),
     );
     const westOf = new Map<number, THREE.Vector3>(); // 階ごとの、いちばん西の角（階の名前を置く）
+    // 吹き抜け：床より先に（描く順 -10）、四角のところに階の印を付ける。色も奥行きも書かない
+    const voids = (STATION_VOIDS[station] ?? []).filter((v) => inRange(v.floor) && v.pts.some(([lat, lon]) => near(lat, lon, crop * 1.2)));
+    const voidFloors = new Set(voids.map((v) => v.floor));
+    for (const v of voids) {
+      const g = new THREE.ShapeGeometry(new THREE.Shape(v.pts.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z))));
+      g.rotateX(-Math.PI / 2);
+      g.translate(0, v.floor * FLOOR_H + 0.02, 0);
+      const bit = voidBit(v.floor);
+      const m = new THREE.MeshBasicMaterial({
+        colorWrite: false,
+        depthWrite: false,
+        depthTest: false,
+        side: THREE.DoubleSide,
+        stencilWrite: true,
+        stencilRef: bit,
+        stencilWriteMask: bit,
+        stencilFunc: THREE.AlwaysStencilFunc,
+        stencilZPass: THREE.ReplaceStencilOp,
+      });
+      const mesh = new THREE.Mesh(g, m);
+      mesh.renderOrder = -10;
+      s.layer.add(mesh);
+    }
+    // その階に吹き抜けがあれば、床は印のないところだけ描く
+    const cut = (fl: number) =>
+      voidFloors.has(fl) ? { stencilWrite: true, stencilWriteMask: 0, stencilRef: voidBit(fl), stencilFuncMask: voidBit(fl), stencilFunc: THREE.NotEqualStencilFunc } : {};
     for (const f of walkFeatures) {
       const shape = new THREE.Shape(f.coords.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z)));
       for (const fl of f.floors.filter(inRange)) {
@@ -808,10 +837,10 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         const g = new THREE.ExtrudeGeometry(shape, { depth: T, bevelEnabled: false });
         g.rotateX(-Math.PI / 2);
         g.translate(0, fl * FLOOR_H - T, 0);
-        const top = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformTop : DIAGRAM.floorTop });
-        const side = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformSide : DIAGRAM.floorSide });
+        const top = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformTop : DIAGRAM.floorTop, ...cut(fl) });
+        const side = new THREE.MeshBasicMaterial({ color: plat ? DIAGRAM.platformSide : DIAGRAM.floorSide, ...cut(fl) });
         s.layer.add(new THREE.Mesh(g, [top, side]));
-        s.layer.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 30), new THREE.LineBasicMaterial({ color: DIAGRAM.edge })));
+        s.layer.add(new THREE.LineSegments(new THREE.EdgesGeometry(g, 30), new THREE.LineBasicMaterial({ color: DIAGRAM.edge, ...cut(fl) })));
         if (Number.isInteger(fl))
           for (const [lat, lon] of f.coords) {
             const v = toXYZ(lat, lon, fl);
@@ -831,15 +860,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     for (const f of parts.flights) {
       if (!inRange(f.a.floor) || !inRange(f.b.floor) || !(nodeNear(f.a) || nodeNear(f.b))) continue;
       const g = f.kind === "stairs" ? stairsModel(f, { stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f);
-      g.traverse((o) => (o.renderOrder = 2));
       s.layer.add(g);
-      // 上の階の床に隠れる部分（データでは吹き抜けがなく、床が上にかぶさる）は、薄く透かして見せる
-      const ghost = g.clone();
-      ghost.traverse((o) => {
-        if (o instanceof THREE.Mesh) o.material = LIFT_GHOST;
-        o.renderOrder = 1;
-      });
-      s.layer.add(ghost);
     }
     for (const pd of parts.pads) if (inRange(pd.floor) && nodeNear(pd)) s.layer.add(padModel(pd));
     for (const sh of parts.shafts) {

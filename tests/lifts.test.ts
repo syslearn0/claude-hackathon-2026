@@ -58,3 +58,24 @@ test("大門駅：階の途中の高さの通路は踊り場（平らな階段�
   assert.ok(pads.length > 0);
   for (const p of pads) assert.ok(!Number.isInteger(p.floor));
 });
+
+test("吹き抜けの一覧：駅ごとに、階（整数）と 4 つの角。駅の近くにある", () => {
+  const voids = JSON.parse(readFileSync("data/station-voids.json", "utf8")) as Record<string, { floor: number; pts: [number, number][]; note: string }[]>;
+  const nets = new Map(
+    ["tochomae", "shinjuku-nishiguchi", "higashi-shinjuku", "yoyogi", "kokuritsu-kyogijo", "aoyama-itchome", "roppongi", "azabu-juban", "akabanebashi", "daimon", "ueno-okachimachi"].map((f) => {
+      const n = JSON.parse(readFileSync(`data/network/${f}.json`, "utf8")) as Network;
+      return [n.station, n] as const;
+    }),
+  );
+  assert.ok(Object.keys(voids).length >= 10);
+  for (const [name, vs] of Object.entries(voids)) {
+    const net = nets.get(name);
+    assert.ok(net, name);
+    const [lat0, lon0] = net.nodes[0];
+    for (const v of vs) {
+      assert.ok(Number.isInteger(v.floor) && v.floor !== 0, `${name} ${v.note}`);
+      assert.equal(v.pts.length, 4);
+      for (const [lat, lon] of v.pts) assert.ok(Math.abs(lat - lat0) < 0.005 && Math.abs(lon - lon0) < 0.005, `${name} ${v.note}`);
+    }
+  }
+});
