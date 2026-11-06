@@ -379,7 +379,7 @@ export function Walk({
     for (const { f, p, dx, dz } of gateFrames) {
       // 横（列の向き）に、壁までの距離をはかる（列のところの壁は、上で抜いてある）
       const reach = (ux: number, uz: number) => {
-        let best = 7;
+        let best = 30;
         for (const s of wallSegs) {
           if (Math.abs(s.y - p.floor * FLOOR_M) > 0.1) continue;
           const ex = s.bx - s.ax;
@@ -394,7 +394,9 @@ export function Walk({
       };
       // gateRow の中では +z が進む向き、+x が進む向きの左
       // 点の改札は、壁までの幅だけ並べて柵でふさぐ。線の改札は、線の長さだけ並べる
-      const [wl, wr] = f.fence ? [reach(-dz, dx), reach(dz, -dx)] : [7, 7]; // -x 側・+x 側の壁まで
+      // -x 側・+x 側の壁まで。通路の床の端までの長さ（wallLeft・wallRight）が分かれば、その近いほう（壁の線がないところも、床の端でふさぐ）
+      const side = (r: number, floorEdge?: number) => Math.min(r, floorEdge ?? 7);
+      const [wl, wr] = f.fence ? [side(reach(-dz, dx), f.wallLeft), side(reach(dz, -dx), f.wallRight)] : [7, 7];
       const g = gateRow({
         name: f.name,
         out: f.out,

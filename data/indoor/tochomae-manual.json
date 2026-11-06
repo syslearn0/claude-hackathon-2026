@@ -1,0 +1,17 @@
+{
+ "station": "都庁前",
+ "source": "manual",
+ "note": "ほこナビのデータには都庁前駅の改札がない。改札は地下2階に1か所（号車案内の個人サイト https://wadattsu261.com/content/tochomae-toeioedohome-info/ ）。位置は、地下2階で、ホームから上がってくる階段・エスカレーター・エレベーターと、地上へ上がる階段・エスカレーター・エレベーターを分けている、ただ1本の通路の線（ネットワークの点 251–9）のまんなか（scripts/_cut.py で確かめた。公式の構内図では未確認）。",
+ "attribution": "",
+ "features": [
+  {
+   "id": "manual-tochomae-gate-1",
+   "kind": "gate",
+   "levels": [],
+   "floors": [-2],
+   "closed": false,
+   "tags": { "source": "manual" },
+   "coords": [[35.6906045, 139.692522]]
+  }
+ ]
+}

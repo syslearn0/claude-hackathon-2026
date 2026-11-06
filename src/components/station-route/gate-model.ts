@@ -182,8 +182,8 @@ export function gateRow(opt: { name?: string; out?: boolean; left?: number; righ
   };
   const xl = Math.min(...xs) - CW / 2;
   const xr = Math.max(...xs) + CW / 2;
-  if (opt.fenceLeft !== undefined && opt.fenceLeft < 7) fence(-opt.fenceLeft, xl);
-  if (opt.fenceRight !== undefined && opt.fenceRight < 7) fence(xr, opt.fenceRight);
+  if (opt.fenceLeft !== undefined && opt.fenceLeft < 30) fence(-opt.fenceLeft, xl);
+  if (opt.fenceRight !== undefined && opt.fenceRight < 30) fence(xr, opt.fenceRight);
   if (opt.board !== false) {
     // 通る通路の真上につるした案内板（列のまんなかだと、壁に隠れることがある）
     const bw = 2.6;

@@ -8,7 +8,7 @@ import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
-import { gateFrames, gatePasses, type GateShape, type WalkLink } from "@/lib/gates";
+import { floorReach, gateDirs, gateFrames, gatePasses, type FloorPoly, type GateShape, type WalkLink } from "@/lib/gates";
 import { liftParts } from "@/lib/lifts";
 import VOIDS from "../../../data/station-voids.json";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
@@ -416,7 +416,34 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const xz = (i: number) => ({ x: (net.nodes[i][1] - center.lon) * kx, z: -(net.nodes[i][0] - center.lat) * 110_540 });
     return net.links.filter(([a, b]) => net.nodes[a][2] === net.nodes[b][2]).map(([a, b]) => ({ floor: net.nodes[a][2], ax: xz(a).x, az: xz(a).z, bx: xz(b).x, bz: xz(b).z }));
   }, [net, center, kx]);
-  const gateRows = useMemo(() => gateFrames(gateShapes, walkLinks, path.pts.length ? { pts: path.pts, cum: path.cum, passes } : undefined), [gateShapes, walkLinks, path, passes]);
+  // 点の改札を通る向き：駅の道を、改札の内（ホーム側）と外（地上側）に分けて決める
+  const dirs = useMemo(() => {
+    if (!net) return undefined;
+    const nodes = net.nodes.map(([lat, lon, floor]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540, floor }));
+    return gateDirs(
+      nodes,
+      net.links.map(([a, b]) => [a, b] as [number, number]),
+      gateShapes,
+    );
+  }, [net, gateShapes, center, kx]);
+  // 通路の床の形（改札の列の横を、床の端まで柵でふさぐため。改札のデータは点 1 つなので、そのままだと列の横が開いて、外とつながって見える）
+  const floorPolys: FloorPoly[] = useMemo(
+    () =>
+      (indoor?.features ?? [])
+        .filter((f) => f.closed && f.coords.length >= 3 && ["corridor", "area", "platform"].includes(f.kind))
+        .flatMap((f) => f.floors.map((floor) => ({ floor, pts: f.coords.map(([lat, lon]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540 })) }))),
+    [indoor, center, kx],
+  );
+  const gateRows = useMemo(
+    () =>
+      gateFrames(gateShapes, walkLinks, path.pts.length ? { pts: path.pts, cum: path.cum, passes } : undefined, dirs).map((f) => {
+        if (!f.fence) return f;
+        // 柵は床の端まで（長くても片側 12m。広い広間で、関係のないところまでふさがないように）
+        const r = floorReach(f, floorPolys);
+        return { ...f, wallLeft: r.left > 0 ? Math.min(12, r.left) : undefined, wallRight: r.right > 0 ? Math.min(12, r.right) : undefined };
+      }),
+    [gateShapes, walkLinks, path, passes, dirs, floorPolys],
+  );
   const list = useMemo(() => {
     if (!path.pts.length) return [];
     const gates: Maneuver[] = passes.map((p) => ({ at: p.at, kind: "gate", text: gateText(p), out: p.out, name: p.name }));
@@ -832,8 +859,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       s.layer.add(mesh);
     }
     // その階に吹き抜けがあれば、床は印のないところだけ描く
-    const cut = (fl: number) =>
-      voidFloors.has(fl) ? { stencilWrite: true, stencilWriteMask: 0, stencilRef: voidBit(fl), stencilFuncMask: voidBit(fl), stencilFunc: THREE.NotEqualStencilFunc } : {};
+    const cut = (fl: number) => (voidFloors.has(fl) ? { stencilWrite: true, stencilWriteMask: 0, stencilRef: voidBit(fl), stencilFuncMask: voidBit(fl), stencilFunc: THREE.NotEqualStencilFunc } : {});
     for (const f of walkFeatures) {
       const shape = new THREE.Shape(f.coords.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z)));
       for (const fl of f.floors.filter(inRange)) {
@@ -936,7 +962,16 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     for (const f of gateRows) {
       if (!inRange(f.floor) || !near(center.lat - f.z / 110_540, center.lon + f.x / kx)) continue;
       const k = f.fence ? GATE_SCALE : 2;
-      const g = gateRow({ name: f.name, out: f.out, left: f.left / k, right: f.right / k, board: f.board, lane: f.onRoute });
+      const g = gateRow({
+        name: f.name,
+        out: f.out,
+        left: Math.min(f.left, f.wallLeft ?? 99) / k,
+        right: Math.min(f.right, f.wallRight ?? 99) / k,
+        fenceLeft: f.wallLeft !== undefined ? f.wallLeft / k : undefined,
+        fenceRight: f.wallRight !== undefined ? f.wallRight / k : undefined,
+        board: f.board,
+        lane: f.onRoute,
+      });
       g.scale.setScalar(k);
       g.traverse((o) => (o.renderOrder = 7)); // 赤い道順の線（奥行きを見ずに描く）のあとに描いて、手前の改札機が線に隠れないように
       g.position.set(f.x, f.floor * FLOOR_H, f.z);

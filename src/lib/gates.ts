@@ -69,7 +69,23 @@ export function gatePasses(pts: PathPoint[], cum: number[], gates: GateShape[], 
 // ---------- 改札機の列を立てる位置（3D で、本物のような改札機を並べるため） ----------
 // x・z は m（駅の中心から。z は南が +）。dx・dz は通る向き（単位ベクトル）。left・right は、列のまんなかから
 // 通る向きの左・右に、改札機を並べてよい幅（m）。fence：壁までの柵を描く（点の改札。線の改札は線の長さだけ並べる）
-export type GateFrame = { x: number; z: number; floor: number; dx: number; dz: number; left: number; right: number; name?: string; out?: boolean; onRoute: boolean; fence: boolean; board: boolean };
+// wallLeft・wallRight：柵をのばす長さ（通路の床の端まで。呼ぶ側が floorReach で入れる）
+export type GateFrame = {
+  x: number;
+  z: number;
+  floor: number;
+  dx: number;
+  dz: number;
+  left: number;
+  right: number;
+  name?: string;
+  out?: boolean;
+  onRoute: boolean;
+  fence: boolean;
+  board: boolean;
+  wallLeft?: number;
+  wallRight?: number;
+};
 export type WalkLink = { floor: number; ax: number; az: number; bx: number; bz: number };
 
 const POINT_HALF = 2.8; // 点の改札：まんなかから左右 2.8m まで（多くても 6 台）
@@ -97,7 +113,8 @@ function segFrame(g: GateShape, i: number, c: { x: number; z: number }, toward?:
   return { x: c.x, z: c.z, floor: g.floor, dx, dz, left: -Math.min(ea, eb), right: Math.max(ea, eb), len };
 }
 
-export function gateFrames(shapes: GateShape[], links: WalkLink[], route?: { pts: PathPoint[]; cum: number[]; passes: GatePass[] }): GateFrame[] {
+// dirs：点の改札を通る向き（gateDirs）。なければ近くの通路の向き
+export function gateFrames(shapes: GateShape[], links: WalkLink[], route?: { pts: PathPoint[]; cum: number[]; passes: GatePass[] }, dirs?: ({ dx: number; dz: number } | undefined)[]): GateFrame[] {
   const out: GateFrame[] = [];
   const used = new Set<string>(); // 道順で使った改札（線は区間ごと）
   // 道順が通る改札：通るところを列のまんなかにし、道順の通路が改札機のあいだになるように
@@ -140,6 +157,11 @@ export function gateFrames(shapes: GateShape[], links: WalkLink[], route?: { pts
     if (g.pts.length === 1) {
       if (used.has(`${gi}:0`)) return;
       const p = g.pts[0];
+      const d = dirs?.[gi];
+      if (d) {
+        out.push({ x: p.x, z: p.z, floor: g.floor, ...d, left: POINT_HALF, right: POINT_HALF, name: g.name, onRoute: false, fence: true, board: true });
+        return;
+      }
       let best: { d: number; l: WalkLink } | undefined;
       for (const l of links) {
         if (Math.abs(l.floor - g.floor) > 0.01) continue;
@@ -185,4 +207,73 @@ export function gateFrames(shapes: GateShape[], links: WalkLink[], route?: { pts
     }
   });
   return out;
+}
+
+// 改札の列の左右に、通路の床（その階の歩ける所の形）がどこまで続くか（m）。列を床の端まで柵でふさぐため
+// （改札のデータは点 1 つなので、通路が広いと、列の横が開いて外とつながって見える）。left は列の -x 側（通る向きの右）
+export type FloorPoly = { floor: number; pts: { x: number; z: number }[] };
+export function floorReach(f: { x: number; z: number; floor: number; dx: number; dz: number }, floors: FloorPoly[], max = 40): { left: number; right: number } {
+  const polys = floors.filter((p) => Math.abs(p.floor - f.floor) < 0.01);
+  const inside = (x: number, z: number) =>
+    polys.some(({ pts }) => {
+      let hit = false;
+      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        const [a, b] = [pts[i], pts[j]];
+        if (a.z > z !== b.z > z && x < ((b.x - a.x) * (z - a.z)) / (b.z - a.z) + a.x) hit = !hit;
+      }
+      return hit;
+    });
+  const march = (ux: number, uz: number) => {
+    let was = false;
+    for (let t = 0; t <= max; t += 0.2) {
+      const now = inside(f.x + ux * t, f.z + uz * t);
+      if (now) was = true;
+      else if (was || t > 3) return was ? t : 0;
+    }
+    return max;
+  };
+  return { left: march(-f.dz, f.dx), right: march(f.dz, -f.dx) };
+}
+
+// 改札（点）を通る向き：駅の道を、改札を通らずにホームから行ける「内」と、地上から行ける「外」に分け、
+// 改札のまわり（15m、なければ 25m 以内）の内の点の平均から外の点の平均への向き。決まらなければ undefined（近くの通路の向きを使う）
+export type NetNode = { x: number; z: number; floor: number };
+export function gateDirs(nodes: NetNode[], links: [number, number][], shapes: GateShape[]): ({ dx: number; dz: number } | undefined)[] {
+  const pts = shapes.map((g) => (g.pts.length === 1 ? { ...g.pts[0], floor: g.floor } : undefined));
+  const adj = new Map<number, number[]>();
+  for (const [a, b] of links) {
+    const [p, q] = [nodes[a], nodes[b]];
+    const cut = pts.some((g) => g && (Math.abs(g.floor - p.floor) < 0.01 || Math.abs(g.floor - q.floor) < 0.01) && nearestOnSeg(g, p, q).d < 6);
+    if (cut) continue;
+    adj.set(a, [...(adj.get(a) ?? []), b]);
+    adj.set(b, [...(adj.get(b) ?? []), a]);
+  }
+  const bfs = (start: number[]) => {
+    const s = new Set(start);
+    const q = [...start];
+    while (q.length)
+      for (const j of adj.get(q.shift()!) ?? []) {
+        if (s.has(j)) continue;
+        s.add(j);
+        q.push(j);
+      }
+    return s;
+  };
+  const minF = Math.min(...nodes.map((n) => n.floor));
+  const inner = bfs(nodes.flatMap((n, i) => (n.floor === minF ? [i] : [])));
+  const outer = bfs(nodes.flatMap((n, i) => (n.floor >= 1 ? [i] : [])));
+  return pts.map((g) => {
+    if (!g) return undefined;
+    for (const r of [15, 25]) {
+      const near = (s: Set<number>, t: Set<number>) => [...s].filter((i) => !t.has(i) && Math.abs(nodes[i].floor - g.floor) < 0.01 && Math.hypot(nodes[i].x - g.x, nodes[i].z - g.z) < r);
+      const ii = near(inner, outer);
+      const oo = near(outer, inner);
+      if (!ii.length || !oo.length) continue;
+      const mean = (ids: number[]) => ({ x: ids.reduce((s, i) => s + nodes[i].x, 0) / ids.length, z: ids.reduce((s, i) => s + nodes[i].z, 0) / ids.length });
+      const [a, b] = [mean(ii), mean(oo)];
+      const L = Math.hypot(b.x - a.x, b.z - a.z);
+      if (L > 0.5) return { dx: (b.x - a.x) / L, dz: (b.z - a.z) / L };
+    }
+    return undefined;
+  });
 }
