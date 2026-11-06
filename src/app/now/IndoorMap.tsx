@@ -319,7 +319,7 @@ export function IndoorMap({ station, points, here }: { station: string; points: 
         </span>
       </div>
       <p className="muted" style={{ fontSize: "0.8rem", margin: "4px 0 0" }}>
-        試作：OpenStreetMap の屋内データ（有志が描いたもの。ある駅だけ）{INDOOR_STATIONS[station].sources.length ? "と、" : "を加工して出しています（国の案内ではありません）。"}
+        OpenStreetMap の屋内データ（有志が描いたもの。ある駅だけ）{INDOOR_STATIONS[station].sources.length ? "と、" : "を加工して出しています（国の案内ではありません）。"}
         {INDOOR_STATIONS[station].sources.map((s, i) => (
           <span key={s.url}>
             {i > 0 && "、"}

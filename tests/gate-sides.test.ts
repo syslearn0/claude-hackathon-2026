@@ -38,7 +38,12 @@ test("都庁前：改札（手で足した地下2階の1か所）があり、ホ
   const minF = Math.min(...nodes.map((n) => n.floor));
   const seen = new Set(nodes.flatMap((n, i) => (n.floor === minF ? [i] : [])));
   const q = [...seen];
-  while (q.length) for (const j of adj.get(q.shift()!) ?? []) if (!seen.has(j)) seen.add(j) && q.push(j);
+  while (q.length)
+    for (const j of adj.get(q.shift()!) ?? []) {
+      if (seen.has(j)) continue;
+      seen.add(j);
+      q.push(j);
+    }
   assert.ok(![...seen].some((i) => nodes[i].floor >= 1));
 });
 

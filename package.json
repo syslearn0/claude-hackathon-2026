@@ -18,7 +18,8 @@
     "import:network": "tsx scripts/import-network.ts",
     "fetch:osm-network": "tsx scripts/fetch-osm-network.ts",
     "eval": "tsx scripts/eval.ts",
-    "record:demo": "tsx scripts/record-demo.ts"
+    "record:demo": "tsx scripts/record-demo.ts",
+    "build:walls": "tsx scripts/build-walls.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

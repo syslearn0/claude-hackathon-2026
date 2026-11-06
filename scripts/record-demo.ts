@@ -241,7 +241,7 @@ scenes["shinjuku-enter"] = {
     check["新宿駅の範囲に入りました"] = await seen(page, "新宿駅の範囲に入りました", (outsideM / (5 / 3.6)) * 1000 + 40_000);
     await sleep(2500);
     await tap(page, page.getByRole("button", { name: "駅の中の地図を開く" }));
-    check["駅の中の地図が出た"] = await seen(page, /駅の中の地図（試作）/, 10_000) && (await page.locator(".leaflet-container").first().isVisible());
+    check["駅の中の地図が出た"] = await seen(page, /駅の中の地図/, 10_000) && (await page.locator(".leaflet-container").first().isVisible());
     await sleep(3500);
     for (const label of ["B1", "2F"]) {
       const b = page.getByRole("button", { name: label, exact: true });
