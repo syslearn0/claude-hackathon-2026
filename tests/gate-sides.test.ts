@@ -75,3 +75,9 @@ test("改札の内と外を分ける壁：麻布十番にあり、どの駅で�
       }
   }
 });
+
+test("改札の内と外を分ける壁の書き出し（data/station-walls.json）が、いまの駅のデータと合っている（古ければ npx tsx scripts/build-walls.ts）", async () => {
+  const { buildWalls } = await import("../scripts/build-walls");
+  const saved = JSON.parse(readFileSync("data/station-walls.json", "utf8"));
+  assert.deepEqual(buildWalls(), saved);
+});

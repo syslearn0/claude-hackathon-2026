@@ -351,9 +351,13 @@ function gridWalls(nodes: NetNode[], links: [number, number][], shapes: GateShap
       for (let k = 1; k < n; k++) ns.push({ x: p.x + ((q.x - p.x) * k) / n, z: p.z + ((q.z - p.z) * k) / n, floor: F, inside: sd === 1 });
     }
     if (!ns.some((n) => n.inside) || !ns.some((n) => !n.inside)) continue;
-    const polys = floors.filter((p) => Math.abs(p.floor - F) < 0.01);
+    // 速さのため：床の形は囲む四角で先にふるい、道の点は 20m のます目に分けておく（新宿のような広い駅で、何十秒も固まらないように）
+    const polys = floors
+      .filter((p) => Math.abs(p.floor - F) < 0.01)
+      .map(({ pts }) => ({ pts, x0: Math.min(...pts.map((p) => p.x)), x1: Math.max(...pts.map((p) => p.x)), z0: Math.min(...pts.map((p) => p.z)), z1: Math.max(...pts.map((p) => p.z)) }));
     const inPoly = (x: number, z: number) =>
-      polys.some(({ pts }) => {
+      polys.some(({ pts, x0, x1, z0, z1 }) => {
+        if (x < x0 || x > x1 || z < z0 || z > z1) return false;
         let hit = false;
         for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
           const [a, b] = [pts[i], pts[j]];
@@ -368,16 +372,37 @@ function gridWalls(nodes: NetNode[], links: [number, number][], shapes: GateShap
     const H = Math.ceil((z1 - z0) / step);
     // マスの印：1 = 内、2 = 外、0 = 床でない・遠い
     const lab = new Uint8Array(W * H);
+    // 床の形の囲む四角にかかるマスだけを見る
+    const cand = new Uint8Array(W * H);
+    for (const p of polys) {
+      const [i0, i1] = [Math.max(0, Math.floor((p.x0 - x0) / step)), Math.min(W - 1, Math.floor((p.x1 - x0) / step))];
+      const [j0, j1] = [Math.max(0, Math.floor((p.z0 - z0) / step)), Math.min(H - 1, Math.floor((p.z1 - z0) / step))];
+      for (let j = j0; j <= j1; j++) cand.fill(1, j * W + i0, j * W + i1 + 1);
+    }
+    const B = 20;
+    const BW = Math.ceil((x1 - x0) / B) + 1;
+    const BH = Math.ceil((z1 - z0) / B) + 1;
+    const bucket: number[][] = Array.from({ length: BW * BH }, () => []);
+    ns.forEach((n, k) => bucket[Math.floor((n.z - z0) / B) * BW + Math.floor((n.x - x0) / B)].push(k));
     for (let j = 0; j < H; j++)
       for (let i = 0; i < W; i++) {
+        if (!cand[j * W + i]) continue;
         const x = x0 + (i + 0.5) * step;
         const z = z0 + (j + 0.5) * step;
         let best = 400; // 20m の 2 乗
+        let bestK = -1;
         let inside = false;
-        for (const n of ns) {
-          const d = (n.x - x) ** 2 + (n.z - z) ** 2;
-          if (d < best) [best, inside] = [d, n.inside];
-        }
+        const [bx, bz] = [Math.floor((x - x0) / B), Math.floor((z - z0) / B)];
+        for (let dz = -1; dz <= 1; dz++)
+          for (let dx = -1; dx <= 1; dx++) {
+            if (bx + dx < 0 || bx + dx >= BW || bz + dz < 0 || bz + dz >= BH) continue;
+            for (const k of bucket[(bz + dz) * BW + bx + dx]) {
+              const n = ns[k];
+              const d = (n.x - x) ** 2 + (n.z - z) ** 2;
+              // 同じ近さなら、前に並んでいる点を（全部を順に見ていたときと同じ結果に）
+              if (d < best || (d === best && k < bestK)) [best, bestK, inside] = [d, k, n.inside];
+            }
+          }
         if (best < 400 && inPoly(x, z)) lab[j * W + i] = inside ? 1 : 2;
       }
     // 開けておくところ：改札の点から 3.3m 以内と、改札のすぐそばの線（両端とも内でも外でもない、改札の通り道）から 1m 以内
@@ -435,4 +460,27 @@ export function onFloor(floors: FloorPoly[], floor: number, x: number, z: number
     [0, r],
     [0, -r],
   ].some(([dx, dz]) => inside(x + dx, z + dz));
+}
+
+// 駅ごとの改札の内と外を分ける壁を、緯度・経度で（data/station-walls.json に前もって書き出しておく。
+// 新宿のような広い駅では計算に 1 秒ほどかかり、スマホでは道順を開くたびに固まるため）。
+// 入力は画面と同じ：ネットワークの全部の点と線、屋内データの改札と床（通路・広間・ホーム）
+export type IndoorFeatureLike = { kind: string; floors: number[]; coords: [number, number][]; closed?: boolean };
+export type WallLatLon = { floor: number; a: [number, number]; b: [number, number] };
+export function stationPaidWalls(net: { nodes: [number, number, number][]; links: number[][] }, features: IndoorFeatureLike[]): WallLatLon[] {
+  const [lat0, lon0] = net.nodes[0];
+  const kx = 111_320 * Math.cos((lat0 * Math.PI) / 180);
+  const xz = (lat: number, lon: number) => ({ x: (lon - lon0) * kx, z: -(lat - lat0) * 110_540 });
+  const nodes = net.nodes.map(([lat, lon, floor]) => ({ ...xz(lat, lon), floor }));
+  const shapes: GateShape[] = features.filter((f) => f.kind === "gate" && f.coords.length).flatMap((f) => f.floors.map((floor) => ({ floor, pts: f.coords.map(([a, b]) => xz(a, b)) })));
+  const floors: FloorPoly[] = features
+    .filter((f) => f.closed && f.coords.length >= 3 && ["corridor", "area", "platform"].includes(f.kind))
+    .flatMap((f) => f.floors.map((floor) => ({ floor, pts: f.coords.map(([a, b]) => xz(a, b)) })));
+  const ll = (x: number, z: number): [number, number] => [Number((lat0 - z / 110_540).toFixed(7)), Number((lon0 + x / kx).toFixed(7))];
+  return paidWalls(
+    nodes,
+    net.links.map(([a, b]) => [a, b] as [number, number]),
+    shapes,
+    floors,
+  ).map((w) => ({ floor: w.floor, a: ll(w.ax, w.az), b: ll(w.bx, w.bz) }));
 }

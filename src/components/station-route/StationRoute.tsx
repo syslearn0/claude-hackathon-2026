@@ -9,9 +9,10 @@ import { distanceM } from "@/lib/geo";
 import { floorLabel, INDOOR_STATIONS, parseFloor, placeFloor, type Indoor } from "@/lib/indoor";
 import type { Place } from "@/lib/places";
 import { candidateLabel, candidates, describe, landmarks, type Candidate, type Gps } from "@/lib/locate";
-import { floorReach, gateDirs, gateFrames, gatePasses, onFloor, paidWalls, type FloorPoly, type GateShape, type WalkLink, type WallSeg } from "@/lib/gates";
+import { floorReach, gateDirs, gateFrames, gatePasses, onFloor, type FloorPoly, type GateShape, type WalkLink, type WallLatLon, type WallSeg } from "@/lib/gates";
 import { liftParts } from "@/lib/lifts";
 import VOIDS from "../../../data/station-voids.json";
+import WALLS from "../../../data/station-walls.json";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
@@ -115,6 +116,7 @@ function label(text: string, opt: { fg?: string; bg?: string; border?: string; s
 // 床に隠れた階段・エスカレーターを、薄く透かして描く（手前に何かあるところだけ描く）
 // 吹き抜け（駅ごとに手で確かめた一覧）。データの床には吹き抜けがないので、階段・エスカレーターの上の床をここで抜く
 const STATION_VOIDS = VOIDS as unknown as Record<string, { floor: number; pts: [number, number][]; note: string }[]>;
+const STATION_WALLS = WALLS as unknown as Record<string, WallLatLon[]>;
 // 階ごとの印（ステンシルの 1 ビット）。吹き抜けの四角がその階の印を付け、その階の床は印のあるところを描かない（ほかの階の床は消えない）
 const voidBit = (fl: number) => 1 << (((fl % 8) + 8) % 8);
 
@@ -316,7 +318,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const gpsNear = gpsNode >= 0 && net.nodes[gpsNode][2] === 1 && distanceM(gps!, { lat: net.nodes[gpsNode][0], lon: net.nodes[gpsNode][1] }) <= 80;
     const ground: Start = gpsNear
       ? { label: "地上の出入口（GPS で、いまいる所に近いもの）", node: gpsNode, kind: "ground" }
-      : { label: "地上の出入口のあたり（1F）", node: nearestNode(net, center, 1), kind: "ground" };
+      : { label: "1F の駅のまん中あたり（GPS が使えないので、どの出入口かは分かりません）", node: nearestNode(net, center, 1), kind: "ground" };
     const platform: Start = { label: `${line ? `${line}の` : ""}ホーム（${floorLabel(Math.round(minFloor))}・まん中あたり）`, node: nearestNode(net, lowCenter, minFloor), kind: "platform" };
     // GPS で地上にいると分かれば、それを最初に（号車を選んだときは号車）
     list.push(...(gpsNear && byCar === undefined && !reask ? [ground, platform] : [platform, ground]));
@@ -435,17 +437,19 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
         .flatMap((f) => f.floors.map((floor) => ({ floor, pts: f.coords.map(([lat, lon]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540 })) }))),
     [indoor, center, kx],
   );
-  // 改札の内と外を分ける壁（改札のある階。床は内も外も 1 枚の広間のことが多く、そのままだと改札の横を通れて見える）
-  const paidWallSegs: WallSeg[] = useMemo(() => {
-    if (!net) return [];
-    const nodes = net.nodes.map(([lat, lon, floor]) => ({ x: (lon - center.lon) * kx, z: -(lat - center.lat) * 110_540, floor }));
-    return paidWalls(
-      nodes,
-      net.links.map(([a, b]) => [a, b] as [number, number]),
-      gateShapes,
-      floorPolys,
-    );
-  }, [net, gateShapes, floorPolys, center, kx]);
+  // 改札の内と外を分ける壁（改札のある階。床は内も外も 1 枚の広間のことが多く、そのままだと改札の横を通れて見える）。
+  // 計算が重い（新宿で 1 秒ほど）ので、scripts/build-walls.ts で前もって data/station-walls.json に書き出したものを使う
+  const paidWallSegs: WallSeg[] = useMemo(
+    () =>
+      (STATION_WALLS[station] ?? []).map((w) => ({
+        floor: w.floor,
+        ax: (w.a[1] - center.lon) * kx,
+        az: -(w.a[0] - center.lat) * 110_540,
+        bx: (w.b[1] - center.lon) * kx,
+        bz: -(w.b[0] - center.lat) * 110_540,
+      })),
+    [station, center, kx],
+  );
   const gateRows = useMemo(
     () =>
       gateFrames(gateShapes, walkLinks, path.pts.length ? { pts: path.pts, cum: path.cum, passes } : undefined, dirs).map((f) => {
