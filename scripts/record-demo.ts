@@ -366,6 +366,10 @@ scenes.route3d = {
       await sleep(60);
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
+    // 案内を始めると歩く目線に切り替わるので、この場面は上から見る画面に戻してから進める
+    await sleep(1500);
+    const above = page.getByRole("button", { name: "まわりを上から見る" });
+    if (await above.count()) await tap(page, above);
     await sleep(3000);
     // 上から見る画面で「歩く」：あなたが道順の上を歩いて進む（とびとびにしない）。エレベーターの手前で「B3 を押す」
     await tap(page, page.getByRole("button", { name: "歩く", exact: true }));
@@ -481,6 +485,10 @@ scenes["route3d-oedo"] = {
       await sleep(60);
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
+    // 案内を始めると歩く目線に切り替わるので、この場面は上から見る画面に戻してから進める
+    await sleep(1500);
+    const above = page.getByRole("button", { name: "まわりを上から見る" });
+    if (await above.count()) await tap(page, above);
     mark("facing");
     await sleep(2500);
     await tap(page, page.getByRole("button", { name: "歩く", exact: true }));

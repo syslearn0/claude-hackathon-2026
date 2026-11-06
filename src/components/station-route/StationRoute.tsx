@@ -1181,16 +1181,26 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     setPlaying(false);
     setStarted(true);
     openFull();
+    // 案内を始めたら、歩く目線（一人称）に切り替える。途中の「向きを直す」では見え方を変えない
+    if (!fix) {
+      setMore(true);
+      setView("walk");
+    }
     setCalibNote(
       ok ? `${fix ? "向きを直しました" : "向きを合わせました"}。ずれてきたら「向きを直す」で、いつでも合わせ直せます。` : "スマホの向きが取れません（パソコンなど）。向きなしで案内します。",
     );
   };
   const alignSkip = async () => {
+    const fix = aligning === "fix";
     setAligning(null);
     followAsked.current = true;
     await askSensors();
     setStarted(true);
     openFull();
+    if (!fix) {
+      setMore(true);
+      setView("walk");
+    }
     setCalibNote("磁石の向きで始めました（地下ではずれることがあります）。「向きを直す」で合わせられます。");
   };
   // 確認ポイントで位置を合わせたとき：そこで向いているのは、来た向きか進む向きのはず。近い方にスマホの向きを半分寄せる
@@ -1627,7 +1637,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           {route && goal && !started && !aligning && (
             <div style={{ ...HUD, bottom: 8, padding: "8px 10px" }}>
               <div style={{ fontSize: "0.85rem", opacity: 0.9, marginBottom: 6 }}>地図は指で動かして見られます。歩き出すときに押してください。</div>
-              <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => setAligning("start")}>
+              {/* 道順が短すぎて向きが決まらない（出発とトイレが同じ点など）ときは、向きを合わせずに始める */}
+              <button className="primary" style={{ ...BIG, width: "100%" }} onClick={() => (path.pts.length < 2 ? alignSkip() : setAligning("start"))}>
                 案内をスタート
               </button>
             </div>
