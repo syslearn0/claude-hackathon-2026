@@ -184,6 +184,22 @@ export function Walk({
           [0, lo],
         ].some(([u, w]) => inPoly(v, p.x + dx * u + dz * w, -(p.z + dz * u - dx * w)));
       });
+    // 階段・エスカレーターが、部屋の箱の高さ（床から 2.8m）の中を通るか。
+    // 階段の下の空間（国交省データの「その他の空間」など）が部屋として入っていて、箱を立てると上の段や踊り場が箱に埋まる
+    const overFlight = (v: THREE.Vector2[], fl: number) =>
+      (liftData?.flights ?? []).some(({ a, b, room }) => {
+        const len = Math.hypot(b.x - a.x, b.z - a.z);
+        if (len < 0.1) return false;
+        const [dx, dz] = [(b.x - a.x) / len, (b.z - a.z) / len];
+        const half = Math.min(1.2, room / 2);
+        for (let t = 0; t <= 1.0001; t += Math.min(1, 0.5 / len)) {
+          const h = a.y + (b.y - a.y) * t - fl * FLOOR_M;
+          if (h <= 0.05 || h >= 2.8) continue;
+          const [x, z] = [a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t];
+          if ([-half, 0, half].some((u) => inPoly(v, x - dz * u, -(z + dx * u)))) return true;
+        }
+        return false;
+      });
     const floors = new Map<number, THREE.BufferGeometry[]>();
     const walls = new Map<number, THREE.BufferGeometry[]>();
     // 道順が中を通る（またはふちから 0.6m 以内を通る）部屋・店は、箱を立てない（箱の中に目が入ると、壁しか見えずちかちかする）
@@ -211,7 +227,7 @@ export function Walk({
           g.rotateX(-Math.PI / 2);
           g.translate(0, fl * FLOOR_M, 0);
           floors.set(fl, [...(floors.get(fl) ?? []), g]);
-        } else if (!routeInside(shape.getPoints(), fl) && !overGateRow(shape.getPoints(), fl)) {
+        } else if (!routeInside(shape.getPoints(), fl) && !overGateRow(shape.getPoints(), fl) && !overFlight(shape.getPoints(), fl)) {
           // 改札の列にかかる部屋・店の箱は立てない（改札機のあいだに壁が立つ）
           const g = new THREE.ExtrudeGeometry(shape, { depth: 2.8, bevelEnabled: false });
           g.rotateX(-Math.PI / 2);

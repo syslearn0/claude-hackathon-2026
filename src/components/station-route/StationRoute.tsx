@@ -543,6 +543,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     live.current = { pos, cps, picking, path, floorNow, pick: pickAt };
   });
 
+  // 上り下りを終えたところ：階段・坂は「上った／降りた」、エスカレーター・エレベーターは乗り物なので「降りた」
+  const alightText = (c: Checkpoint) => (c.via === "stairs" || c.via === "slope" ? `${KIND_JA[c.via]}を${c.up ? "上った" : "降りた"}` : `${KIND_JA[c.via!]}を降りた`);
   // 確認ポイントの呼び方と、そこで押すボタン
   const cpLabel = (c: Checkpoint) =>
     c.kind === "turn"
@@ -550,7 +552,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       : c.kind === "board"
         ? `${KIND_JA[c.via!]}の乗り口`
         : c.kind === "alight"
-          ? `${KIND_JA[c.via!]}を降りたところ・${floorName(c.toFloor!)}`
+          ? `${alightText(c)}ところ・${floorName(c.toFloor!)}`
           : c.kind === "gate"
             ? `${gateText(c)}ところ`
             : "トイレ";
@@ -564,7 +566,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   // ボタン：「いまここにいる」と押して、位置をピンクの印に合わせる
   const cpButton = (c: Checkpoint) =>
     c.kind === "alight"
-      ? `${KIND_JA[c.via!]}を降りた`
+      ? alightText(c)
       : c.kind === "arrive"
         ? "トイレに着いた"
         : c.kind === "gate"
