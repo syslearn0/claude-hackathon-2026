@@ -15,6 +15,7 @@ import { describeTrainCars } from "@/lib/train-cars";
 import { headline, isInStation, rankFromRef, stationAt, stationRefs, type Station, type StationRef } from "@/lib/station-mode";
 import { indoorAt, INDOOR_STATIONS } from "@/lib/indoor";
 import { cacheLoadedFiles } from "../SwRegister";
+import { SHOW } from "@/lib/ui-flags";
 import { AfterPanel } from "./AfterPanel";
 import { EmergencyReview } from "./EmergencyReview";
 import { IndoorMap } from "./IndoorMap";
@@ -535,7 +536,7 @@ export default function NowPage() {
         </>
       )}
 
-      {notifyState === "default" && (
+      {SHOW.notifyAsk && notifyState === "default" && (
         <p className="card">
           <button
             onClick={() =>

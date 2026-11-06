@@ -376,8 +376,8 @@ scenes.route3d = {
     check["押す階が出た"] = await seen(page, /乗ったら右を押す/, 60_000);
     // 押す階を少し見せてから、歩く目線に切り替えて（歩いたまま）エレベーターに乗り、トイレまで
     await sleep(6000);
-    await page.getByRole("button", { name: /もっと見る/ }).click();
-    await page.getByRole("button", { name: "歩く目線" }).click();
+    // 全画面の右上の丸いボタンで、歩く目線に切り替える
+    await page.getByRole("button", { name: "歩く目線で見る" }).click();
     await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     check["トイレに着いた"] = await seen(page, "トイレに着きました", 90_000);
     await sleep(3000);

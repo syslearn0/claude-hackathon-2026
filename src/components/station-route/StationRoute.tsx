@@ -13,6 +13,7 @@ import { floorReach, gateDirs, gateFrames, gatePasses, onFloor, type FloorPoly, 
 import { liftParts } from "@/lib/lifts";
 import VOIDS from "../../../data/station-voids.json";
 import WALLS from "../../../data/station-walls.json";
+import { SHOW } from "@/lib/ui-flags";
 import { Heading, headingFromEuler, signedDiff } from "@/lib/orientation";
 import { bearingDeg, startHint, turnAdvice, type HintMark, type PlatformInfo } from "@/lib/start-hint";
 import { FLOOR_M, maneuvers, nearestOnPath, pointAt, routePath, type Maneuver } from "@/lib/maneuvers";
@@ -1865,7 +1866,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           )}
         </div>
       </div>
-      {!asking && (
+      {!asking && SHOW.routeToolbar && (
         <div className="chips" style={{ marginTop: 6 }}>
           <button aria-pressed={picking} onClick={() => setPicking(!picking)}>
             地図で位置を直す
@@ -1892,7 +1893,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           {trackNote}
         </p>
       )}
-      {!asking && view === "above" && (
+      {!asking && view === "above" && SHOW.routeLegend && (
         <div className="chips muted" style={{ fontSize: "0.8rem", marginTop: 6 }}>
           <span style={{ color: "#f2b705" }}>━ いまの手順</span>
           <span style={{ color: "#d93025" }}>━ 道順</span>
@@ -1903,10 +1904,12 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
           {hasCompass && <span style={{ color: "#d93025" }}>◢◣ スマホの向き</span>}
         </div>
       )}
-      <p className="muted" style={{ fontSize: "0.8rem" }}>
-        上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。最初に「案内をスタート」で向きを合わせると、後ろを向いて歩けば来た道を戻り、横を向いているあいだは止まります。向きがずれてきたら「🧭
-        向きを直す」で合わせ直せます。
-      </p>
+      {SHOW.routeHelp && (
+        <p className="muted" style={{ fontSize: "0.8rem" }}>
+          上から見る：いまの手順のまわりと、通る階だけ。指で回す・2本指で拡大。歩く目線：指でドラッグするとまわりを見渡せます（離すと前に向き直ります）。地下では現在地が取れないので、ピンクの印（次の確認ポイント）に来たらボタンで位置を合わせるか、センサーで進めます。最初に「案内をスタート」で向きを合わせると、後ろを向いて歩けば来た道を戻り、横を向いているあいだは止まります。向きがずれてきたら「🧭
+          向きを直す」で合わせ直せます。
+        </p>
+      )}
 
       {/* ④ 条件を変える */}
       <details className="card">
