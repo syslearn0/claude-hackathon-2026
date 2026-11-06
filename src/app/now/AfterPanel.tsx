@@ -56,7 +56,7 @@ export function AfterPanel({ pos, places, profile }: { pos: LatLon; places: Plac
 
   return (
     <section className="card">
-      <h2 style={{ marginTop: 0 }}>トイレに入った後：次どうする？</h2>
+      <h2 style={{ marginTop: 0 }}>次どうする？</h2>
       <p className="muted" style={{ marginTop: 0 }}>
         当てはまるものを選んでください（いくつでも）。
       </p>

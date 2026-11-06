@@ -47,3 +47,18 @@ export function describeTrainCars(line: string): string | null {
   const trust = e.official ? "" : "・公式資料で未確認";
   return `${e.line}（${e.service ?? "全列車"}）：${parts.join("、")}${e.conditions ? `（${e.conditions}）` : ""}・確認 ${e.checkedAt}${trust}`;
 }
+
+// 計画の画面で行を分けて出すための形（describeTrainCars と同じ中身）
+export function trainCarsParts(line: string): { title: string; facts: string[]; note: string } | null {
+  const e = findTrainCars(line);
+  if (!e) return null;
+  const facts: string[] = [];
+  if (e.toiletCars?.length) facts.push(`トイレ：${list(e.toiletCars)}`);
+  else if (e.toiletCars && e.toiletCars.length === 0) facts.push("車内トイレなし");
+  if (e.accessibleToiletCars?.length) facts.push(`多機能トイレ：${list(e.accessibleToiletCars)}`);
+  if (e.weakAcCars?.length) facts.push(`弱冷房車：${list(e.weakAcCars)}`);
+  else if (e.weakAcCars && e.weakAcCars.length === 0) facts.push("弱冷房車なし");
+  if (facts.length === 0) return null;
+  const note = [e.conditions, `確認 ${e.checkedAt}`, e.official ? "" : "公式資料で未確認"].filter(Boolean).join("・");
+  return { title: `${e.line}（${e.service ?? "全列車"}）`, facts, note };
+}

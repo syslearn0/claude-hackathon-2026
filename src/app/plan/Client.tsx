@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Answer } from "@/lib/agent/answer";
 import { PLAN_CONDITIONS } from "@/lib/agent/modes";
 import type { NearbyItem } from "@/lib/nearby";
 import { displayName } from "@/lib/nearby";
 import type { Place } from "@/lib/places";
-import { describeTrainCars } from "@/lib/train-cars";
+import { trainCarsParts } from "@/lib/train-cars";
 import { describeProfile, loadProfile } from "@/lib/profile";
 import { clearPlan, loadTodayPlan, savePlan, type SavedPlan } from "@/lib/saved-plan";
 import { Badges, Details, MapLink, NumberBadge } from "../now/PlaceInfo";
@@ -38,6 +38,9 @@ export default function PlanPage() {
   const [error, setError] = useState("");
   const [plan, setPlan] = useState<SavedPlan | null>(() => loadTodayPlan());
   const [saved, setSaved] = useState(() => loadTodayPlan() !== null);
+  // 保存した計画があれば、まず計画を見せる（入力欄は「作り直す」で開く）。共有から届いたときは入力欄から
+  const [editing, setEditing] = useState(() => !!shared || loadTodayPlan() === null);
+  const result = useRef<HTMLElement>(null);
 
   const toggle = (id: string) => setConditions((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]));
 
@@ -58,6 +61,9 @@ export default function PlanPage() {
       }
       setPlan({ createdAt: new Date().toISOString(), note, conditions, answer: json.answer as Answer, places: json.places as Place[] });
       setSaved(false);
+      setEditing(false);
+      // できた計画の頭へ（入力欄の下に出るので、押したあと気づけるように）
+      setTimeout(() => result.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch {
       setError("時間内に計画が届きませんでした。通信を確かめて、もう一度試してください。");
     } finally {
@@ -65,77 +71,117 @@ export default function PlanPage() {
     }
   };
 
+  const saveBar = plan && (
+    <div className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
+      {saved ? (
+        <>
+          <div>
+            <strong>この計画で出かけます。</strong>この端末に保存しました。外出中は「今すぐトイレ」の画面に出ます。
+          </div>
+          <div className="row" style={{ marginTop: 8 }}>
+            <Link href="/now" className="button primary" style={{ flex: 1, padding: 10 }}>
+              今すぐトイレを開く
+            </Link>
+            <button
+              onClick={() => {
+                clearPlan();
+                setSaved(false);
+              }}
+            >
+              保存を消す
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <button
+            className="primary big"
+            onClick={() => {
+              if (savePlan(plan)) setSaved(true);
+              else setError("この端末に保存できませんでした。");
+            }}
+          >
+            この計画で出かける（端末に保存）
+          </button>
+          <div className="muted" style={{ marginTop: 4 }}>
+            保存すると、外出中に「今すぐトイレ」の画面で、いまどの駅の間にいるかと次の駅のトイレを出せます。
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <main>
-      <p className="muted">
+      <p className="muted" style={{ margin: 0 }}>
         <Link href="/">← もどる</Link>
       </p>
       <h1>出かける前の計画</h1>
-      {shared && <p className="card">共有された経路を「今日の予定」に入れました。条件を選んで「計画を作る」を押してください。</p>}
-      <p className="muted" style={{ marginTop: 0 }}>
-        経路は、いつもの乗換アプリで調べてください（
-        <a href={TRANSIT_URL} target="_blank" rel="noreferrer">
-          Yahoo!乗換案内を開く
-        </a>
-        ）。
-        {!installed && " Android でこのアプリをホーム画面に追加すると、乗換アプリの「共有」から経路をここへ送れます。"}
-      </p>
 
-      <label className="field">
-        <span>今日の予定</span>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          maxLength={1000}
-          placeholder="例：今日は調子が悪い。京都から新宿に初めて行く。昼すぎに新宿に着いて、南口の近くで用事。"
-        />
-        <div className="muted">
-          乗換アプリで調べた経路を、そのまま貼り付けられます。トイレや店のデータがあるのは、いまは新宿駅・東京駅・京都駅の周りと、京阪 丹波橋〜出町柳の沿線です。
-        </div>
-      </label>
-      {/* 話した言葉は、書いてある予定の後ろに足す */}
-      <VoiceInput onText={(t) => setNote((prev) => (prev ? `${prev}${/[。、\s]$/.test(prev) ? "" : "。"}${t}` : t).slice(0, 1000))} />
-      <div className="chips">
-        {PLAN_CONDITIONS.map((c) => (
-          <button key={c.id} aria-pressed={conditions.includes(c.id)} onClick={() => toggle(c.id)}>
-            {c.label}
-          </button>
-        ))}
-      </div>
-      <button className="primary big" style={{ marginTop: 12 }} onClick={make} disabled={busy || !note.trim()}>
-        {busy ? "計画を作っています…（30秒ほど）" : "計画を作る"}
-      </button>
-      <p className="muted">書いた予定を AI に送って計画を作ります（保存はしません）。経路は、書いた・貼ったものをそのまま使います。</p>
-      {error && <p className="card">{error}</p>}
+      {editing ? (
+        <>
+          {shared && <p className="card">共有された経路を入れました。当てはまるものを選んで「計画を作る」を押してください。</p>}
 
-      {plan && <PlanView plan={plan} />}
+          <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+            <h2 style={{ margin: 0 }}>1. 経路と予定</h2>
+            <a href={TRANSIT_URL} target="_blank" rel="noreferrer" className="button" style={{ padding: "6px 12px", flexShrink: 0 }}>
+              乗換案内を開く
+            </a>
+          </div>
+          <p className="muted" style={{ margin: "6px 0" }}>
+            乗換アプリで調べた経路を貼り付けるか、声や文字で入れてください。
+            {!installed && " Android でこのアプリをホーム画面に追加すると、乗換アプリの「共有」からここへ送れます。"}
+          </p>
+          <textarea
+            aria-label="経路と予定"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={1000}
+            placeholder="例：京都 8:30発 → 東京 10:45着（のぞみ）、東京 10:55発 → 新宿 11:10着（中央線快速）。昼すぎに新宿の南口で用事。"
+            style={{ minHeight: 110 }}
+          />
+          {/* 話した言葉は、書いてある予定の後ろに足す */}
+          <VoiceInput onText={(t) => setNote((prev) => (prev ? `${prev}${/[。、\s]$/.test(prev) ? "" : "。"}${t}` : t).slice(0, 1000))} />
+          <details className="muted">
+            <summary>データがある場所</summary>
+            トイレや店のデータがあるのは、いまは新宿駅・東京駅・京都駅の周り、京阪 丹波橋〜出町柳の沿線、都営大江戸線の一部の駅です。
+          </details>
 
-      {plan && (
-        <div className="row" style={{ marginTop: 12 }}>
-          {saved ? (
-            <>
-              <span className="muted">この計画を、この端末に保存しています。「今すぐトイレ」の画面にも出ます。</span>
-              <button
-                onClick={() => {
-                  clearPlan();
-                  setSaved(false);
-                }}
-              >
-                保存を消す
+          <h2>2. 今日の調子・条件</h2>
+          <p className="muted" style={{ margin: "0 0 6px" }}>
+            当てはまるものを選んでください（いくつでも。なくてもよい）。
+          </p>
+          <div className="chips">
+            {PLAN_CONDITIONS.map((c) => (
+              <button key={c.id} aria-pressed={conditions.includes(c.id)} onClick={() => toggle(c.id)}>
+                {c.label}
               </button>
-            </>
-          ) : (
-            <button
-              className="primary big"
-              onClick={() => {
-                if (savePlan(plan)) setSaved(true);
-                else setError("この端末に保存できませんでした。");
-              }}
-            >
-              この計画で出かける（端末に保存）
+            ))}
+          </div>
+
+          <button className="primary big" style={{ marginTop: 16 }} onClick={make} disabled={busy || !note.trim()}>
+            {busy ? "計画を作っています…（30秒ほど）" : "計画を作る"}
+          </button>
+          <p className="muted">書いた予定を AI に送って計画を作ります（保存はしません）。経路は、書いた・貼ったものをそのまま使います。</p>
+          {plan && !busy && (
+            <button style={{ width: "100%" }} onClick={() => setEditing(false)}>
+              作り直さずに、前の計画を見る
             </button>
           )}
-        </div>
+        </>
+      ) : (
+        <button style={{ width: "100%" }} onClick={() => setEditing(true)}>
+          予定を書き直して、計画を作り直す
+        </button>
+      )}
+      {error && <p className="card">{error}</p>}
+
+      {plan && !editing && (
+        <section ref={result} style={{ scrollMarginTop: 8 }}>
+          {saveBar}
+          <PlanView plan={plan} />
+          {!saved && saveBar}
+        </section>
       )}
     </main>
   );
@@ -154,21 +200,43 @@ export function PlanView({ plan }: { plan: SavedPlan }) {
   let n = 0;
   const route = plan.answer.route ?? [];
   return (
-    <section style={{ marginTop: 16 }}>
-      <p style={{ fontWeight: 700 }}>{plan.answer.summary}</p>
+    <section style={{ marginTop: 8 }}>
+      <p style={{ fontWeight: 700, fontSize: "1.05rem" }}>{plan.answer.summary}</p>
       {route.length >= 2 && (
         <div className="card">
           <h2 style={{ marginTop: 0 }}>経路と車内の設備</h2>
-          <div>{route.map((r) => `${r.station}${r.arr ? ` ${r.arr}着` : ""}${r.dep ? ` ${r.dep}発` : ""}`).join(" → ")}</div>
-          {route.slice(0, -1).map((r, i) => {
-            const cars = r.line ? describeTrainCars(r.line) : null;
-            return (
-              <div key={i} className="muted" style={{ marginTop: 4 }}>
-                {r.station} → {route[i + 1].station}：{r.line ?? "路線不明"}
-                {cars ? <div style={{ color: "var(--fg)" }}>{cars}</div> : r.line ? "（車内設備のデータなし）" : ""}
-              </div>
-            );
-          })}
+          {/* 駅を縦に並べ、駅と駅の間に乗る電車と、トイレのある号車 */}
+          <ol className="route">
+            {route.map((r, i) => {
+              const cars = i < route.length - 1 && r.line ? trainCarsParts(r.line) : null;
+              const times = [r.arr && `${r.arr}着`, r.dep && `${r.dep}発`].filter(Boolean).join("・");
+              return (
+                <li key={i}>
+                  <strong>{r.station}</strong>
+                  {times && <span className="muted"> {times}</span>}
+                  {i < route.length - 1 && (
+                    <div className="leg">
+                      <div>{r.line ?? "路線不明"}</div>
+                      {cars ? (
+                        <>
+                          {cars.facts.map((f) => (
+                            <div key={f} style={{ fontWeight: 600 }}>
+                              {f}
+                            </div>
+                          ))}
+                          <div className="muted" style={{ fontSize: "0.8rem" }}>
+                            {cars.title}・{cars.note}
+                          </div>
+                        </>
+                      ) : (
+                        r.line && <div className="muted">車内設備のデータなし</div>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
           <div className="muted" style={{ marginTop: 4, fontSize: "0.8rem" }}>
             経路は貼った・書いたものをそのまま使っています。号車の情報は鉄道会社の案内が出典です（編成によって違うことがあります）。
           </div>

@@ -272,7 +272,7 @@ scenes.after = {
     check["最初の候補が出た"] = await seen(page, /トイレ/, 30_000);
     mark("start");
     await sleep(3000); // 見直しは通す（位置は動かないので 1 件）
-    await tap(page, page.getByRole("button", { name: "トイレに入った（次どうする？）" }));
+    await tap(page, page.getByRole("button", { name: "トイレに入った後" }));
     await sleep(1500);
     await tap(page, page.getByRole("button", { name: "下着を汚した" }));
     await sleep(1200);

@@ -118,7 +118,8 @@ export function Badges({ item }: { item: NearbyItem }) {
 // 行き先（トイレや店）の位置だけを渡す。利用者の位置は渡さない
 // inStation：駅の中では Google マップの歩きの道順も構内（階・改札）を扱えないので、場所を見せるだけにする
 // big：一番近いトイレのカードでは、緊急時に押しやすい大きなボタンにする
-export function MapLink({ item, inStation = false, big = false }: { item: NearbyItem; inStation?: boolean; big?: boolean }) {
+// secondary：駅の中では道順（3D）を主にするので、地図は控えめな大きいボタンにする
+export function MapLink({ item, inStation = false, big = false, secondary = false }: { item: NearbyItem; inStation?: boolean; big?: boolean; secondary?: boolean }) {
   const { lat, lon } = item.place;
   const href = inStation
     ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
@@ -127,7 +128,7 @@ export function MapLink({ item, inStation = false, big = false }: { item: Nearby
   const label = inStation ? "Google マップで場所を見る" : "Google マップで道順を見る";
   if (big) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className="button primary big" style={{ marginTop: 10 }}>
+      <a href={href} target="_blank" rel="noreferrer" className={secondary ? "button big" : "button primary big"} style={{ marginTop: 8 }}>
         {label}
       </a>
     );

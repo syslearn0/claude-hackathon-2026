@@ -124,6 +124,8 @@ a.button {
   text-decoration: none;
   border-radius: 8px;
   border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
 }
 
 button.primary,
@@ -171,6 +173,75 @@ th {
   border-bottom: 1px solid var(--line);
   padding: 4px;
   text-align: left;
+}
+
+/* 「探す」「入った後」の切り替え */
+.seg {
+  display: flex;
+  gap: 0;
+  margin: 8px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.seg button {
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 8px;
+  font-weight: 700;
+}
+
+.seg button + button {
+  border-left: 1px solid var(--line);
+}
+
+.seg button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* 小さい見出し（カードの中の「一番の候補」など） */
+.label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+details > summary {
+  cursor: pointer;
+  color: var(--accent);
+  padding: 4px 0;
+}
+
+/* 計画の経路：駅を縦に並べ、駅と駅の間に乗る電車と車内の設備 */
+ol.route {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ol.route > li {
+  position: relative;
+  padding-left: 22px;
+}
+
+ol.route > li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.55em;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+ol.route .leg {
+  border-left: 3px solid var(--line);
+  margin: 4px 0 4px -14px;
+  padding: 4px 0 8px 14px;
 }
 
 .tag {

@@ -49,11 +49,12 @@ const StationRoute = dynamic(loadStationRoute, {
 
 export default function NowPage() {
   const [pos, setPos] = useState<{ at: LatLon; how: string } | null>(null);
-  const [status, setStatus] = useState(() =>
-    "geolocation" in navigator ? "位置を確かめています…" : "位置が使えません。下から今いる駅を選んでください。",
-  );
+  const [status, setStatus] = useState(() => ("geolocation" in navigator ? "位置を確かめています…" : "位置が使えません。下から今いる駅を選んでください。"));
   const [all, setAll] = useState<PlacesResponse | null>(null);
+  // 「トイレに入った後」の画面か
   const [after, setAfter] = useState(false);
+  // 基準の場所を選び直す一覧を開いているか
+  const [picking, setPicking] = useState(false);
   // 駅の中で「いまどこ？」に選んだホーム・改札（キーは label）
   const [refKey, setRefKey] = useState<string | null>(null);
   // ①で保存した今日の計画（あれば）
@@ -82,7 +83,9 @@ export default function NowPage() {
   // 電波のあるうちに裏で読み込んで、端末に持っておく（駅の地図のデータはサービスワーカーが最初から持っている）
   useEffect(() => {
     const t = setTimeout(() => {
-      loadStationRoute().then(cacheLoadedFiles).catch(() => {});
+      loadStationRoute()
+        .then(cacheLoadedFiles)
+        .catch(() => {});
     }, 3000);
     return () => clearTimeout(t);
   }, []);
@@ -98,6 +101,7 @@ export default function NowPage() {
     setStatus("");
     setRefKey(null);
     setTrainOff(true);
+    setPicking(false);
     setPos({ at, how });
   };
 
@@ -192,10 +196,7 @@ export default function NowPage() {
     const id = navigator.geolocation.watchPosition(
       (p) => {
         const now = Date.now();
-        fixes.current = [
-          ...fixes.current.filter((f) => now - f.t < 240_000),
-          { t: now, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, speed: p.coords.speed },
-        ];
+        fixes.current = [...fixes.current.filter((f) => now - f.t < 240_000), { t: now, lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, speed: p.coords.speed }];
         setLastFixAt(now);
         if (p.coords.accuracy <= 200) setLive({ lat: p.coords.latitude, lon: p.coords.longitude });
         setSituation(estimateSituation(fixes.current, all.stations ?? [], now, route));
@@ -213,11 +214,7 @@ export default function NowPage() {
   const train = !trainOff && situation?.state === "vehicle" && situation.nextStation ? situation : null;
   const fromGps = pos?.how.startsWith("現在地") ?? false;
   const trainCars = train?.segment?.line ? describeTrainCars(train.segment.line) : null;
-  const baseAt: LatLon | undefined = train
-    ? { lat: train.nextStation!.lat, lon: train.nextStation!.lon }
-    : fromGps && live && pos && distanceM(live, pos.at) > 300
-      ? live
-      : pos?.at;
+  const baseAt: LatLon | undefined = train ? { lat: train.nextStation!.lat, lon: train.nextStation!.lon } : fromGps && live && pos && distanceM(live, pos.at) > 300 ? live : pos?.at;
 
   // 場所データは位置と関係なく丸ごと受け取る（位置をサーバーに送らないため）
   useEffect(() => {
@@ -281,6 +278,12 @@ export default function NowPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indoorStation]);
 
+  // 基準の場所を言葉で
+  const placeText = !pos ? "まだ決まっていません" : baseAt && pos.at !== baseAt && !train ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how;
+  const showPicker = picking || !pos;
+  // 着替えられる場所が、上に出したトイレと同じなら繰り返さない
+  const shownToilets = new Set(data?.toilets.map((x) => x.place.id) ?? []);
+
   return (
     <main>
       <div className="row" style={{ justifyContent: "space-between" }}>
@@ -291,34 +294,71 @@ export default function NowPage() {
           自分の情報
         </Link>
       </div>
+      <h1 style={{ margin: "4px 0 0" }}>今すぐトイレ</h1>
 
-      {plan && (
-        <p className="card">
-          <strong>今日の計画</strong>：{plan.answer.summary} <Link href="/plan">計画を見る</Link>
-        </p>
-      )}
+      {/* 探しているとき／トイレに入った後、で画面を切り替える */}
+      <div className="seg" role="group" aria-label="いまの場面">
+        <button aria-pressed={!after} onClick={() => setAfter(false)}>
+          トイレを探す
+        </button>
+        <button aria-pressed={after} onClick={() => setAfter(true)}>
+          トイレに入った後
+        </button>
+      </div>
 
-      {train ? (
-        <section className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
-          {train.where && (
-            <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.3 }}>
-              いま：{train.where}
-            </div>
+      {/* 基準の場所。「変える」で、その場で駅を選び直せる */}
+      <section className="card" style={{ padding: "8px 12px" }}>
+        <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+          <div style={{ minWidth: 0 }}>
+            <div className="label">基準の場所</div>
+            <div style={{ fontWeight: 600 }}>{placeText}</div>
+          </div>
+          {pos && (
+            <button onClick={() => setPicking(!picking)} style={{ flexShrink: 0 }}>
+              {picking ? "閉じる" : "変える"}
+            </button>
           )}
+        </div>
+        {status && train?.basis !== "schedule" && <div style={{ marginTop: 4 }}>{status}</div>}
+        {showPicker && (
+          <div className="chips" style={{ marginTop: 8 }}>
+            <button
+              onClick={() => {
+                chosen.current = false;
+                setTrainOff(false);
+                setPicking(false);
+                setStatus("位置を確かめています…");
+                locate();
+              }}
+            >
+              現在地をもう一度
+            </button>
+            {presets.map((p) => (
+              <button key={p.label} onClick={() => choose(p.pos, `${p.label}（駅の中心のだいたいの位置）`)}>
+                {p.mark}
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {plan && (
+          <div className="muted" style={{ marginTop: 6 }}>
+            今日の計画：{plan.answer.summary} <Link href="/plan">見る</Link>
+          </div>
+        )}
+      </section>
+
+      {train && (
+        <section className="card" style={{ borderColor: "var(--accent)", borderWidth: 2 }}>
+          {train.where && <div style={{ fontSize: "1.4rem", fontWeight: 800, lineHeight: 1.3 }}>いま：{train.where}</div>}
           {train.plan && <div>{train.plan}</div>}
           <strong>
-            {train.basis === "schedule"
-              ? "位置が取れないので、予定の時刻から推定しました"
-              : train.betweenStations
-                ? "駅と駅の間で止まっていると推定しました"
-                : "電車で移動中と推定しました"}
+            {train.basis === "schedule" ? "位置が取れないので、予定の時刻から推定しました" : train.betweenStations ? "駅と駅の間で止まっていると推定しました" : "電車で移動中と推定しました"}
             ：次の駅（推定）{train.nextStation!.name}駅のトイレを出しています
           </strong>
           <div className="muted">{train.reason}</div>
           {lastFixAt !== null && clock - lastFixAt > 30_000 && (
-            <div style={{ marginTop: 4 }}>
-              位置が {Math.round((clock - lastFixAt) / 1000)} 秒取れていません（地下かもしれません）。最後の推定のまま出しています。
-            </div>
+            <div style={{ marginTop: 4 }}>位置が {Math.round((clock - lastFixAt) / 1000)} 秒取れていません（地下かもしれません）。最後の推定のまま出しています。</div>
           )}
           {trainCars && <div style={{ marginTop: 4 }}>{trainCars}</div>}
           <div className="row" style={{ marginTop: 6 }}>
@@ -326,81 +366,42 @@ export default function NowPage() {
             <button onClick={() => document.getElementById("route-editor")?.scrollIntoView({ behavior: "smooth" })}>電車の予定を変える</button>
           </div>
         </section>
-      ) : (
-        pos && <p className="muted">基準：{baseAt && pos.at !== baseAt ? "いまの位置（最初の位置から300m以上動いたため）" : pos.how}</p>
       )}
-      {/* 予定の時刻から出しているときは、上の枠で位置が取れないことを伝えているので重ねない */}
-      {status && train?.basis !== "schedule" && <p className="card">{status}</p>}
       {!train && situation?.basis === "schedule" && situation.where && (
         <p className="card">
           予定では、いま<strong>{situation.where}</strong>です。{situation.plan}
         </p>
       )}
 
-      {inside && !indoorOpen && !noticeClosed && (
-        <section className="card" style={{ borderColor: "var(--accent)" }}>
-          <strong>{inside}駅の範囲に入りました</strong>
-          <div className="muted">駅の中の地図に、トイレの候補を階ごとに重ねて出せます。</div>
-          <button
-            style={{ marginTop: 6 }}
-            onClick={() => {
-              setNoticeClosed(true);
-              openIndoor();
-            }}
-          >
-            駅の中の地図を開く
-          </button>
-        </section>
-      )}
-
-      {first && (
-        <section className="card" ref={firstBox} style={{ borderWidth: 2, borderColor: "var(--accent)", scrollMarginTop: 8 }}>
-          <div className="muted">
-            <NumberBadge n={numberOf.get(first.place.id)} tier={first.place.tier} />
-            {ref ? `${ref.label}から近いトイレ` : station ? `${station}駅のトイレ` : "一番近いトイレ"}
-          </div>
-          <div style={{ fontSize: station ? "1.5rem" : "2rem", fontWeight: 800, lineHeight: 1.25 }}>
-            {headOf(first)?.main ?? `${first.direction}へ 約${first.walkMin}分`}
-          </div>
-          {headOf(first)?.sub && <div className="muted">{headOf(first)!.sub}</div>}
-          <div>
-            {displayName(first.place)}
-            {!station && `（直線 ${first.meters}m）`}
-          </div>
-          <Details item={first} compact={!!station} />
-          <Badges item={first} />
-          <MapLink item={first} inStation={isInStation(first, station)} big />
-          {indoorStation && (
-            <button className={routeOpen ? "" : "primary"} style={{ marginTop: 8, width: "100%" }} onClick={() => setRouteOpen(!routeOpen)}>
-              {routeOpen ? "駅の中の道順を閉じる" : `${indoorStation}駅の中の道順を出す（3D）`}
-            </button>
+      {after ? (
+        pos && all ? (
+          <AfterPanel pos={baseAt ?? pos.at} places={all.places} profile={profile} />
+        ) : (
+          <p className="card">上の「基準の場所」を決めると、近くの店などから次の手順を出します。</p>
+        )
+      ) : (
+        <>
+          {inside && !indoorOpen && !noticeClosed && (
+            <section className="card" style={{ borderColor: "var(--accent)" }}>
+              <strong>{inside}駅の範囲に入りました</strong>
+              <div className="muted">駅の中の地図に、トイレの候補を階ごとに重ねて出せます。</div>
+              <button
+                style={{ marginTop: 6 }}
+                onClick={() => {
+                  setNoticeClosed(true);
+                  openIndoor();
+                }}
+              >
+                駅の中の地図を開く
+              </button>
+            </section>
           )}
-          {indoorStation && routeOpen && <StationRoute key={indoorStation} station={indoorStation} goalId={first.place.id} embedded />}
-        </section>
-      )}
 
-      {pos && data && (
-        <EmergencyReview
-          pos={live ?? pos.at}
-          programFirstId={first?.place.id}
-          situationText={describeSituation(
-            situation ?? { state: "unknown", reason: pos.how.startsWith("現在地") ? "位置は1回だけ取れた" : `利用者が「${pos.how}」を選んだ` },
-            live ?? pos.at,
-            first ? `${first.place.id}（${displayName(first.place)}）` : undefined,
-            plan?.answer.summary,
-          ) + (describeProfile(profile, "emergency") ? `\n${describeProfile(profile, "emergency")}` : "")}
-        />
-      )}
-
-      {station && (
-        <section className="card">
-          <div>
-            <strong>いまどこ？（{station}駅の中）</strong>
-          </div>
-          {refs.length > 0 ? (
-            <>
-              <div className="muted">選ぶと、そこから実際に歩いて測った時間の短い順に並べ替えます。</div>
-              <div className="chips" style={{ marginTop: 6 }}>
+          {/* 駅の中：どこにいるかを選ぶと一番の候補が変わるので、候補より先に出す */}
+          {station && refs.length > 0 && (
+            <section style={{ margin: "12px 0" }}>
+              <div className="label">いまどこ？（選ぶと、そこから歩いて近い順に並べ替えます）</div>
+              <div className="chips" style={{ marginTop: 4 }}>
                 {refs.map((r) => {
                   const key = `${r.kind}:${r.label}`;
                   return (
@@ -410,81 +411,127 @@ export default function NowPage() {
                   );
                 })}
               </div>
+            </section>
+          )}
+
+          {first && (
+            <section className="card" ref={firstBox} style={{ borderWidth: 2, borderColor: "var(--accent)", scrollMarginTop: 8 }}>
+              <div className="label">
+                <NumberBadge n={numberOf.get(first.place.id)} tier={first.place.tier} />
+                一番の候補{ref ? `（${ref.label}から）` : station ? `（${station}駅の中）` : ""}
+              </div>
+              <div style={{ fontSize: station ? "1.5rem" : "2rem", fontWeight: 800, lineHeight: 1.25, marginTop: 4 }}>{headOf(first)?.main ?? `${first.direction}へ 約${first.walkMin}分`}</div>
+              {headOf(first)?.sub && <div className="muted">{headOf(first)!.sub}</div>}
+              <div style={{ fontWeight: 600 }}>
+                {displayName(first.place)}
+                {!station && <span className="muted">（直線 {first.meters}m）</span>}
+              </div>
+              <Details item={first} compact={!!station} />
+              <Badges item={first} />
+              {station && refs.length === 0 && <div className="muted" style={{ marginTop: 6 }}>この駅の中はまだ現地で測っていません。改札の内外・階はデータのとおりです。</div>}
+              {indoorStation && (
+                <button className={routeOpen ? "big" : "primary big"} style={{ marginTop: 10 }} onClick={() => setRouteOpen(!routeOpen)}>
+                  {routeOpen ? "駅の中の道順を閉じる" : `${indoorStation}駅の中の道順を出す（3D）`}
+                </button>
+              )}
+              {indoorStation && routeOpen && <StationRoute key={indoorStation} station={indoorStation} goalId={first.place.id} embedded />}
+              <MapLink item={first} inStation={isInStation(first, station)} big secondary={!!indoorStation} />
+            </section>
+          )}
+
+          {pos && data && (
+            <EmergencyReview
+              pos={live ?? pos.at}
+              programFirstId={first?.place.id}
+              situationText={
+                describeSituation(
+                  situation ?? { state: "unknown", reason: pos.how.startsWith("現在地") ? "位置は1回だけ取れた" : `利用者が「${pos.how}」を選んだ` },
+                  live ?? pos.at,
+                  first ? `${first.place.id}（${displayName(first.place)}）` : undefined,
+                  plan?.answer.summary,
+                ) + (describeProfile(profile, "emergency") ? `\n${describeProfile(profile, "emergency")}` : "")
+              }
+            />
+          )}
+
+          {data && data.toilets.length === 0 && <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください。</p>}
+
+          {data && data.toilets.length > 1 && (
+            <>
+              <h2>ほかのトイレ</h2>
+              {data.toilets.slice(1).map((x) => (
+                <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
+              ))}
             </>
-          ) : (
-            <div className="muted">
-              この駅の中はまだ現地で測っていません。方角と距離は目安です。改札の内外・階を先に出しています。
-            </div>
           )}
-        </section>
-      )}
 
-      {indoorStation && (
-        <section className="card" ref={indoorBox} style={{ scrollMarginTop: 8 }}>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <strong>{indoorStation}駅の中の地図</strong>
-            <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
-          </div>
-          {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}
-          {indoorOpen && first && (
-            <button
-              style={{ marginTop: 8, width: "100%" }}
-              onClick={() => {
-                setRouteOpen(true);
-                setTimeout(() => firstBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-              }}
-            >
-              トイレまでの道順を出す（上のカードの中に出ます）
-            </button>
+          {baseAt && points.length > 0 && (
+            <>
+              <h2>地図（番号は一覧と同じ）</h2>
+              <MapView center={baseAt} points={points} />
+            </>
           )}
-        </section>
-      )}
 
-      {pos && all && (
-        <>
-          {!after ? (
-            <button className="big" onClick={() => setAfter(true)}>
-              トイレに入った（次どうする？）
-            </button>
-          ) : (
-            <AfterPanel pos={baseAt ?? pos.at} places={all.places} profile={profile} />
+          {indoorStation && (
+            <section className="card" ref={indoorBox} style={{ scrollMarginTop: 8 }}>
+              <div className="row" style={{ justifyContent: "space-between" }}>
+                <strong>{indoorStation}駅の中の地図</strong>
+                <button onClick={() => setIndoorOpen(!indoorOpen)}>{indoorOpen ? "閉じる" : "開く"}</button>
+              </div>
+              {indoorOpen && <IndoorMap station={indoorStation} points={points} here={live && indoorAt(live) ? live : undefined} />}
+              {indoorOpen && first && (
+                <button
+                  style={{ marginTop: 8, width: "100%" }}
+                  onClick={() => {
+                    setRouteOpen(true);
+                    setTimeout(() => firstBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                  }}
+                >
+                  一番の候補までの道順を出す（上のカードの中に出ます）
+                </button>
+              )}
+            </section>
+          )}
+
+          {data && (
+            <>
+              <h2>着替えられる場所（多機能トイレ）</h2>
+              {data.changeRooms.length ? (
+                data.changeRooms.map((x) =>
+                  shownToilets.has(x.place.id) ? (
+                    <p key={x.place.id}>
+                      <NumberBadge n={numberOf.get(x.place.id)} tier={x.place.tier} />
+                      上の {numberOf.get(x.place.id)} 番（{displayName(x.place)}）が多機能トイレです。
+                    </p>
+                  ) : (
+                    <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
+                  ),
+                )
+              ) : (
+                <p className="muted">近くに多機能トイレのデータがありません。</p>
+              )}
+
+              <h2>替えを買える店</h2>
+              <p className="muted">品ぞろえは店によって違います。「現地確認済み」の店だけ、置いてあった品目を出しています。</p>
+              {data.stores.map((x) => (
+                <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
+              ))}
+            </>
           )}
         </>
       )}
 
-      {baseAt && points.length > 0 && <MapView center={baseAt} points={points} />}
-
-      {data && data.toilets.length === 0 && (
-        <p className="card">近く（1.5km 以内）にトイレのデータがありません。駅員や店員に聞いてください。</p>
-      )}
-
-      {data && data.toilets.length > 1 && (
+      {all && (
         <>
-          <h2>ほかのトイレ</h2>
-          {data.toilets.slice(1).map((x) => (
-            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
-          ))}
-        </>
-      )}
-
-      {data && (
-        <>
-          <h2>着替えられる場所（多機能トイレ）</h2>
-          {data.changeRooms.length ? (
-            data.changeRooms.map((x) => <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />)
-          ) : (
-            <p className="muted">近くに多機能トイレのデータがありません。</p>
-          )}
-
-          <h2>替えを買える店</h2>
-          <p className="muted">品ぞろえは店によって違います。「現地確認済み」の店だけ、置いてあった品目を出しています。</p>
-          {data.stores.map((x) => (
-            <Item key={x.place.id} item={x} n={numberOf.get(x.place.id)} head={headOf(x)} inStation={isInStation(x, station)} />
-          ))}
-          <p className="muted">
-            © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成／出典：国土交通省 高精度測位社会プロジェクト、「新宿駅周辺屋内地図データ」「東京駅周辺屋内地図データ」（国土交通省）を加工して作成／出典：「歩行空間ネットワークデータ（都営地下鉄大江戸線 各駅）」構内地図データ（国土交通省）を加工して作成
-          </p>
-          <p className="muted">近くの場所はこの端末の中で探しています。現在地をサーバーに送るのは、AI の見直しがオンのときだけです（保存はしません）。</p>
+          <RouteEditor
+            plan={plan}
+            stationNames={new Set(all.stations.map((s) => s.name))}
+            onSaved={(p) => {
+              setPlan(p);
+              // 経路を直したら、「違う」で止めた自動の切り替えも戻す
+              setTrainOff(false);
+            }}
+          />
         </>
       )}
 
@@ -505,37 +552,15 @@ export default function NowPage() {
         </p>
       )}
 
-      {all && (
-        <RouteEditor
-          plan={plan}
-          stationNames={new Set(all.stations.map((s) => s.name))}
-          onSaved={(p) => {
-            setPlan(p);
-            // 経路を直したら、「違う」で止めた自動の切り替えも戻す
-            setTrainOff(false);
-          }}
-        />
-      )}
-
-      <h2>今いる場所を選ぶ</h2>
-      <div className="chips">
-        <button
-          onClick={() => {
-            chosen.current = false;
-            setTrainOff(false);
-            setStatus("位置を確かめています…");
-            locate();
-          }}
-        >
-          現在地をもう一度
-        </button>
-        {presets.map((p) => (
-          <button key={p.label} onClick={() => choose(p.pos, `${p.label}（駅の中心のだいたいの位置）`)}>
-            {p.mark}
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <details className="muted" style={{ marginTop: 16 }}>
+        <summary>データの出典・プライバシー</summary>
+        <p>近くの場所はこの端末の中で探しています。現在地をサーバーに送るのは、AI の見直しがオンのときだけです（保存はしません）。</p>
+        <p>
+          © OpenStreetMap contributors (ODbL 1.0)／出典：東京都「車椅子使用者対応トイレのバリアフリー情報」（CC BY 4.0）を加工して作成／出典：国土交通省
+          高精度測位社会プロジェクト、「新宿駅周辺屋内地図データ」「東京駅周辺屋内地図データ」（国土交通省）を加工して作成／出典：「歩行空間ネットワークデータ（都営地下鉄大江戸線
+          各駅）」構内地図データ（国土交通省）を加工して作成
+        </p>
+      </details>
     </main>
   );
 }

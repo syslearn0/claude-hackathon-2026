@@ -15,15 +15,7 @@ const ENABLED_KEY = "ai.review.enabled";
 
 type Review = { answer: Answer; places: Place[]; ms: number };
 
-export function EmergencyReview({
-  pos,
-  situationText,
-  programFirstId,
-}: {
-  pos: LatLon;
-  situationText: string;
-  programFirstId?: string;
-}) {
+export function EmergencyReview({ pos, situationText, programFirstId }: { pos: LatLon; situationText: string; programFirstId?: string }) {
   const [enabled, setEnabled] = useState(() => loadJson<boolean>(ENABLED_KEY, true));
   const [review, setReview] = useState<Review | null>(null);
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
@@ -78,16 +70,20 @@ export function EmergencyReview({
 
   if (!enabled) {
     return (
-      <div className="card">
-        <button
-          onClick={() => {
-            saveJson(ENABLED_KEY, true);
-            setEnabled(true);
-          }}
-        >
-          AI の見直しをオンにする
-        </button>
-        <div className="muted">
+      <div className="card" style={{ borderStyle: "dashed", padding: "8px 12px" }}>
+        <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+          <span className="muted">AI の見直しはオフです</span>
+          <button
+            style={{ flexShrink: 0 }}
+            onClick={() => {
+              saveJson(ENABLED_KEY, true);
+              setEnabled(true);
+            }}
+          >
+            オンにする
+          </button>
+        </div>
+        <div className="muted" style={{ fontSize: "0.8rem" }}>
           オンにすると、この画面を開くたびに現在地とプログラムの推定を AI に送り、状況を判断し直します（保存はしません）。画面の候補はそのまま出ます。
         </div>
       </div>
@@ -98,60 +94,62 @@ export function EmergencyReview({
   const aiFirst = firstStep?.placeIds[0];
   const aiPlace = review?.places.find((p) => p.id === aiFirst);
   const same = !aiFirst || aiFirst === programFirstId;
+  const other = !same && !!aiPlace;
   const toItem = (p: Place) => {
     const m = distanceM(pos, p);
     return { place: p, meters: Math.round(m), walkMin: walkMinutes(m), direction: directionJa(bearingDeg(pos, p)) };
   };
 
+  // ふだんは1行だけ。AI が別の候補を勧めたときだけ、目立たせて候補を出す
   return (
-    <div className="card" style={{ borderStyle: "dashed" }}>
-      <div className="row" style={{ justifyContent: "space-between" }}>
-        <div>
-          <strong>AI の見直し</strong>
-          <div className="muted" style={{ fontSize: "0.8rem" }}>
-            現在地とプログラムの推定を AI に送っています（保存はしません）
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            saveJson(ENABLED_KEY, false);
-            setEnabled(false);
-            setReview(null);
-          }}
-        >
-          オフにする
-        </button>
+    <div className="card" style={{ borderStyle: other ? "solid" : "dashed", borderColor: other ? "var(--accent)" : undefined, padding: "8px 12px" }}>
+      <div>
+        <strong>AI の見直し：</strong>
+        {state === "busy" && !review && <span className="muted">見直しています…（そのあいだも、上の候補へ向かえます）</span>}
+        {state === "error" && <span className="muted">できませんでした。上の候補を使ってください。</span>}
+        {review && <span style={{ fontWeight: other ? 700 : 400 }}>{review.answer.summary}</span>}
       </div>
-      {state === "busy" && <div className="muted">見直しています…（そのあいだも、上の候補へ向かえます）</div>}
-      {state === "error" && <div className="muted">見直しができませんでした。上の候補を使ってください。</div>}
-      {review && (
+      {other && (
         <>
-          <div className="muted">{(review.ms / 1000).toFixed(0)}秒で届きました</div>
-          <p style={{ fontWeight: 700, margin: "6px 0" }}>{review.answer.summary}</p>
-          {!same && aiPlace && (
-            <>
-              <div>別の候補：{firstStep?.text}</div>
-              <Item item={toItem(aiPlace)} />
-            </>
-          )}
-          {review.answer.steps.slice(1).map((s, i) => (
-            <div key={i} style={{ marginTop: 6 }}>
-              <div>{s.text}</div>
-              {s.placeIds
-                .map((id) => review.places.find((p) => p.id === id))
-                .filter((p): p is Place => !!p)
-                .map((p) => (
-                  <Item key={p.id} item={toItem(p)} />
-                ))}
-            </div>
-          ))}
-          {review.answer.notes.map((n, i) => (
-            <p key={i} className="muted" style={{ margin: "4px 0" }}>
-              ※ {n}
-            </p>
-          ))}
+          <div style={{ marginTop: 4 }}>別の候補：{firstStep?.text}</div>
+          <Item item={toItem(aiPlace!)} />
         </>
       )}
+      <details>
+        <summary style={{ fontSize: "0.85rem" }}>くわしく</summary>
+        {review && <div className="muted">{(review.ms / 1000).toFixed(0)}秒で届きました</div>}
+        {review?.answer.steps.slice(1).map((s, i) => (
+          <div key={i} style={{ marginTop: 6 }}>
+            <div>{s.text}</div>
+            {s.placeIds
+              .map((id) => review.places.find((p) => p.id === id))
+              .filter((p): p is Place => !!p)
+              .map((p) => (
+                <Item key={p.id} item={toItem(p)} />
+              ))}
+          </div>
+        ))}
+        {review?.answer.notes.map((n, i) => (
+          <p key={i} className="muted" style={{ margin: "4px 0" }}>
+            ※ {n}
+          </p>
+        ))}
+        <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap", marginTop: 6 }}>
+          <span className="muted" style={{ fontSize: "0.8rem" }}>
+            現在地とプログラムの推定を AI に送っています（保存はしません）
+          </span>
+          <button
+            style={{ flexShrink: 0 }}
+            onClick={() => {
+              saveJson(ENABLED_KEY, false);
+              setEnabled(false);
+              setReview(null);
+            }}
+          >
+            オフにする
+          </button>
+        </div>
+      </details>
     </div>
   );
 }
