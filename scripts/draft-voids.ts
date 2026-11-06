@@ -1,7 +1,7 @@
 // 吹き抜けの一覧（data/station-voids.json）の下書きを作る。下書きのあと、駅ごとに上から見た画面を見て、手で直す。
 // 使い方：npx tsx scripts/draft-voids.ts 大門 麻布十番 …（駅を指定しなければ、大江戸線の駅すべて。すでにある駅は上書きしない。--force で上書き）
 // 開けるところ：階段・エスカレーター（と、そのあいだの踊り場）が、上の階の床の下を通るところ。
-// 1 つのまとまり（踊り場でつながる段、並んだ上り・下り）ごとに、上がってくる階の床に、通り道を囲む四角を 1 つ。
+// 線（段・エスカレーター・踊り場）ごとに、上がってくる階の床に、通り道を囲む四角を 1 つ（同じ線の上で続くものは 1 つに）。
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { KIND, type Network } from "../src/lib/route";
 
@@ -79,7 +79,10 @@ for (const name of args.length ? args : OEDO) {
         const [qc0, qc1] = [Math.min(...cs.map((p) => p.c)), Math.max(...cs.map((p) => p.c))];
         const gapA = Math.max(qa0 - r.a1, r.a0 - qa1);
         const gapC = Math.max(qc0 - r.c1, r.c0 - qc1);
-        if (gapA > 1 || gapC > 1) continue;
+        // 合わせるのは、同じ線の上で続くもの（段と踊り場）だけ。横に並ぶ階段とエスカレーターを合わせると、
+        // 先に上りきる階段の先まで床が抜けて、階段が床から離れて見える
+        const sameLine = Math.abs((r.c0 + r.c1) / 2 - (qc0 + qc1) / 2) < 0.5;
+        if (!sameLine || gapA > 1 || gapC > 1) continue;
         rects[i] = {
           ...r,
           a0: Math.min(r.a0, qa0),
@@ -95,7 +98,11 @@ for (const name of args.length ? args : OEDO) {
         break outer;
       }
   }
+  // 手で消すもの：新宿西口 B1.5 の広い踊り場は、データでは斜めに交わる通路の線の束（扇形）で、四角がばらばらに並ぶだけで
+  // 吹き抜けの形にならない（平面図で確かめた）
+  const drop = (r: Rect) => name === "新宿西口" && r.kinds.size === 1 && r.kinds.has("踊り場");
   const out: Void[] = rects
+    .filter((r) => !drop(r))
     .filter((r) => r.a1 - r.a0 >= 1)
     .map((r) => ({
       floor: r.F,

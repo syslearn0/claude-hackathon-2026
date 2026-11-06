@@ -807,9 +807,14 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const voids = (STATION_VOIDS[station] ?? []).filter((v) => inRange(v.floor) && v.pts.some(([lat, lon]) => near(lat, lon, crop * 1.2)));
     const voidFloors = new Set(voids.map((v) => v.floor));
     for (const v of voids) {
-      const g = new THREE.ShapeGeometry(new THREE.Shape(v.pts.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z))));
+      // 四角を周りに 0.3m 広げ（となりの吹き抜けとのあいだに細い床が残らないように）、床の厚みの分まで箱にする
+      // （上の面だけだと、板の側面が穴の中に「切り残し」のように残る）
+      const cs = v.pts.map(([lat, lon]) => new THREE.Vector2(xz(lat, lon).x, -xz(lat, lon).z));
+      const c = cs.reduce((m, q) => m.add(q.clone().divideScalar(cs.length)), new THREE.Vector2());
+      const grown = cs.map((q) => q.clone().add(q.clone().sub(c).normalize().multiplyScalar(0.42)));
+      const g = new THREE.ExtrudeGeometry(new THREE.Shape(grown), { depth: T + 0.2, bevelEnabled: false });
       g.rotateX(-Math.PI / 2);
-      g.translate(0, v.floor * FLOOR_H + 0.02, 0);
+      g.translate(0, v.floor * FLOOR_H - T - 0.1, 0);
       const bit = voidBit(v.floor);
       const m = new THREE.MeshBasicMaterial({
         colorWrite: false,
