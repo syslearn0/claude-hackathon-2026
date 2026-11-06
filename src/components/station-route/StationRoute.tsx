@@ -816,7 +816,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       }
     }
 
-    // 上り下り：本物のような階段・エスカレーター・エレベーター（横は 2 倍の大きさ。高さは階の間を広げた分だけ伸びるので、
+    // 上り下り：本物のような階段・エスカレーター・エレベーター（横は実物の大きさ。並んでいるものと重ならないように。高さは階の間を広げた分だけ伸びるので、
     // 階段の 1 段もそのぶん高くして、段の数は実際と同じくらいにする）。エレベーターのガラスは、立体図と同じ水色
     const parts = liftParts(net, (i) => {
       const [lat, lon, floor] = net.nodes[i];
@@ -826,7 +826,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     const nodeNear = (p: { x: number; z: number }) => near(center.lat - p.z / 110_540, center.lon + p.x / kx);
     for (const f of parts.flights) {
       if (!inRange(f.a.floor) || !inRange(f.b.floor) || !(nodeNear(f.a) || nodeNear(f.b))) continue;
-      s.layer.add(f.kind === "stairs" ? stairsModel(f, { k: 2, stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f, { k: 2 }));
+      s.layer.add(f.kind === "stairs" ? stairsModel(f, { stepH: (0.17 * FLOOR_H) / FLOOR_M }) : escalatorModel(f));
     }
     for (const sh of parts.shafts) {
       const stops = sh.stops.filter((t) => inRange(t.floor));

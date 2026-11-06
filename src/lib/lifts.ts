@@ -6,7 +6,8 @@
 import { KIND, type Network } from "./route";
 
 export type LiftPoint = { x: number; y: number; z: number; floor: number };
-export type Flight = { kind: "stairs" | "escalator"; a: LiftPoint; b: LiftPoint; floors: number[] };
+// room：横に使える幅（m）。すぐ横に並ぶ階段・エスカレーター（上りと下りのエスカレーター、そのあいだの階段など）との間隔。重ならないように、これより細く描く
+export type Flight = { kind: "stairs" | "escalator"; a: LiftPoint; b: LiftPoint; floors: number[]; room: number };
 export type ShaftStop = { floor: number; y: number; dx: number; dz: number };
 export type Shaft = { x: number; z: number; stops: ShaftStop[] };
 export type LiftParts = { flights: Flight[]; shafts: Shaft[] };
@@ -38,7 +39,25 @@ export function liftParts(net: Network, at: (i: number) => LiftPoint): LiftParts
     const a = at(l[0]);
     const b = at(l[1]);
     if (Math.hypot(b.x - a.x, b.z - a.z) < 0.3) continue; // 真上・真下の線は描けない（データの誤り）
-    flights.push({ kind: l[3] === KIND.stairs ? "stairs" : "escalator", a, b, floors: [...floorsOf.get(uf.find(l[0]))!].sort((x, y) => x - y) });
+    flights.push({ kind: l[3] === KIND.stairs ? "stairs" : "escalator", a, b, floors: [...floorsOf.get(uf.find(l[0]))!].sort((x, y) => x - y), room: Infinity });
+  }
+  // 横に並ぶもの：向きがほぼ同じ（または逆）で、高さが重なり、前後にも重なるもの。2 本の線の真ん中どうしの横の間隔を、幅の上限にする
+  for (const f of flights) {
+    const L = Math.hypot(f.b.x - f.a.x, f.b.z - f.a.z);
+    const [ux, uz] = [(f.b.x - f.a.x) / L, (f.b.z - f.a.z) / L];
+    for (const g of flights) {
+      if (g === f) continue;
+      const M = Math.hypot(g.b.x - g.a.x, g.b.z - g.a.z);
+      if (Math.abs(ux * ((g.b.x - g.a.x) / M) + uz * ((g.b.z - g.a.z) / M)) < 0.94) continue;
+      if (Math.max(g.a.y, g.b.y) < Math.min(f.a.y, f.b.y) - 0.1 || Math.min(g.a.y, g.b.y) > Math.max(f.a.y, f.b.y) + 0.1) continue;
+      const along = (p: { x: number; z: number }) => (p.x - f.a.x) * ux + (p.z - f.a.z) * uz;
+      const [g0, g1] = [along(g.a), along(g.b)].sort((x, y) => x - y);
+      if (g1 < 0.5 || g0 > L - 0.5) continue;
+      const mx = (g.a.x + g.b.x) / 2 - f.a.x;
+      const mz = (g.a.z + g.b.z) / 2 - f.a.z;
+      const side = Math.abs(mx * -uz + mz * ux);
+      if (side > 0.05) f.room = Math.min(f.room, side);
+    }
   }
 
   // エレベーター

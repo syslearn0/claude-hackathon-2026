@@ -31,3 +31,19 @@ test("麻布十番駅：階段・エスカレーターの線と、エレベー�
   assert.ok(sh.stops.length >= 2);
   for (const t of sh.stops) assert.ok(Math.abs(Math.hypot(t.dx, t.dz) - 1) < 1e-6);
 });
+
+test("大門駅：横に並ぶ階段・エスカレーターには、となりとの間隔（room）が入り、描く幅がそれに収まる", () => {
+  const net = JSON.parse(readFileSync("data/network/daimon.json", "utf8")) as Network;
+  const kx = 111_320 * Math.cos((35.656 * Math.PI) / 180);
+  const { flights } = liftParts(net, (i) => {
+    const [lat, lon, floor] = net.nodes[i];
+    return { x: lon * kx, y: floor * 5, z: -lat * 110_540, floor };
+  });
+  const side = flights.filter((f) => f.room < Infinity);
+  assert.ok(side.length > 0);
+  // 描く幅（lift-model.ts と同じ決め方）が、となりとの間隔を超えない
+  for (const f of side) {
+    const w = f.kind === "stairs" ? Math.max(0.6, Math.min(2.4, f.room - 0.15)) : 2 * Math.max(0.3, Math.min(0.62, (f.room - 0.1) / 2));
+    assert.ok(w <= f.room, `${f.kind} room ${f.room}`);
+  }
+});

@@ -113,7 +113,7 @@ function ends(f: Flight) {
 export function stairsModel(f: Flight, opt: { k?: number; stepH?: number } = {}): THREE.Group {
   const m = S();
   const k = opt.k ?? 1;
-  const W = 2.4 * k;
+  const W = Math.max(0.6, Math.min(2.4 * k, f.room - 0.15)); // となりと重ならない幅
   const { lo, hi, L, H } = ends(f);
   const p = new Parts();
   if (H < 0.05) {
@@ -129,10 +129,16 @@ export function stairsModel(f: Flight, opt: { k?: number; stepH?: number } = {})
       p.box(m.nosing, W - 0.12 * k, 0.012, Math.min(0.06, d / 3), 0, top + 0.006, i * d + Math.min(0.03, d / 6));
     }
   }
-  // 両わきの低い壁と、その上の手すり
+  // 両わきの側板（段の端をおおう）と、手すり（柱つき）
+  const posts = Math.max(1, Math.round(Math.hypot(L, H) / 3));
   for (const s of [-1, 1]) {
-    p.slant(m.stairWall, 0.1 * k, 1.2 * k, (s * W) / 2, 0, 0, L, H, 0.3 * k);
-    p.rod(m.rail, 0.03 * k, s * (W / 2 - 0.12 * k), 0, 0.85 * k, L, H + 0.85 * k);
+    p.slant(m.stairWall, 0.06, 0.45, (s * W) / 2, 0, 0, L, H, 0.05);
+    const x = s * (W / 2 - 0.04);
+    p.rod(m.rail, 0.03, x, 0, 0.9, L, H + 0.9);
+    for (let i = 0; i <= posts; i++) {
+      const t = i / posts;
+      p.box(m.rail, 0.03, 0.9, 0.03, x, t * H + 0.45, t * L);
+    }
   }
   return place(p.group(), lo, hi);
 }
@@ -142,10 +148,12 @@ export function escalatorModel(f: Flight, opt: { k?: number } = {}): THREE.Group
   const m = S();
   const k = opt.k ?? 1;
   const { lo, hi, L, H } = ends(f);
-  const half = 0.5 * k; // 段の幅の半分
-  const side = 0.62 * k; // 欄干の位置
+  // 高さの変わらない部分（エスカレーターとエスカレーターのあいだの、階の途中の高さの通路）は、手すりのある踊り場として描く
+  if (H < 0.05) return stairsModel(f, { k });
+  const side = Math.max(0.3, Math.min(0.62 * k, (f.room - 0.1) / 2)); // 欄干の位置（となりと重ならない）
+  const half = side - 0.12; // 段の幅の半分
   const rail = 0.95 * k; // 手すりの高さ
-  const run = 0.9 * k; // 両端の平らなところ（乗り降り口）
+  const run = 0.35 * k; // 両端の平らなところ（乗り降り口。データの端の点は乗り降りしたあとの床なので、はみ出しは短く）
   const p = new Parts();
   // 段の帯：平ら → 坂 → 平ら（v は 0.4m で 1 段）
   const prof: [number, number][] = [
@@ -179,22 +187,22 @@ export function escalatorModel(f: Flight, opt: { k?: number } = {}): THREE.Group
       p.slant(m.handrail, 0.09 * k, 0.05 * k, s * side, z0, y0, z1, y1, rail); // 手すり
     }
   }
-  // 坂の下の骨組み（横から見える箱）
-  p.slant(m.truss, 1.5 * k, 1.1 * k, 0, 0, 0, L, H, -0.56 * k);
+  // 坂の下の骨組み（横から見える箱。欄干の幅のまま）
+  p.slant(m.truss, 2 * side, 0.8, 0, 0, 0, L, H, -0.42);
   // 手すりの両端は丸く折り返す
   for (const s of [-1, 1])
     for (const [z, y, dir] of [
       [-run, 0, -1],
       [L + run, H, 1],
     ] as const) {
-      const g = new THREE.TorusGeometry(0.42 * k, 0.045 * k, 6, 14, Math.PI);
+      const g = new THREE.TorusGeometry(0.34 * k, 0.045 * k, 6, 14, Math.PI);
       g.rotateZ(Math.PI / 2); // 左半分の弧
       g.rotateY((dir * Math.PI) / 2); // 外へふくらむ向き
-      g.translate(s * side, y + rail - 0.42 * k, z);
+      g.translate(s * side, y + rail - 0.34 * k, z);
       p.add(m.handrail, g);
-      const disc = new THREE.CircleGeometry(0.42 * k, 14, Math.PI / 2, Math.PI);
+      const disc = new THREE.CircleGeometry(0.34 * k, 14, Math.PI / 2, Math.PI);
       disc.rotateY((dir * Math.PI) / 2);
-      disc.translate(s * side, y + rail - 0.42 * k, z);
+      disc.translate(s * side, y + rail - 0.34 * k, z);
       p.add(m.glass, disc);
     }
   // くし板（黄色）と、乗り降り口の床の板
@@ -203,8 +211,8 @@ export function escalatorModel(f: Flight, opt: { k?: number } = {}): THREE.Group
     [L, H],
   ])
     p.box(m.comb, 2 * half, 0.015, 0.06 * k, 0, y + 0.02, z);
-  p.box(m.steel, 2 * side + 0.2 * k, 0.02, 0.8 * k, 0, 0.012, -run - 0.4 * k);
-  p.box(m.steel, 2 * side + 0.2 * k, 0.02, 0.8 * k, 0, H + 0.012, L + run + 0.4 * k);
+  p.box(m.steel, 2 * side, 0.02, 0.8, 0, 0.012, -run - 0.4);
+  p.box(m.steel, 2 * side, 0.02, 0.8, 0, H + 0.012, L + run + 0.4);
   return place(p.group(), lo, hi);
 }
 
