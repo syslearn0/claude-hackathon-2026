@@ -31,14 +31,9 @@ type Nearby = {
 
 type PlacesResponse = { places: Place[]; stations: Station[] };
 
-// 地下などで位置が取れないときに選ぶ場所（駅の中心のだいたいの位置）
-const PRESETS: { label: string; pos: LatLon }[] = [
-  { label: "新宿駅", pos: { lat: 35.6896, lon: 139.7006 } },
-  { label: "丹波橋駅", pos: { lat: 34.937, lon: 135.7737 } },
-  { label: "祇園四条駅", pos: { lat: 35.0037, lon: 135.7722 } },
-  { label: "三条駅", pos: { lat: 35.0089, lon: 135.7723 } },
-  { label: "出町柳駅", pos: { lat: 35.0303, lon: 135.7727 } },
-];
+// 地下などで位置が取れないときに選ぶ場所。データがそろっている駅（駅の中の 3D と、周りのトイレ・店）にする。
+// 位置は駅の中の地図の中心（INDOOR_STATIONS）。選ぶと、その駅の中の道順まで試せる
+const PRESETS: { label: string; pos: LatLon }[] = ["新宿", "東京", "京都", "麻布十番"].map((n) => ({ label: `${n}駅`, pos: INDOOR_STATIONS[n].center }));
 
 // 駅の中の道順（3D）。重いので、開いたときだけ読み込む
 // （裏で前もって読み込むときも同じ読み込み方にする。別の書き方だと、地下で開いたときに足りない部品が出る）
