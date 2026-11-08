@@ -4,6 +4,7 @@
 import { execFileSync } from "node:child_process";
 import { copyFile, mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import type { Browser, BrowserContext, Page } from "playwright";
 import { loadStations } from "../src/lib/data";
 import { distanceM, type LatLon } from "../src/lib/geo";
@@ -297,12 +298,27 @@ scenes.plan = {
       process.env.PLAN_TRIP === "shinjuku"
         ? "明日、京都から新宿に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n昼すぎに新宿駅の南口の近くで用事があります。"
         : `明日、京都から${DEMO_STATION}に初めて行きます。\n京都 8:30発 → 東京 10:45着（東海道新幹線 のぞみ）\n東京 10:55発 → 新宿 11:10着（JR中央線快速）\n新宿 11:20発 → ${DEMO_STATION} 11:35着（都営大江戸線）\n昼すぎに${DEMO_STATION}で用事があります。`;
-    await page.goto(`${base}/plan`);
-    mark("start");
     const check: Check = {};
-    const area = page.locator("textarea");
-    await area.click();
-    await area.pressSequentially(note, { delay: 12 });
+    if (process.env.PLAN_TRIP === "shinjuku" || DEMO_STATION !== "麻布十番") {
+      await page.goto(`${base}/plan`);
+      mark("start");
+      const area = page.locator("textarea");
+      await area.click();
+      await area.pressSequentially(note, { delay: 12 });
+    } else {
+      // 外部の乗換アプリ（形だけの小道具。scripts/demo-transit-mock.html）で経路を出して「共有」→ このアプリの /plan に経路の文が入る
+      const mock = pathToFileURL(path.join(process.cwd(), "scripts", "demo-transit-mock.html")).href + `?base=${encodeURIComponent(base)}`;
+      await page.goto(mock);
+      mark("start");
+      await sleep(2500);
+      await tap(page, page.getByRole("button", { name: "共有" }));
+      mark("sheet");
+      await sleep(2200);
+      await tap(page, page.getByRole("button", { name: "トイレ外出サポートで開く" }));
+      check["共有された経路"] = await seen(page, "共有された経路を入れました", 30_000);
+      mark("shared");
+      await sleep(2000);
+    }
     await sleep(1200);
     await tap(page, page.getByRole("button", { name: "今日は調子が悪い" }));
     await sleep(700);
@@ -416,6 +432,11 @@ scenes["train-oedo"] = {
     check["予定の時刻から推定"] = await seen(page, /予定の時刻から推定しました/, 30_000);
     mark("shown");
     check[`次の駅（推定）が${DEMO_STATION}`] = await seen(page, `次の駅（推定）${DEMO_STATION}駅`, 5_000);
+    // 「いま：〇〇〜〇〇の間」のカードを画面の真ん中に（上の「基準の場所」ではなく、推定した位置を見せる）
+    await sleep(800);
+    await page.getByText(/^いま：/).first().evaluate((el) => (el.closest(".card") ?? el).scrollIntoView({ behavior: "smooth", block: "center" }));
+    await sleep(900);
+    mark("centered");
     // 位置がないので AI の見直しは走らない（予定の時刻からの推定と、次の駅のトイレを見せる）
     await sleep(6000);
     await scrollBy(page, 420);

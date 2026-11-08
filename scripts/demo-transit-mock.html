@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- デモ動画の小道具：外部の乗換アプリの「形だけ」（実在のアプリではない）。経路の結果 → 共有 → 共有先の一覧 → トイレ外出サポートの /plan へ。
+     record-demo.ts の plan の場面が開く。?base=http://localhost:3100 で、共有したときに開くアプリの場所を渡す -->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>乗換アプリ（イメージ）</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Yu Gothic UI", "Yu Gothic", "Meiryo", sans-serif; background: #eef1f4; color: #1d2228; }
+  .tag { background: #ffd84d; color: #3a2f00; font-weight: 700; font-size: 14px; text-align: center; padding: 7px 8px; letter-spacing: .02em; }
+  header { background: #2f6f73; color: #fff; padding: 14px 16px 16px; }
+  header .app { font-size: 13px; opacity: .85; }
+  header .od { font-size: 22px; font-weight: 700; margin-top: 6px; }
+  header .when { font-size: 14px; margin-top: 4px; opacity: .9; }
+  .sum { background: #fff; margin: 12px; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .sum .t { font-size: 24px; font-weight: 700; }
+  .sum .s { font-size: 13px; color: #5b6570; margin-top: 2px; }
+  .share { border: 0; background: #2f6f73; color: #fff; font: inherit; font-weight: 700; font-size: 15px; padding: 10px 16px; border-radius: 22px; display: flex; gap: 6px; align-items: center; }
+  .route { background: #fff; margin: 0 12px; border-radius: 12px; padding: 6px 16px 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .st { display: flex; gap: 12px; align-items: center; padding: 10px 0; }
+  .st .tm { width: 48px; font-weight: 700; font-size: 16px; }
+  .st .dot { width: 14px; height: 14px; border-radius: 50%; border: 3px solid #2f6f73; background: #fff; flex: none; }
+  .st .nm { font-size: 18px; font-weight: 700; }
+  .ln { display: flex; gap: 12px; align-items: stretch; }
+  .ln .tm { width: 48px; }
+  .ln .bar { width: 14px; display: flex; justify-content: center; flex: none; }
+  .ln .bar i { width: 5px; border-radius: 3px; }
+  .ln .info { padding: 8px 0 12px; font-size: 14px; color: #3b444d; }
+  .ln .info b { display: block; font-size: 15px; color: #1d2228; }
+  .walk { font-size: 13px; color: #6b747d; padding: 2px 0 2px 60px; }
+  .veil { position: fixed; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 18px 18px 0 0; padding: 12px 16px 28px; transform: translateY(105%); transition: transform .3s ease-out; }
+  .open .veil { opacity: 1; pointer-events: auto; }
+  .open .sheet { transform: none; }
+  .grip { width: 40px; height: 5px; border-radius: 3px; background: #ccd2d8; margin: 0 auto 12px; }
+  .sheet h2 { font-size: 16px; margin: 0 0 4px; }
+  .sheet .pv { font-size: 13px; color: #5b6570; background: #f3f5f7; border-radius: 8px; padding: 8px 10px; white-space: pre-line; margin-bottom: 16px; }
+  .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .apps button { border: 0; background: none; font: inherit; font-size: 12px; color: #1d2228; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; }
+  .apps .ic { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-size: 24px; font-weight: 700; background: #8a949e; overflow: hidden; }
+  .apps .ic img { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="tag">外部の乗換アプリ（画面はイメージ）</div>
+<header>
+  <div class="app">経路の検索結果</div>
+  <div class="od">京都 → 麻布十番</div>
+  <div class="when">11月9日(月) 8:30発 → 11:35着</div>
+</header>
+<div class="sum">
+  <div><div class="t">3時間5分</div><div class="s">乗換 2回</div></div>
+  <button class="share" id="share" aria-label="共有">⇪ 共有</button>
+</div>
+<div class="route" id="route"></div>
+<div class="veil" id="veil"></div>
+<div class="sheet" id="sheet">
+  <div class="grip"></div>
+  <h2>共有</h2>
+  <div class="pv" id="pv"></div>
+  <div class="apps">
+    <button id="ours" aria-label="トイレ外出サポートで開く"><span class="ic"><img id="icon" alt=""></span>トイレ外出</button>
+    <button><span class="ic">✉</span>メール</button>
+    <button><span class="ic">💬</span>メッセージ</button>
+    <button><span class="ic">⧉</span>コピー</button>
+  </div>
+</div>
+<script>
+  const legs = [
+    ["8:30", "京都", "東海道新幹線 のぞみ", "東京行", "#1f5fbf", "10:45", "東京"],
+    ["10:55", "東京", "JR中央線快速", "高尾行", "#e0702b", "11:10", "新宿"],
+    ["11:20", "新宿", "都営大江戸線", "都庁前・六本木方面", "#c2185b", "11:35", "麻布十番"],
+  ];
+  const route = document.getElementById("route");
+  let html = "";
+  legs.forEach(([t0, a, line, dir, color, t1, b], i) => {
+    html += `<div class="st"><span class="tm">${t0}</span><span class="dot"></span><span class="nm">${a}</span></div>`;
+    html += `<div class="ln"><span class="tm"></span><span class="bar"><i style="background:${color}"></i></span><div class="info"><b>${line}</b>${dir}</div></div>`;
+    html += `<div class="st"><span class="tm">${t1}</span><span class="dot"></span><span class="nm">${b}</span></div>`;
+    if (i < legs.length - 1) html += `<div class="walk">乗換</div>`;
+  });
+  route.innerHTML = html;
+  // 共有する文（乗換アプリが送る経路の文の形）
+  const text = ["京都 → 麻布十番", "11/9(月) 8:30発 → 11:35着", ...legs.map(([t0, a, line, , , t1, b]) => `${t0} ${a}発 → ${t1} ${b}着（${line}）`)].join("\n");
+  document.getElementById("pv").textContent = text;
+  const base = new URLSearchParams(location.search).get("base") || "http://localhost:3100";
+  document.getElementById("icon").src = base + "/icon-192.png";
+  document.getElementById("share").onclick = () => document.body.classList.add("open");
+  document.getElementById("veil").onclick = () => document.body.classList.remove("open");
+  document.getElementById("ours").onclick = () => { location.href = base + "/plan?text=" + encodeURIComponent(text); };
+</script>
+</body>
+</html>
