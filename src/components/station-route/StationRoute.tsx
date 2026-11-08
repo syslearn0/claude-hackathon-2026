@@ -193,6 +193,7 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   // スマホの向き（北から時計回りの度）。上から見る画面で「あなた」から扇形で出し、歩く目線もこの向きに回す。速く変わるので state にせず、扇を直接回す。
   // 基準は磁石を使わない相対の向き（ジャイロ）。ホームで線路の向きに合わせたあとは、地下で磁石が狂っても向きがずれない
   const compass = useRef<number | null>(null);
+  const playingRef = useRef(false); // 「歩く」で試しているか（扇の向きを道順に合わせるため）
   const gyro = useRef(new Heading());
   const [hasCompass, setHasCompass] = useState(false);
   const [phoneDeg, setPhoneDeg] = useState<number | null>(null); // 画面に出す用（4 度以上、0.15 秒以上あけて更新）
@@ -203,7 +204,8 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
     if (h === null) return;
     compass.current = h;
     const b = youMark.current?.beam;
-    if (b) {
+    // 「歩く」で試しているあいだは、扇は道順の進む向き（止まっているスマホの向きではない）
+    if (b && !playingRef.current) {
       b.rotation.y = (-h * Math.PI) / 180;
       b.visible = true;
     }
@@ -483,6 +485,9 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
   const current = guide[stepIdx];
   const next = nextCheckpoint(cps, pos);
   const [playing, setPlaying] = useState(false); // 「歩く」（事前に確かめるため、自動で進める）
+  useEffect(() => {
+    playingRef.current = playing;
+  }, [playing]);
   const [rate, setRate] = useState(1); // 「歩く」の速さ（ふつうの何倍か）。押すたびに 0.5 → 1 → 2 → 4 倍
   const [picking, setPicking] = useState(false); // 地図で位置を直す（次のタップ）
   const [follow, setFollow] = useState(true); // 自分に合わせて動く（センサーで位置、スマホの向きで歩く目線の向き）。規定でオン、選んで止める
@@ -1099,7 +1104,13 @@ export function StationRoute({ station, goalId: goalFromUrl = null, embedded = f
       m.cpSign.visible = next.at - pos > 12;
       for (const i of [1, 2, 3]) m.cp.children[i].visible = next.kind !== "gate";
     }
-  }, [pos, path, current, arrived, next]);
+    // 扇の向き：「歩く」で試しているあいだは道順の進む向き、止めたらスマホの向きに戻す
+    const h = playing && path.pts.length > 1 ? routeBearing(path.pts, path.cum, pos) : compass.current;
+    if (h !== null) {
+      m.beam.rotation.y = (-h * Math.PI) / 180;
+      m.beam.visible = true;
+    }
+  }, [pos, path, current, arrived, next, playing]);
 
   // 上から見る画面の「歩く」（試しに自動で進める。歩く目線では Walk が自分で進める）
   useEffect(() => {

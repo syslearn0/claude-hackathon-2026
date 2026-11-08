@@ -478,14 +478,20 @@ scenes["route3d-oedo"] = {
       mark("calibrated");
       await page.evaluate(() => document.querySelector("canvas")?.scrollIntoView({ behavior: "smooth", block: "center" }));
     }
-    await sleep(2500);
-    for (let i = 0; i < 72 && !(await page.getByText(/この向きでOK/).count()); i++) {
-      deg = (deg + 5) % 360;
+    // 案内を始めると歩く目線になる。線路の向きに合わせたことが見えるよう、上から見る画面に戻す（扇がホームに沿う）
+    const above0 = page.getByRole("button", { name: "まわりを上から見る" });
+    await above0.waitFor({ timeout: 8000 }).catch(() => {});
+    await sleep(3000);
+    if (await above0.count()) await tap(page, above0);
+    mark("above");
+    await sleep(2200);
+    // 線路の向き（1号車の側）から、最初に進む向きへ向き直る（上から見る画面で、扇が回る）
+    for (let i = 0; i < 36 && !(await page.getByText(/この向きでOK/).count()); i++) {
+      deg = (deg + 10) % 360;
       await face(deg);
-      await sleep(60);
+      await sleep(70);
     }
     check["この向きでOK"] = (await page.getByText(/この向きでOK/).count()) > 0;
-    // 案内を始めると歩く目線に切り替わるので、この場面は上から見る画面に戻してから進める
     await sleep(1500);
     const above = page.getByRole("button", { name: "まわりを上から見る" });
     if (await above.count()) await tap(page, above);
