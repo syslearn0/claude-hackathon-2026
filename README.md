@@ -1,4 +1,4 @@
-# トイレ外出サポート
+# Kakekomi（アプリ名：トイレ外出サポート）
 
 **Built with Claude: Japan 2026 応募作品**
 公開版：https://claude-hackathon-2026-sigma.vercel.app/
