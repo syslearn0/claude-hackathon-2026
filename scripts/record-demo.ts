@@ -458,7 +458,20 @@ scenes["route3d-oedo"] = {
     const check: Check = {};
     check["道順のボタン"] = await seen(page, `${DEMO_STATION}駅の中の道順を出す`, 30_000);
     mark("card");
-    await sleep(2000);
+    await sleep(1500);
+    // 一番の候補はプログラムがすぐ出す。そのあいだに AI が見直す（下の「AI の見直し」の行が、待ち → 結果に変わる）
+    const review = page.getByText("AI の見直し：").first();
+    await review.evaluate((el) => (el.closest(".card") ?? el).scrollIntoView({ behavior: "smooth", block: "center" }));
+    mark("reviewing");
+    check["AI の見直し"] = await page
+      .waitForFunction(() => {
+        const el = [...document.querySelectorAll("strong")].find((x) => x.textContent === "AI の見直し：");
+        const t = el?.parentElement?.textContent ?? "";
+        return t.length > 8 && !/見直しています/.test(t);
+      }, null, { timeout: 90_000 })
+      .then(() => true, () => false);
+    mark("reviewed");
+    await sleep(3000);
     await tap(page, page.getByRole("button", { name: /駅の中の道順を出す/ }));
     check["いまどこ？"] = await seen(page, "いまどこ？", 30_000);
     mark("question");
